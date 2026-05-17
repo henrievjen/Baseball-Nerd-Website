@@ -86,21 +86,6 @@
   letter-spacing: 0.2px;
 }
 
-/* AdSense square unit */
-.sidebar-ad {
-  padding: 10px 10px 0;
-  flex-shrink: 0;
-
-  ins.adsbygoogle {
-    display: block;
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-    background: var(--surface);  /* placeholder colour while ad loads */
-  }
-}
-
 /* Collapse button */
 .collapse-btn {
   background: none; border: none;
@@ -113,4 +98,86 @@
 
   svg { width: 16px; height: 16px; }
   &:hover { color: var(--text2); }
+}
+
+/* ── Mobile: bottom tab bar ── */
+@media (max-width: 768px) {
+  .sidebar {
+    /* Convert to horizontal bottom bar */
+    top: auto;
+    left: 0; right: 0; bottom: 0;
+    width: 100% !important;   /* override collapsed width */
+    height: var(--mobile-nav-h);
+    flex-direction: row;
+    border-right: none;
+    border-top: 1px solid var(--border);
+    overflow: visible;
+    z-index: 200;
+
+    /* Frosted glass effect */
+    background: rgba(var(--bg2-rgb, 15, 20, 32), 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* Hide desktop-only elements */
+  .brand      { display: none; }
+  .collapse-btn { display: none; }
+  .sidebar-ad   { display: none !important; }
+
+  /* Nav becomes a horizontal row */
+  .nav {
+    flex-direction: row;
+    padding: 0;
+    gap: 0;
+    align-items: stretch;
+    width: 100%;
+    overflow: visible;
+  }
+
+  .nav-item {
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 4px 6px;
+    border-radius: 0;
+    overflow: visible;
+
+    &.active {
+      background: transparent;
+
+      .nav-icon { stroke: var(--red); }
+
+      /* Top line indicator instead of right bar */
+      .active-indicator {
+        position: absolute;
+        top: 0; left: 15%; right: 15%; bottom: auto;
+        width: auto; height: 2px;
+        border-radius: 0 0 2px 2px;
+      }
+    }
+  }
+
+  .nav-icon {
+    width: 22px; height: 22px;
+  }
+
+  .nav-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    /* Always show labels on mobile */
+    display: block !important;
+  }
+}
+
+/* Desktop: hide label when collapsed */
+.hidden-desktop {
+  display: none;
+}
+@media (max-width: 768px) {
+  .hidden-desktop { display: block; }
 }

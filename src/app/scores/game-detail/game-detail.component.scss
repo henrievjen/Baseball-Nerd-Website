@@ -537,7 +537,43 @@
 }
 
 @media (max-width: 640px) {
-  .sz-section  { padding: 14px 14px 0; }
-  .sz-name     { font-size: 0.76rem; }
-  .sz-headshot { width: 36px; height: 36px; }
+  .gd-modal {
+    max-width: 100%;
+  }
+
+  .gd-header      { padding: 16px 14px 10px; }
+  .gd-body        { }
+  .gd-main-tabs   { padding: 0 14px; }
+
+  /* Compact scoreboard */
+  .gd-score       { font-size: 2.4rem; }
+  .gd-team-logo   { width: 40px; height: 40px; }
+  .gd-team-name   { font-size: 0.72rem; }
+  .gd-record      { font-size: 0.65rem; }
+
+  /* Section headers and tables */
+  .section-header { padding: 10px 14px 5px; font-size: 0.76rem; }
+  .bs-table-wrap  { padding: 0 12px 4px; }
+
+  .bs-table {
+    th, td { padding: 7px 7px; font-size: 0.7rem; }
+    thead th { font-size: 0.58rem; }
+    .th-player, .player-name-cell { font-size: 0.76rem; }
+    .lineup-num { font-size: 0.8rem; }
+  }
+
+  /* Plays */
+  .plays-feed     { padding: 10px 12px 20px; }
+  .play-card      { padding: 10px 12px; }
+  .play-description { font-size: 0.78rem; }
+
+  /* Strikezone matchup */
+  .sz-section     { padding: 12px 12px 0; }
+  .sz-name        { font-size: 0.74rem; }
+  .sz-headshot    { width: 34px; height: 34px; }
+  .sz-matchup     { gap: 8px; }
+
+  /* Strikezone SVG scales via max-width */
+  .sz-svg         { max-width: 100%; height: auto; }
+  .sz-canvas-wrap { padding: 0; }
 }

@@ -98,9 +98,19 @@
 .stat-val   { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; color: var(--text); }
 
 @media (max-width: 600px) {
-  .player-hero        { padding: 20px 16px 16px; }
-  .bio-section        { padding: 14px 16px; }
-  .stats-section      { padding: 14px 16px 20px; }
-  .player-photo       { width: 72px; height: 72px; }
-  .player-hero-inner  { gap: 14px; }
+  .player-hero        { padding: 20px 14px 14px; }
+  .player-hero-inner  { gap: 12px; }
+  .player-photo       { width: 64px; height: 64px; }
+  .player-team-badge  { width: 24px; height: 24px; }
+  .player-name        { font-size: clamp(20px, 6vw, 30px); }
+
+  .bio-section        { padding: 12px 14px; }
+  .bio-grid           { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .bio-item           { padding: 8px 10px; }
+  .bio-val            { font-size: 0.82rem; }
+
+  .stats-section      { padding: 12px 14px 20px; }
+  .stat-grid          { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 6px; }
+  .stat-item          { padding: 8px; }
+  .stat-val           { font-size: 0.95rem; }
 }

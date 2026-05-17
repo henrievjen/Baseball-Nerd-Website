@@ -19,6 +19,7 @@
   --font-mono:  'DM Mono', monospace;
   --sidebar-w: 220px;
   --sidebar-collapsed: 64px;
+  --mobile-nav-h: 60px;
   --radius:    10px;
   --radius-sm: 6px;
   --transition: 0.18s ease;
@@ -172,4 +173,16 @@ img { max-width: 100%; }
 
 @media (max-width: 768px) {
   .tabs { overflow-x: auto; }
+
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal-box {
+    border-radius: 20px 20px 0 0;
+    max-height: 92vh;
+    width: 100%;
+    max-width: 100%;
+  }
 }

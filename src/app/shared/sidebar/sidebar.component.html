@@ -33,16 +33,16 @@
         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
       </svg>
 
-      <span class="nav-label" *ngIf="!collapsed">{{ item.label }}</span>
+      <span class="nav-label" [class.hidden-desktop]="collapsed">{{ item.label }}</span>
 
       <span class="active-indicator" *ngIf="isActive(item.route)"></span>
     </a>
   </nav>
 
-  <!-- AdSense unit — hidden via CSS when collapsed, never destroyed -->
+  <!-- AdSense unit — hidden via CSS when sidebar is collapsed, never destroyed -->
   <div class="sidebar-ad" [hidden]="collapsed">
     <ins class="adsbygoogle"
-         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-client="ca-pub-8890032903923645"
          data-ad-slot="XXXXXXXXXX"
          data-ad-format="rectangle"
          style="display:block; width:100%; aspect-ratio:1/1;"></ins>

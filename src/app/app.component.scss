@@ -47,7 +47,7 @@
 
 @media (max-width: 768px) {
   .app-shell { padding-left: 0; }
-  .main-content { padding-bottom: 64px; }
+  .main-content { padding-bottom: var(--mobile-nav-h); }
 
   .theme-toggle {
     top: 14px;
