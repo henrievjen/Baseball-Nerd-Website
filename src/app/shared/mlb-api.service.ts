@@ -51,6 +51,12 @@ export class MlbApiService {
     });
   }
 
+  getPlayByPlay(gamePk: number) {
+    return this.get<any>(`v1/game/${gamePk}/playByPlay`, {
+      hydrate: 'pitchData,hitData'
+    });
+  }
+
   getPerson(personId: number) {
     return this.get<any>(`v1/people/${personId}`, {
       hydrate: 'stats(group=[hitting,pitching],type=[season,career],gameType=R),currentTeam,primaryPosition'

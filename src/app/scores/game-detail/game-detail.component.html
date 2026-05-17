@@ -2,10 +2,9 @@
   <div class="modal-box gd-modal">
     <button class="modal-close" (click)="closed.emit()">&#x2715;</button>
 
-    <!-- Scoreboard header -->
+    <!-- ── Scoreboard header ── -->
     <div class="gd-header">
       <div class="gd-scoreboard">
-        <!-- Away -->
         <div class="gd-team">
           <img class="gd-team-logo" [src]="teams.logo(awayId)" [alt]="away?.team?.name" (error)="logoError($event)"/>
           <div class="gd-team-name">{{ away?.team?.name }}</div>
@@ -13,18 +12,15 @@
           <div class="gd-record" *ngIf="away?.leagueRecord">{{ away.leagueRecord.wins }}-{{ away.leagueRecord.losses }}</div>
         </div>
 
-        <!-- Middle -->
         <div class="gd-middle">
           <div *ngIf="state === 'live'" class="gd-live-badge">
-            <div class="live-dot"></div>
-            {{ inningLabel }}
+            <div class="live-dot"></div>{{ inningLabel }}
           </div>
           <div *ngIf="state === 'final'" class="gd-final-label">FINAL</div>
           <div *ngIf="state === 'upcoming'" class="gd-vs-label">VS</div>
           <div class="gd-venue">{{ game?.venue?.name }}</div>
         </div>
 
-        <!-- Home -->
         <div class="gd-team">
           <img class="gd-team-logo" [src]="teams.logo(homeId)" [alt]="home?.team?.name" (error)="logoError($event)"/>
           <div class="gd-team-name">{{ home?.team?.name }}</div>
@@ -37,126 +33,235 @@
       <div *ngIf="innings.length > 0" class="gd-linescore-wrap">
         <div class="gd-linescore-scroll">
           <table class="gd-linescore">
-            <thead>
-              <tr>
-                <th class="ls-team-col"></th>
-                <th *ngFor="let inn of innings">{{ inn.num }}</th>
-                <th class="ls-total">R</th>
-                <th class="ls-total">H</th>
-                <th class="ls-total">E</th>
-              </tr>
-            </thead>
+            <thead><tr>
+              <th class="ls-team-col"></th>
+              <th *ngFor="let inn of innings">{{ inn.num }}</th>
+              <th class="ls-total">R</th><th class="ls-total">H</th><th class="ls-total">E</th>
+            </tr></thead>
             <tbody>
-              <tr>
-                <td class="ls-team-name">{{ away?.team?.abbreviation || teams.abbr(awayId) }}</td>
-                <td *ngFor="let inn of innings">{{ inn.away?.runs ?? '' }}</td>
-                <td class="ls-total ls-val">{{ awayLineR }}</td>
-                <td class="ls-total ls-val">{{ awayLineH }}</td>
-                <td class="ls-total ls-val">{{ awayLineE }}</td>
-              </tr>
-              <tr>
-                <td class="ls-team-name">{{ home?.team?.abbreviation || teams.abbr(homeId) }}</td>
-                <td *ngFor="let inn of innings">{{ inn.home?.runs ?? '' }}</td>
-                <td class="ls-total ls-val">{{ homeLineR }}</td>
-                <td class="ls-total ls-val">{{ homeLineH }}</td>
-                <td class="ls-total ls-val">{{ homeLineE }}</td>
-              </tr>
+            <tr>
+              <td class="ls-team-name">{{ away?.team?.abbreviation || teams.abbr(awayId) }}</td>
+              <td *ngFor="let inn of innings">{{ inn.away?.runs ?? '' }}</td>
+              <td class="ls-total ls-val">{{ awayLineR }}</td>
+              <td class="ls-total ls-val">{{ awayLineH }}</td>
+              <td class="ls-total ls-val">{{ awayLineE }}</td>
+            </tr>
+            <tr>
+              <td class="ls-team-name">{{ home?.team?.abbreviation || teams.abbr(homeId) }}</td>
+              <td *ngFor="let inn of innings">{{ inn.home?.runs ?? '' }}</td>
+              <td class="ls-total ls-val">{{ homeLineR }}</td>
+              <td class="ls-total ls-val">{{ homeLineH }}</td>
+              <td class="ls-total ls-val">{{ homeLineE }}</td>
+            </tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- Body -->
+    <!-- ── Body ── -->
     <div class="gd-body">
 
-      <!-- Loading -->
-      <div *ngIf="loading" class="spinner-wrap">
-        <div class="spinner"></div>
-        <span>Loading boxscore…</span>
-      </div>
-
-      <!-- Tabs -->
-      <div *ngIf="!loading && boxscore" class="gd-tabs">
-        <button class="tab-btn" [class.active]="activeTab === 'away'" (click)="activeTab = 'away'">
-          {{ away?.team?.abbreviation || 'Away' }} Batting
+      <!-- Top-level tab bar -->
+      <div class="gd-main-tabs">
+        <button class="main-tab-btn" [class.active]="mainTab === 'lineups'"  (click)="mainTab = 'lineups'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="8" y1="6"  x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+            <line x1="8" y1="18" x2="21" y2="18"/>
+            <circle cx="3" cy="6"  r="1" fill="currentColor" stroke="none"/>
+            <circle cx="3" cy="12" r="1" fill="currentColor" stroke="none"/>
+            <circle cx="3" cy="18" r="1" fill="currentColor" stroke="none"/>
+          </svg>
+          Lineups
         </button>
-        <button class="tab-btn" [class.active]="activeTab === 'home'" (click)="activeTab = 'home'">
-          {{ home?.team?.abbreviation || 'Home' }} Batting
+        <button class="main-tab-btn" [class.active]="mainTab === 'plays'" (click)="mainTab = 'plays'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          Plays
         </button>
-        <button class="tab-btn" [class.active]="activeTab === 'pitching'" (click)="activeTab = 'pitching'">
-          Pitching
-        </button>
       </div>
 
-      <!-- Away Batting -->
-      <div *ngIf="!loading && boxscore && activeTab === 'away'" class="bs-table-wrap">
-        <table class="bs-table">
-          <thead><tr><th>Player</th><th>AB</th><th>H</th><th>R</th><th>RBI</th><th>BB</th><th>SO</th></tr></thead>
-          <tbody>
-            <tr *ngFor="let p of getBatters(awayBs)">
-              <td class="player-name-cell" (click)="openPlayer(p)">
-                {{ p.person?.fullName }}
-                <span class="pos-tag">{{ p.position?.abbreviation }}</span>
-              </td>
-              <td>{{ p.stats?.batting?.atBats ?? '' }}</td>
-              <td>{{ p.stats?.batting?.hits ?? '' }}</td>
-              <td>{{ p.stats?.batting?.runs ?? '' }}</td>
-              <td>{{ p.stats?.batting?.rbi ?? '' }}</td>
-              <td>{{ p.stats?.batting?.baseOnBalls ?? '' }}</td>
-              <td>{{ p.stats?.batting?.strikeOuts ?? '' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- ══ LINEUPS TAB ══ -->
+      <ng-container *ngIf="mainTab === 'lineups'">
+        <div *ngIf="loading" class="spinner-wrap">
+          <div class="spinner"></div><span>Loading lineups…</span>
+        </div>
 
-      <!-- Home Batting -->
-      <div *ngIf="!loading && boxscore && activeTab === 'home'" class="bs-table-wrap">
-        <table class="bs-table">
-          <thead><tr><th>Player</th><th>AB</th><th>H</th><th>R</th><th>RBI</th><th>BB</th><th>SO</th></tr></thead>
-          <tbody>
-            <tr *ngFor="let p of getBatters(homeBs)">
-              <td class="player-name-cell" (click)="openPlayer(p)">
-                {{ p.person?.fullName }}
-                <span class="pos-tag">{{ p.position?.abbreviation }}</span>
-              </td>
-              <td>{{ p.stats?.batting?.atBats ?? '' }}</td>
-              <td>{{ p.stats?.batting?.hits ?? '' }}</td>
-              <td>{{ p.stats?.batting?.runs ?? '' }}</td>
-              <td>{{ p.stats?.batting?.rbi ?? '' }}</td>
-              <td>{{ p.stats?.batting?.baseOnBalls ?? '' }}</td>
-              <td>{{ p.stats?.batting?.strikeOuts ?? '' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+        <ng-container *ngIf="!loading && boxscore">
 
-      <!-- Pitching -->
-      <div *ngIf="!loading && boxscore && activeTab === 'pitching'" class="bs-table-wrap">
-        <table class="bs-table">
-          <thead><tr><th>Pitcher</th><th>IP</th><th>H</th><th>ER</th><th>SO</th><th>BB</th></tr></thead>
-          <tbody>
-            <tr class="team-row"><td colspan="6">{{ away?.team?.name }}</td></tr>
-            <tr *ngFor="let p of getPitchers(awayBs)">
-              <td class="player-name-cell" (click)="openPlayer(p)">{{ p.person?.fullName }}</td>
-              <td>{{ p.stats?.pitching?.inningsPitched ?? '' }}</td>
-              <td>{{ p.stats?.pitching?.hits ?? '' }}</td>
-              <td>{{ p.stats?.pitching?.earnedRuns ?? '' }}</td>
-              <td>{{ p.stats?.pitching?.strikeOuts ?? '' }}</td>
-              <td>{{ p.stats?.pitching?.baseOnBalls ?? '' }}</td>
-            </tr>
-            <tr class="team-row"><td colspan="6">{{ home?.team?.name }}</td></tr>
-            <tr *ngFor="let p of getPitchers(homeBs)">
-              <td class="player-name-cell" (click)="openPlayer(p)">{{ p.person?.fullName }}</td>
-              <td>{{ p.stats?.pitching?.inningsPitched ?? '' }}</td>
-              <td>{{ p.stats?.pitching?.hits ?? '' }}</td>
-              <td>{{ p.stats?.pitching?.earnedRuns ?? '' }}</td>
-              <td>{{ p.stats?.pitching?.strikeOuts ?? '' }}</td>
-              <td>{{ p.stats?.pitching?.baseOnBalls ?? '' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+          <!-- Away batting -->
+          <div class="section-header">
+            <img class="section-logo" [src]="teams.logo(awayId)" (error)="logoError($event)"/>
+            <span>{{ away?.team?.name }} Batting</span>
+          </div>
+          <div class="bs-table-wrap">
+            <table class="bs-table">
+              <thead><tr>
+                <th class="th-player">Player</th>
+                <th>AB</th><th>R</th><th>H</th><th>RBI</th><th>HR</th>
+                <th>BB</th><th>K</th><th>AVG</th><th>OBP</th><th>SLG</th><th>OPS</th>
+              </tr></thead>
+              <tbody>
+              <tr *ngFor="let p of getBatters(awayBs)">
+                <td class="player-name-cell" (click)="openPlayer(p)">
+                  {{ p.person?.fullName }}<span class="pos-tag">{{ p.position?.abbreviation }}</span>
+                </td>
+                <td>{{ b(p,'atBats') }}</td>
+                <td>{{ b(p,'runs') }}</td>
+                <td>{{ b(p,'hits') }}</td>
+                <td>{{ b(p,'rbi') }}</td>
+                <td>{{ b(p,'homeRuns') }}</td>
+                <td>{{ b(p,'baseOnBalls') }}</td>
+                <td>{{ b(p,'strikeOuts') }}</td>
+                <td class="avg-cell">{{ b(p,'avg') }}</td>
+                <td class="avg-cell">{{ b(p,'obp') }}</td>
+                <td class="avg-cell">{{ b(p,'slg') }}</td>
+                <td class="avg-cell ops-cell">{{ b(p,'ops') }}</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Away pitching -->
+          <div class="section-header section-header--pitch">
+            <span>{{ away?.team?.name }} Pitching</span>
+          </div>
+          <div class="bs-table-wrap">
+            <table class="bs-table">
+              <thead><tr>
+                <th class="th-player">Pitcher</th>
+                <th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>K</th><th>HR</th>
+                <th>P</th><th>S</th><th>B</th><th>ERA</th><th>WHIP</th>
+              </tr></thead>
+              <tbody>
+              <tr *ngFor="let p of getPitchers(awayBs)">
+                <td class="player-name-cell" (click)="openPlayer(p)">{{ p.person?.fullName }}</td>
+                <td>{{ pit(p,'inningsPitched') }}</td>
+                <td>{{ pit(p,'hits') }}</td>
+                <td>{{ pit(p,'runs') }}</td>
+                <td>{{ pit(p,'earnedRuns') }}</td>
+                <td>{{ pit(p,'baseOnBalls') }}</td>
+                <td>{{ pit(p,'strikeOuts') }}</td>
+                <td>{{ pit(p,'homeRuns') }}</td>
+                <td>{{ pit(p,'numberOfPitches') }}</td>
+                <td>{{ pit(p,'strikes') }}</td>
+                <td>{{ pit(p,'balls') }}</td>
+                <td class="avg-cell">{{ pit(p,'era') }}</td>
+                <td class="avg-cell">{{ pit(p,'whip') }}</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Divider -->
+          <div class="lineup-divider"></div>
+
+          <!-- Home batting -->
+          <div class="section-header">
+            <img class="section-logo" [src]="teams.logo(homeId)" (error)="logoError($event)"/>
+            <span>{{ home?.team?.name }} Batting</span>
+          </div>
+          <div class="bs-table-wrap">
+            <table class="bs-table">
+              <thead><tr>
+                <th class="th-player">Player</th>
+                <th>AB</th><th>R</th><th>H</th><th>RBI</th><th>HR</th>
+                <th>BB</th><th>K</th><th>AVG</th><th>OBP</th><th>SLG</th><th>OPS</th>
+              </tr></thead>
+              <tbody>
+              <tr *ngFor="let p of getBatters(homeBs)">
+                <td class="player-name-cell" (click)="openPlayer(p)">
+                  {{ p.person?.fullName }}<span class="pos-tag">{{ p.position?.abbreviation }}</span>
+                </td>
+                <td>{{ b(p,'atBats') }}</td>
+                <td>{{ b(p,'runs') }}</td>
+                <td>{{ b(p,'hits') }}</td>
+                <td>{{ b(p,'rbi') }}</td>
+                <td>{{ b(p,'homeRuns') }}</td>
+                <td>{{ b(p,'baseOnBalls') }}</td>
+                <td>{{ b(p,'strikeOuts') }}</td>
+                <td class="avg-cell">{{ b(p,'avg') }}</td>
+                <td class="avg-cell">{{ b(p,'obp') }}</td>
+                <td class="avg-cell">{{ b(p,'slg') }}</td>
+                <td class="avg-cell ops-cell">{{ b(p,'ops') }}</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Home pitching -->
+          <div class="section-header section-header--pitch">
+            <span>{{ home?.team?.name }} Pitching</span>
+          </div>
+          <div class="bs-table-wrap">
+            <table class="bs-table">
+              <thead><tr>
+                <th class="th-player">Pitcher</th>
+                <th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>K</th><th>HR</th>
+                <th>P</th><th>S</th><th>B</th><th>ERA</th><th>WHIP</th>
+              </tr></thead>
+              <tbody>
+              <tr *ngFor="let p of getPitchers(homeBs)">
+                <td class="player-name-cell" (click)="openPlayer(p)">{{ p.person?.fullName }}</td>
+                <td>{{ pit(p,'inningsPitched') }}</td>
+                <td>{{ pit(p,'hits') }}</td>
+                <td>{{ pit(p,'runs') }}</td>
+                <td>{{ pit(p,'earnedRuns') }}</td>
+                <td>{{ pit(p,'baseOnBalls') }}</td>
+                <td>{{ pit(p,'strikeOuts') }}</td>
+                <td>{{ pit(p,'homeRuns') }}</td>
+                <td>{{ pit(p,'numberOfPitches') }}</td>
+                <td>{{ pit(p,'strikes') }}</td>
+                <td>{{ pit(p,'balls') }}</td>
+                <td class="avg-cell">{{ pit(p,'era') }}</td>
+                <td class="avg-cell">{{ pit(p,'whip') }}</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </ng-container>
+      </ng-container>
+
+      <!-- ══ PLAYS TAB ══ -->
+      <ng-container *ngIf="mainTab === 'plays'">
+        <div *ngIf="loadingPlays" class="spinner-wrap">
+          <div class="spinner"></div><span>Loading plays…</span>
+        </div>
+
+        <div *ngIf="!loadingPlays && parsedPlays.length === 0" class="empty-state">
+          <p>No play data available yet</p>
+        </div>
+
+        <div *ngIf="!loadingPlays && parsedPlays.length > 0" class="plays-feed">
+          <div *ngFor="let play of parsedPlays; let i = index" class="play-card" [class.play-card--first]="i === 0">
+
+            <!-- Play header row -->
+            <div class="play-header">
+              <span class="play-inning">{{ play.inningLabel }}</span>
+              <span class="play-result-badge" [ngClass]="'badge-' + play.resultType">{{ play.result }}</span>
+              <span class="play-score" *ngIf="play.awayScore !== undefined">
+                {{ away?.team?.abbreviation }} {{ play.awayScore }} – {{ play.homeScore }} {{ home?.team?.abbreviation }}
+              </span>
+            </div>
+
+            <!-- Description -->
+            <div class="play-description">{{ play.description }}</div>
+
+            <!-- Pitches -->
+            <div class="play-pitches" *ngIf="play.pitches.length > 0">
+              <span
+                      *ngFor="let pitch of play.pitches"
+                      class="pitch-pip"
+                      [ngClass]="pitchCallClass(pitch.callCode)"
+                      [title]="pitchCallLabel(pitch.callCode) + (pitch.speed ? ' · ' + pitch.speed + ' mph' : '')">
+              </span>
+            </div>
+
+          </div>
+        </div>
+      </ng-container>
 
     </div>
   </div>

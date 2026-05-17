@@ -32,6 +32,8 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
   selectedGame: any = null;
   boxscore: any = null;
   loadingDetail = false;
+  plays: any = null;
+  loadingPlays = false;
 
   // ── Custom calendar ──────────────────────────────────
   calendarOpen = false;
@@ -277,6 +279,8 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!this.selectedGame) return;
     this.api.getBoxscore(this.selectedGame.gamePk).pipe(catchError(() => of(null)))
       .subscribe({ next: (bs) => { if (bs) this.boxscore = bs; } });
+    this.api.getPlayByPlay(this.selectedGame.gamePk).pipe(catchError(() => of(null)))
+      .subscribe({ next: (p) => { if (p) this.plays = p; } });
   }
 
   stopPolling() {
@@ -288,12 +292,18 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
   openGame(game: any) {
     this.selectedGame = game;
     this.boxscore = null;
+    this.plays = null;
     this.loadingDetail = true;
+    this.loadingPlays = true;
     this.api.getBoxscore(game.gamePk).subscribe({
       next: (bs) => { this.boxscore = bs; this.loadingDetail = false; },
       error: () => { this.loadingDetail = false; }
     });
+    this.api.getPlayByPlay(game.gamePk).subscribe({
+      next: (p) => { this.plays = p; this.loadingPlays = false; },
+      error: () => { this.loadingPlays = false; }
+    });
   }
 
-  closeGame() { this.selectedGame = null; this.boxscore = null; }
+  closeGame() { this.selectedGame = null; this.boxscore = null; this.plays = null; }
 }
