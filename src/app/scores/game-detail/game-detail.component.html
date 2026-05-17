@@ -83,7 +83,156 @@
 
         <ng-container *ngIf="!loading && boxscore">
 
-          <!-- AWAY BATTING -->
+          <!-- ── Live Strikezone (only for live games) ── -->
+          <div *ngIf="state === 'live'" class="sz-section">
+
+            <!-- Matchup bar -->
+            <div class="sz-matchup">
+              <div class="sz-player sz-pitcher" (click)="openPlayer(currentPitcher)">
+                <img class="sz-headshot" [src]="teams.photo(currentPitcher?.id)" alt="" (error)="logoError($event)"/>
+                <div class="sz-player-info">
+                  <span class="sz-role">Pitcher</span>
+                  <span class="sz-name">{{ currentPitcher?.fullName ?? '—' }}</span>
+                  <span class="sz-hand">{{ pitcherHand }}HP</span>
+                </div>
+              </div>
+
+              <!-- Count -->
+              <div class="sz-count-block">
+                <div class="sz-count-row">
+                  <span class="sz-count-label">B</span>
+                  <span class="sz-pip" *ngFor="let i of countArray(4)" [class.sz-pip--on]="count.balls > i" [class.sz-pip--ball]="true"></span>
+                </div>
+                <div class="sz-count-row">
+                  <span class="sz-count-label">S</span>
+                  <span class="sz-pip" *ngFor="let i of countArray(3)" [class.sz-pip--on]="count.strikes > i" [class.sz-pip--strike]="true"></span>
+                </div>
+                <div class="sz-count-row">
+                  <span class="sz-count-label">O</span>
+                  <span class="sz-pip" *ngFor="let i of countArray(3)" [class.sz-pip--on]="count.outs > i" [class.sz-pip--out]="true"></span>
+                </div>
+              </div>
+
+              <div class="sz-player sz-batter" (click)="openPlayer(currentBatter)">
+                <div class="sz-player-info sz-player-info--right">
+                  <span class="sz-role">Batter</span>
+                  <span class="sz-name">{{ currentBatter?.fullName ?? '—' }}</span>
+                  <span class="sz-hand">{{ batterSide }}HB</span>
+                </div>
+                <img class="sz-headshot" [src]="teams.photo(currentBatter?.id)" alt="" (error)="logoError($event)"/>
+              </div>
+            </div>
+
+            <!-- Strike zone SVG -->
+            <div class="sz-canvas-wrap">
+              <svg [attr.width]="svgWidth" [attr.height]="svgHeight" class="sz-svg" [attr.viewBox]="'0 0 ' + svgWidth + ' ' + svgHeight">
+
+                <!-- Background -->
+                <rect width="100%" height="100%" fill="transparent"/>
+
+                <!-- Home plate shape (at bottom, pitcher's view) -->
+                <polygon
+                        [attr.points]="(svgWidth/2 - 22) + ',' + (svgHeight - 18) + ' ' +
+                                 (svgWidth/2 + 22) + ',' + (svgHeight - 18) + ' ' +
+                                 (svgWidth/2 + 22) + ',' + (svgHeight - 10) + ' ' +
+                                 (svgWidth/2)      + ',' + (svgHeight - 4)  + ' ' +
+                                 (svgWidth/2 - 22) + ',' + (svgHeight - 10)"
+                        fill="#e8e8e8" stroke="#999" stroke-width="1.5"/>
+
+                <!-- Strike zone inner thirds (3×3 grid) -->
+                <g class="sz-thirds" *ngIf="szRect.w > 0">
+                  <!-- vertical lines dividing zone into thirds -->
+                  <line [attr.x1]="szRect.x + szRect.w / 3"  [attr.y1]="szRect.y"
+                        [attr.x2]="szRect.x + szRect.w / 3"  [attr.y2]="szRect.y + szRect.h"
+                        stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="3 3"/>
+                  <line [attr.x1]="szRect.x + szRect.w * 2/3" [attr.y1]="szRect.y"
+                        [attr.x2]="szRect.x + szRect.w * 2/3" [attr.y2]="szRect.y + szRect.h"
+                        stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="3 3"/>
+                  <!-- horizontal lines -->
+                  <line [attr.x1]="szRect.x" [attr.y1]="szRect.y + szRect.h / 3"
+                        [attr.x2]="szRect.x + szRect.w" [attr.y2]="szRect.y + szRect.h / 3"
+                        stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="3 3"/>
+                  <line [attr.x1]="szRect.x" [attr.y1]="szRect.y + szRect.h * 2/3"
+                        [attr.x2]="szRect.x + szRect.w" [attr.y2]="szRect.y + szRect.h * 2/3"
+                        stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="3 3"/>
+                </g>
+
+                <!-- Strike zone border -->
+                <rect
+                        [attr.x]="szRect.x" [attr.y]="szRect.y"
+                        [attr.width]="szRect.w" [attr.height]="szRect.h"
+                        fill="rgba(255,255,255,0.04)"
+                        stroke="rgba(255,255,255,0.55)"
+                        stroke-width="2"
+                        rx="2"/>
+
+                <!-- Pitch dots — earlier pitches first, current last (on top) -->
+                <g *ngFor="let p of zonePitches; let idx = index">
+                  <!-- Trail circle for non-current pitches -->
+                  <circle
+                          *ngIf="!p.isCurrent"
+                          [attr.cx]="p.cx" [attr.cy]="p.cy" r="9"
+                          [attr.class]="'sz-dot ' + pitchDotClass(p)"
+                          [attr.opacity]="0.55 + (idx / zonePitches.length) * 0.3">
+                  </circle>
+                  <!-- Pitch number label for non-current -->
+                  <text *ngIf="!p.isCurrent"
+                        [attr.x]="p.cx" [attr.y]="p.cy + 4"
+                        text-anchor="middle"
+                        font-size="8" fill="white" font-weight="600" font-family="monospace">
+                    {{ p.num }}
+                  </text>
+
+                  <!-- Current pitch: larger, pulsing ring -->
+                  <circle *ngIf="p.isCurrent"
+                          [attr.cx]="p.cx" [attr.cy]="p.cy" r="13"
+                          [attr.class]="'sz-dot sz-dot-current ' + pitchDotClass(p)"
+                          fill-opacity="0.2"
+                          [attr.stroke-class]="'sz-dot ' + pitchDotClass(p)">
+                  </circle>
+                  <circle *ngIf="p.isCurrent"
+                          [attr.cx]="p.cx" [attr.cy]="p.cy" r="9"
+                          [attr.class]="'sz-dot ' + pitchDotClass(p)">
+                  </circle>
+                  <text *ngIf="p.isCurrent"
+                        [attr.x]="p.cx" [attr.y]="p.cy + 4"
+                        text-anchor="middle"
+                        font-size="8" fill="white" font-weight="700" font-family="monospace">
+                    {{ p.num }}
+                  </text>
+                </g>
+
+                <!-- "Pitcher's view" label -->
+                <text x="50%" y="16" text-anchor="middle"
+                      font-size="9" fill="rgba(255,255,255,0.3)"
+                      font-family="'DM Sans', sans-serif" letter-spacing="1">
+                  PITCHER'S VIEW
+                </text>
+
+              </svg>
+
+              <!-- Legend -->
+              <div class="sz-legend">
+                <span class="sz-leg-item"><span class="sz-leg-dot dot-ball"></span>Ball</span>
+                <span class="sz-leg-item"><span class="sz-leg-dot dot-strike"></span>Strike</span>
+                <span class="sz-leg-item"><span class="sz-leg-dot dot-inplay"></span>In Play</span>
+              </div>
+
+              <!-- Last pitch detail -->
+              <div class="sz-last-pitch" *ngIf="zonePitches.length > 0">
+                <span class="sz-lp-label">Last pitch</span>
+                <span class="sz-lp-type">{{ zonePitches[zonePitches.length-1].pitchType }}</span>
+                <span class="sz-lp-speed" *ngIf="zonePitches[zonePitches.length-1].speed">
+                  {{ formatSpeed(zonePitches[zonePitches.length-1].speed) }} mph
+                </span>
+                <span class="sz-lp-call">{{ zonePitches[zonePitches.length-1].label }}</span>
+              </div>
+
+            </div>
+
+            <div class="sz-divider"></div>
+          </div>
+          <!-- end live strikezone -->          <!-- AWAY BATTING -->
           <div class="section-header">
             <img class="section-logo" [src]="teams.logo(awayId)" (error)="logoError($event)"/>
             <span>{{ away?.team?.name }}</span>

@@ -35,6 +35,7 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
   loadingDetail = false;
   plays: any = null;
   loadingPlays = false;
+  liveFeed: any = null;
 
   // ── Custom calendar ──────────────────────────────────
   calendarOpen = false;
@@ -282,6 +283,10 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe({ next: (bs) => { if (bs) this.boxscore = bs; } });
     this.api.getPlayByPlay(this.selectedGame.gamePk).pipe(catchError(() => of(null)))
       .subscribe({ next: (p) => { if (p) this.plays = p; } });
+    if (this.selectedGame.status?.abstractGameState === 'Live') {
+      this.api.getLiveFeed(this.selectedGame.gamePk).pipe(catchError(() => of(null)))
+        .subscribe({ next: (lf) => { if (lf) this.liveFeed = lf; } });
+    }
   }
 
   stopPolling() {
@@ -294,6 +299,7 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
     this.selectedGame = game;
     this.boxscore = null;
     this.plays = null;
+    this.liveFeed = null;
     this.loadingDetail = true;
     this.loadingPlays = true;
     this.api.getBoxscore(game.gamePk).subscribe({
@@ -304,7 +310,14 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
       next: (p) => { this.plays = p; this.loadingPlays = false; },
       error: () => { this.loadingPlays = false; }
     });
+    // Only fetch live feed for live games
+    if (game.status?.abstractGameState === 'Live') {
+      this.api.getLiveFeed(game.gamePk).subscribe({
+        next: (lf) => { this.liveFeed = lf; },
+        error: () => {}
+      });
+    }
   }
 
-  closeGame() { this.selectedGame = null; this.boxscore = null; this.plays = null; }
+  closeGame() { this.selectedGame = null; this.boxscore = null; this.plays = null; this.liveFeed = null; }
 }

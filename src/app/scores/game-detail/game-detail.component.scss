@@ -268,3 +268,227 @@
   .bs-table-wrap  { padding: 0 14px 4px; }
   .plays-feed     { padding: 12px 14px 20px; }
 }
+/* ══ Live Strikezone ══════════════════════════════════════════ */
+
+.sz-section {
+  padding: 20px 24px 0;
+}
+
+.sz-divider {
+  height: 6px;
+  background: var(--bg3);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin: 20px 0 0;
+}
+
+/* ── Matchup bar ── */
+.sz-matchup {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.sz-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  flex: 1;
+
+  &:hover .sz-name { color: var(--red); }
+}
+
+.sz-batter { flex-direction: row-reverse; }
+
+.sz-headshot {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--surface2);
+  flex-shrink: 0;
+  border: 2px solid var(--border2);
+}
+
+.sz-player-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+  &.sz-player-info--right { text-align: right; }
+}
+
+.sz-role {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text3);
+  font-weight: 600;
+}
+
+.sz-name {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text);
+  transition: color var(--transition);
+}
+
+.sz-hand {
+  font-size: 0.68rem;
+  color: var(--text3);
+  font-family: var(--font-mono);
+}
+
+/* Count pips */
+.sz-count-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.sz-count-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sz-count-label {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text3);
+  width: 10px;
+  letter-spacing: 0.5px;
+}
+
+.sz-pip {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  background: transparent;
+  transition: background 0.12s, border-color 0.12s;
+
+  &.sz-pip--on {
+    &.sz-pip--ball   { background: #3b82f6; border-color: #3b82f6; }
+    &.sz-pip--strike { background: #f59e0b; border-color: #f59e0b; }
+    &.sz-pip--out    { background: var(--red); border-color: var(--red); }
+  }
+}
+
+/* ── Canvas ── */
+.sz-canvas-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.sz-svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+}
+
+/* Pitch dot colours */
+.sz-dot {
+  &.dot-ball   { fill: #3b82f6; stroke: #93c5fd; stroke-width: 1.5; }
+  &.dot-strike { fill: var(--red); stroke: #fca5a5; stroke-width: 1.5; }
+  &.dot-inplay { fill: #22c55e; stroke: #86efac; stroke-width: 1.5; }
+  &.dot-other  { fill: var(--text3); stroke: var(--text2); stroke-width: 1.5; }
+}
+
+.sz-dot-current {
+  animation: szPulse 1.6s ease infinite;
+  stroke-width: 2;
+  fill: transparent;
+  &.dot-ball   { stroke: #3b82f6; }
+  &.dot-strike { stroke: var(--red); }
+  &.dot-inplay { stroke: #22c55e; }
+  &.dot-other  { stroke: var(--text3); }
+}
+
+@keyframes szPulse {
+  0%,100% { opacity: 0.8; r: 13; }
+  50%      { opacity: 0.2; r: 17; }
+}
+
+/* Legend */
+.sz-legend {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.sz-leg-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  color: var(--text3);
+}
+
+.sz-leg-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &.dot-ball   { background: #3b82f6; }
+  &.dot-strike { background: var(--red); }
+  &.dot-inplay { background: #22c55e; }
+}
+
+/* Last pitch banner */
+.sz-last-pitch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.sz-lp-label {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text3);
+  font-weight: 600;
+}
+
+.sz-lp-type {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+}
+
+.sz-lp-speed {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.sz-lp-call {
+  font-size: 0.75rem;
+  color: var(--text2);
+}
+
+@media (max-width: 640px) {
+  .sz-section  { padding: 14px 14px 0; }
+  .sz-name     { font-size: 0.76rem; }
+  .sz-headshot { width: 36px; height: 36px; }
+}
