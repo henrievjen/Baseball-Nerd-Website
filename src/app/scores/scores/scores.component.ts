@@ -22,7 +22,8 @@ export interface CalendarDay {
 @Component({
   selector: 'app-scores',
   templateUrl: './scores.component.html',
-  styleUrls: ['./scores.component.scss']
+  styleUrl: './scores.component.scss',
+  standalone: false
 })
 export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
   dateTabs: DateTab[] = [];

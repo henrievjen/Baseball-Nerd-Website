@@ -10,7 +10,8 @@ interface CatGroup { group: string; cats: StatCat[]; }
 @Component({
   selector: 'app-stats',
   templateUrl: './stats.component.html',
-  styleUrls: ['./stats.component.scss']
+  styleUrl: './stats.component.scss',
+  standalone: false
 })
 export class StatsComponent implements OnInit, OnDestroy {
   season = new Date().getFullYear();

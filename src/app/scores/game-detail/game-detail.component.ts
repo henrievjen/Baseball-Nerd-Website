@@ -30,7 +30,8 @@ export interface PitchEvent {
 @Component({
   selector: 'app-game-detail',
   templateUrl: './game-detail.component.html',
-  styleUrls: ['./game-detail.component.scss']
+  styleUrl: './game-detail.component.scss',
+  standalone: false
 })
 export class GameDetailComponent implements OnChanges {
   @Input() game: any;

@@ -17,7 +17,8 @@ interface Division {
 @Component({
   selector: 'app-standings',
   templateUrl: './standings.component.html',
-  styleUrls: ['./standings.component.scss']
+  styleUrl: './standings.component.scss',
+  standalone: false
 })
 export class StandingsComponent implements OnInit {
   activeTab: 'DIV' | 'WC' = 'DIV';

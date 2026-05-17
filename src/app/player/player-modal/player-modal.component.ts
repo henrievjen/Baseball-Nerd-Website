@@ -6,7 +6,8 @@ import { TeamDataService } from '../../shared/team-data.service';
 @Component({
   selector: 'app-player-modal',
   templateUrl: './player-modal.component.html',
-  styleUrls: ['./player-modal.component.scss']
+  styleUrl: './player-modal.component.scss',
+  standalone: false
 })
 export class PlayerModalComponent implements OnInit {
   player: any = null;

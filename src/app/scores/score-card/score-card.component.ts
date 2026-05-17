@@ -4,7 +4,8 @@ import { TeamDataService } from '../../shared/team-data.service';
 @Component({
   selector: 'app-score-card',
   templateUrl: './score-card.component.html',
-  styleUrls: ['./score-card.component.scss']
+  styleUrl: './score-card.component.scss',
+  standalone: false
 })
 export class ScoreCardComponent {
   @Input() game: any;
