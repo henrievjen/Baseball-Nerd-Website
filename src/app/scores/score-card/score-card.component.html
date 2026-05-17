@@ -104,15 +104,41 @@
       </div>
     </div>
 
-    <!-- Pitcher Matchup (Upcoming) -->
+    <!-- Pitcher Matchup & Info (Upcoming) -->
     <div *ngIf="state === 'upcoming'" class="probables">
-      <div class="pitcher-row">
-        <span class="p-label">{{ away?.team?.abbreviation || teams.abbr(awayId) }}: </span>
-        <span class="p-name">{{ away?.probablePitcher?.fullName || 'TBD' }}</span>
+      <div class="matchup-rows">
+        <div class="pitcher-row">
+          <span class="p-label">{{ away?.team?.abbreviation || teams.abbr(awayId) }}: </span>
+          <span class="p-name">{{ away?.probablePitcher?.fullName || 'TBD' }}</span>
+        </div>
+        <div class="pitcher-row">
+          <span class="p-label">{{ home?.team?.abbreviation || teams.abbr(homeId) }}: </span>
+          <span class="p-name">{{ home?.probablePitcher?.fullName || 'TBD' }}</span>
+        </div>
       </div>
-      <div class="pitcher-row">
-        <span class="p-label">{{ home?.team?.abbreviation || teams.abbr(homeId) }}: </span>
-        <span class="p-name">{{ home?.probablePitcher?.fullName || 'TBD' }}</span>
+
+      <div class="upcoming-info">
+        <div class="info-row" *ngIf="venueName">
+          <span class="p-label">Venue: </span>
+          <span class="p-name">{{ venueName }}</span>
+        </div>
+
+        <ng-container *ngIf="isSameTv; else differentTv">
+          <div class="info-row">
+            <span class="p-label">TV: </span>
+            <span class="p-name">{{ homeTv }}</span>
+          </div>
+        </ng-container>
+        <ng-template #differentTv>
+          <div class="info-row" *ngIf="awayTv">
+            <span class="p-label">Away TV: </span>
+            <span class="p-name">{{ awayTv }}</span>
+          </div>
+          <div class="info-row" *ngIf="homeTv">
+            <span class="p-label">Home TV: </span>
+            <span class="p-name">{{ homeTv }}</span>
+          </div>
+        </ng-template>
       </div>
     </div>
   </div>

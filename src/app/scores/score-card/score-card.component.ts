@@ -91,13 +91,20 @@ export class ScoreCardComponent {
     if (val !== undefined && val !== null && val !== '') {
       return val.toString();
     }
-    // If it's a padded inning (beyond what's in the linescore), leave blank
-    if (inn._padded) return '';
 
-    // If game is final and we have an inning object but no runs for this half, show 'x'
-    if (this.state === 'final') return 'x';
+    if (this.state !== 'final') return '';
 
-    return '';
+    // For final games:
+    // If it's a padded inning (beyond what's in the linescore)
+    if (inn._padded) {
+      // If it's the home team in the 9th and the game is final, it might be an 'x'
+      // but only if the away team actually played that inning.
+      // Usually the API will include the inning object if at least one team played.
+      return '';
+    }
+
+    // If we have an inning object but this specific half has no runs, show 'x'
+    return 'x';
   }
 
   get awayLineR() { return this.ls.teams?.away?.runs ?? 0; }
@@ -111,6 +118,26 @@ export class ScoreCardComponent {
   get winner() { return this.decisions?.winner; }
   get loser() { return this.decisions?.loser; }
   get save() { return this.decisions?.save; }
+
+  get venueName() { return this.game?.venue?.name; }
+
+  get homeTv() {
+    return this.game?.broadcasts
+      ?.filter((b: any) => b.type === 'TV' && b.homeAway === 'home')
+      ?.map((b: any) => b.callSign)
+      ?.join(', ');
+  }
+
+  get awayTv() {
+    return this.game?.broadcasts
+      ?.filter((b: any) => b.type === 'TV' && b.homeAway === 'away')
+      ?.map((b: any) => b.callSign)
+      ?.join(', ');
+  }
+
+  get isSameTv(): boolean {
+    return !!this.homeTv && !!this.awayTv && this.homeTv === this.awayTv;
+  }
 
   logoError(ev: Event, teamId: number) {
     (ev.target as HTMLImageElement).style.display = 'none';

@@ -17,7 +17,7 @@ export class MlbApiService {
   getSchedule(opts: { date?: string; teamId?: number; startDate?: string; endDate?: string; gamePks?: string } = {}) {
     return this.get<any>('v1/schedule', {
       sportId: 1,
-      hydrate: 'linescore,team,decisions,probablePitcher(stats(group=[pitching],type=[season],gameType=R))',
+      hydrate: 'linescore,team,broadcasts,decisions,probablePitcher(stats(group=[pitching],type=[season],gameType=R))',
       ...opts
     });
   }

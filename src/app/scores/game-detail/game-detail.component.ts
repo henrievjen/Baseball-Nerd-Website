@@ -154,6 +154,15 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
     };
   }
 
+  getInningRuns(inn: any, team: 'away' | 'home'): string {
+    const val = inn[team]?.runs;
+    if (val !== undefined && val !== null && val !== '') {
+      return val.toString();
+    }
+    if (this.state === 'final') return 'x';
+    return '';
+  }
+
   // ── Live strikezone ─────────────────────────────────────────
   private readonly SVG_W   = 300;
   private readonly SVG_H   = 340;
