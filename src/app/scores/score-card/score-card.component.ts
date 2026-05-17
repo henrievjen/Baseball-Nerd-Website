@@ -79,7 +79,6 @@ export class ScoreCardComponent {
       if (inn) {
         result.push(inn);
       } else {
-        // Padded inning
         result.push({ num: i, away: {}, home: {}, _padded: true });
       }
     }
@@ -91,20 +90,9 @@ export class ScoreCardComponent {
     if (val !== undefined && val !== null && val !== '') {
       return val.toString();
     }
-
-    if (this.state !== 'final') return '';
-
-    // For final games:
-    // If it's a padded inning (beyond what's in the linescore)
-    if (inn._padded) {
-      // If it's the home team in the 9th and the game is final, it might be an 'x'
-      // but only if the away team actually played that inning.
-      // Usually the API will include the inning object if at least one team played.
-      return '';
-    }
-
-    // If we have an inning object but this specific half has no runs, show 'x'
-    return 'x';
+    if (inn._padded) return '';
+    if (this.state === 'final') return 'x';
+    return '';
   }
 
   get awayLineR() { return this.ls.teams?.away?.runs ?? 0; }
@@ -137,6 +125,38 @@ export class ScoreCardComponent {
 
   get isSameTv(): boolean {
     return !!this.homeTv && !!this.awayTv && this.homeTv === this.awayTv;
+  }
+
+  getPitcherRecord(pitcher: any): string {
+    if (!pitcher) return '';
+    const statsArray = pitcher.stats || pitcher.person?.stats;
+    if (!statsArray || !Array.isArray(statsArray)) return '';
+
+    const seasonStats = statsArray.find((s: any) =>
+      (s.type?.displayName?.toLowerCase().includes('season') || s.type?.displayName?.toLowerCase() === 'stats') &&
+      (s.group?.displayName?.toLowerCase() === 'pitching' || s.group?.code === 'pitching')
+    );
+
+    const stat = seasonStats?.stats || seasonStats?.splits?.[0]?.stat;
+    if (stat && stat.wins !== undefined && stat.losses !== undefined) {
+      return ` (${stat.wins}-${stat.losses})`;
+    }
+    return '';
+  }
+
+  getTvArray(tvString: string): string[] {
+    if (!tvString) return [];
+    return tvString.split(',').map(s => s.trim());
+  }
+
+  getNetworkLogo(callSign: string): string | null {
+    const c = callSign.toUpperCase();
+    if (c.includes('NBC') && c != 'NBCSP') return 'assets/nbc.png';
+    if (c.includes('NETFLIX')) return 'assets/netflix.png';
+    if (c.includes('ABC')) return 'assets/abc.png';
+    if (c.includes('ESPN')) return 'assets/espn.png';
+    if (c.includes('FS1')) return 'assets/fs1.png';
+    return null;
   }
 
   logoError(ev: Event, teamId: number) {

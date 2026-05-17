@@ -266,3 +266,19 @@
 .p-name { color: var(--text2); }
 
 .vs-sep { color: var(--text3); margin: 0 5px; }
+
+.tv-items {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.network-logo {
+  height: 14px;
+  width: auto;
+  max-width: 45px;
+  object-fit: contain;
+  display: block;
+  margin-left: 2px;
+}

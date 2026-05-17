@@ -396,6 +396,19 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
     return labels[code] ?? code;
   }
 
+  getPitcherRecord(pitcher: any): string {
+    if (!pitcher?.stats) return '';
+    const seasonStats = pitcher.stats.find((s: any) =>
+      s.type?.displayName?.toLowerCase().includes('season') &&
+      s.group?.displayName?.toLowerCase().includes('pitching')
+    );
+    const stat = seasonStats?.splits?.[0]?.stat || seasonStats?.stats;
+    if (stat && stat.wins !== undefined && stat.losses !== undefined) {
+      return ` (${stat.wins}-${stat.losses})`;
+    }
+    return '';
+  }
+
   // TrackBy functions for better performance
   trackByPlay(index: number, play: PlayEvent) { return play.atBatIndex || index; }
   trackByPitch(index: number, pitch: PitchEvent) { return pitch.num; }

@@ -108,35 +108,50 @@
     <div *ngIf="state === 'upcoming'" class="probables">
       <div class="matchup-rows">
         <div class="pitcher-row">
-          <span class="p-label">{{ away?.team?.abbreviation || teams.abbr(awayId) }}: </span>
-          <span class="p-name">{{ away?.probablePitcher?.fullName || 'TBD' }}</span>
+          <span class="p-label">{{ away?.team?.abbreviation || teams.abbr(awayId) }}:</span>
+          <span class="p-name">&nbsp;{{ away?.probablePitcher?.fullName || 'TBD' }}{{ getPitcherRecord(away?.probablePitcher) }}</span>
         </div>
         <div class="pitcher-row">
-          <span class="p-label">{{ home?.team?.abbreviation || teams.abbr(homeId) }}: </span>
-          <span class="p-name">{{ home?.probablePitcher?.fullName || 'TBD' }}</span>
+          <span class="p-label">{{ home?.team?.abbreviation || teams.abbr(homeId) }}:</span>
+          <span class="p-name">&nbsp;{{ home?.probablePitcher?.fullName || 'TBD' }}{{ getPitcherRecord(home?.probablePitcher) }}</span>
         </div>
       </div>
 
       <div class="upcoming-info">
         <div class="info-row" *ngIf="venueName">
-          <span class="p-label">Venue: </span>
-          <span class="p-name">{{ venueName }}</span>
+          <span class="p-label">Venue:</span>
+          <span class="p-name">&nbsp;{{ venueName }}</span>
         </div>
 
         <ng-container *ngIf="isSameTv; else differentTv">
-          <div class="info-row">
-            <span class="p-label">TV: </span>
-            <span class="p-name">{{ homeTv }}</span>
+          <div class="info-row" *ngIf="homeTv">
+            <span class="p-label">TV:</span>
+            <div class="tv-items">
+              <ng-container *ngFor="let tv of getTvArray(homeTv)">
+                <img *ngIf="getNetworkLogo(tv) as logo" [src]="logo" [alt]="tv" class="network-logo" />
+                <span *ngIf="!getNetworkLogo(tv)" class="p-name">&nbsp;{{ tv }}</span>
+              </ng-container>
+            </div>
           </div>
         </ng-container>
         <ng-template #differentTv>
-          <div class="info-row" *ngIf="awayTv">
-            <span class="p-label">Away TV: </span>
-            <span class="p-name">{{ awayTv }}</span>
-          </div>
           <div class="info-row" *ngIf="homeTv">
-            <span class="p-label">Home TV: </span>
-            <span class="p-name">{{ homeTv }}</span>
+            <span class="p-label">Home TV:</span>
+            <div class="tv-items">
+              <ng-container *ngFor="let tv of getTvArray(homeTv)">
+                <img *ngIf="getNetworkLogo(tv) as logo" [src]="logo" [alt]="tv" class="network-logo" />
+                <span *ngIf="!getNetworkLogo(tv)" class="p-name">&nbsp;{{ tv }}</span>
+              </ng-container>
+            </div>
+          </div>
+          <div class="info-row" *ngIf="awayTv">
+            <span class="p-label">Away TV:</span>
+            <div class="tv-items">
+              <ng-container *ngFor="let tv of getTvArray(awayTv)">
+                <img *ngIf="getNetworkLogo(tv) as logo" [src]="logo" [alt]="tv" class="network-logo" />
+                <span *ngIf="!getNetworkLogo(tv)" class="p-name">&nbsp;{{ tv }}</span>
+              </ng-container>
+            </div>
           </div>
         </ng-template>
       </div>
@@ -151,7 +166,7 @@
       <!-- Count pips: S then B then O -->
       <div class="count-pips">
         <div class="pip-group">
-          <span class="pip-label">S</span>
+          <span class="pip-label">Strikes</span>
           <div class="pips">
             <div class="pip pip--strike" [class.pip--on]="(ls.strikes ?? 0) > 0"></div>
             <div class="pip pip--strike" [class.pip--on]="(ls.strikes ?? 0) > 1"></div>
@@ -159,7 +174,7 @@
           </div>
         </div>
         <div class="pip-group">
-          <span class="pip-label">B</span>
+          <span class="pip-label">Balls</span>
           <div class="pips">
             <div class="pip pip--ball" [class.pip--on]="(ls.balls ?? 0) > 0"></div>
             <div class="pip pip--ball" [class.pip--on]="(ls.balls ?? 0) > 1"></div>
@@ -168,7 +183,7 @@
           </div>
         </div>
         <div class="pip-group">
-          <span class="pip-label">O</span>
+          <span class="pip-label">Outs</span>
           <div class="pips">
             <div class="pip pip--out" [class.pip--on]="(ls.outs ?? 0) > 0"></div>
             <div class="pip pip--out" [class.pip--on]="(ls.outs ?? 0) > 1"></div>
@@ -190,15 +205,15 @@
     <div *ngIf="state === 'final' && decisions" class="decisions">
       <div class="decision-row" *ngIf="winner">
         <span class="d-label">W:</span>
-        <span class="d-name">{{ winner.fullName }}</span>
+        <span class="d-name">{{ winner.fullName }}{{ getPitcherRecord(winner) }}</span>
       </div>
       <div class="decision-row" *ngIf="loser">
         <span class="d-label">L:</span>
-        <span class="d-name">{{ loser.fullName }}</span>
+        <span class="d-name">{{ loser.fullName }}{{ getPitcherRecord(loser) }}</span>
       </div>
       <div class="decision-row" *ngIf="save">
         <span class="d-label">S:</span>
-        <span class="d-name">{{ save.fullName }}</span>
+        <span class="d-name">{{ save.fullName }}{{ getPitcherRecord(save) }}</span>
       </div>
     </div>
   </div>
