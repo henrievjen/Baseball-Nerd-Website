@@ -97,7 +97,7 @@
                 <div class="sz-player-info">
                   <span class="sz-role">Pitcher</span>
                   <span class="sz-name">{{ currentPitcher?.fullName ?? '—' }}</span>
-                  <span class="sz-hand">{{ pitcherHand }}HP</span>
+                  <span class="sz-hand">#{{ currentPitcherNumber }} {{ pitcherHand }}HP</span>
                 </div>
               </div>
 
@@ -136,7 +136,7 @@
                 <div class="sz-player-info sz-player-info--right">
                   <span class="sz-role">Batter</span>
                   <span class="sz-name">{{ currentBatter?.fullName ?? '—' }}</span>
-                  <span class="sz-hand">{{ batterSide }}HB</span>
+                  <span class="sz-hand">#{{ currentBatterNumber }} {{ batterSide }}HB</span>
                 </div>
                 <img class="sz-headshot" [src]="teams.photo(currentBatter?.id)" alt="" (error)="logoError($event)"/>
               </div>
@@ -150,19 +150,14 @@
                 <rect width="100%" height="100%" fill="transparent"/>
 
                 <!-- Home plate shape (at bottom, pitcher's view) -->
-                <!-- Pointing DOWN away from the strike zone, shifted up -->
+                <!-- Pointing DOWN away from the strike zone, shifted up a bit -->
                 <polygon
-                        [attr.points]="(svgWidth/2 - 35) + ',' + (svgHeight - 50) + ' ' +
-                 (svgWidth/2 + 35) + ',' + (svgHeight - 50) + ' ' +
-                 (svgWidth/2 + 35) + ',' + (svgHeight - 38) + ' ' +
-                 (svgWidth/2)      + ',' + (svgHeight - 24) + ' ' +
-                 (svgWidth/2 - 35) + ',' + (svgHeight - 38)"
-                        [attr.transform]="'translate(0,-10) rotate(180 ' +
-                    (svgWidth/2) + ' ' +
-                    (svgHeight - 37) + ')'"
-                        fill="#e8e8e8"
-                        stroke="#999"
-                        stroke-width="1.5"/>
+                        [attr.points]="(svgWidth/2 - 22) + ',' + (svgHeight - 40) + ' ' +
+                                 (svgWidth/2 + 22) + ',' + (svgHeight - 40) + ' ' +
+                                 (svgWidth/2 + 22) + ',' + (svgHeight - 32) + ' ' +
+                                 (svgWidth/2)      + ',' + (svgHeight - 24) + ' ' +
+                                 (svgWidth/2 - 22) + ',' + (svgHeight - 32)"
+                        fill="#e8e8e8" stroke="#999" stroke-width="1.5"/>
 
                 <!-- Strike zone inner thirds (3×3 grid) -->
                 <g class="sz-thirds" *ngIf="cachedSzRect.w > 0">

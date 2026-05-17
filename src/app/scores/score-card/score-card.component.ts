@@ -151,11 +151,13 @@ export class ScoreCardComponent {
 
   getNetworkLogo(callSign: string): string | null {
     const c = callSign.toUpperCase();
-    if (c.includes('NBC') && c != 'NBCSP') return 'assets/nbc.png';
-    if (c.includes('NETFLIX')) return 'assets/netflix.png';
-    if (c.includes('ABC')) return 'assets/abc.png';
-    if (c.includes('ESPN')) return 'assets/espn.png';
-    if (c.includes('FS1')) return 'assets/fs1.png';
+    if (c == 'NBC') return 'assets/nbc.png';
+    if (c == 'NBC/Peacock') return 'assets/nbc.png';
+    if (c == 'NETFLIX') return 'assets/netflix.png';
+    if (c == 'ABC') return 'assets/abc.png';
+    if (c == 'ESPN') return 'assets/espn.png';
+    if (c == 'FS1') return 'assets/fs1.png';
+    if (c == 'Peacock') return 'assets/peacock.png';
     return null;
   }
 

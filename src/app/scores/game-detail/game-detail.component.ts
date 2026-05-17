@@ -273,6 +273,20 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
     return this.liveFeed?.liveData?.plays?.currentPlay?.matchup?.pitcher || this.ls?.defense?.pitcher || null;
   }
 
+  get currentBatterNumber(): string {
+    const id = this.currentBatter?.id;
+    if (!id) return '';
+    const p = this.awayBs?.players?.[`ID${id}`] || this.homeBs?.players?.[`ID${id}`];
+    return p?.jerseyNumber || '';
+  }
+
+  get currentPitcherNumber(): string {
+    const id = this.currentPitcher?.id;
+    if (!id) return '';
+    const p = this.awayBs?.players?.[`ID${id}`] || this.homeBs?.players?.[`ID${id}`];
+    return p?.jerseyNumber || '';
+  }
+
   get batterSide(): string {
     const side = this.liveFeed?.liveData?.plays?.currentPlay?.matchup?.batSide?.code;
     if (side) return side;
@@ -437,7 +451,7 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   formatSpeed(speed?: number): string {
-    return speed != null ? speed.toFixed(1): '';
+    return speed != null ? speed.toFixed(1) + ' mph' : '';
   }
 
   pitchCallLabel(code: string): string {
