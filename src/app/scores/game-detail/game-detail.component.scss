@@ -1,6 +1,6 @@
 .gd-modal { max-width: 860px; }
 
-/* ── Scoreboard header ── */
+/* ── Scoreboard ── */
 .gd-header {
   padding: 24px 24px 0;
   border-bottom: 1px solid var(--border);
@@ -42,7 +42,6 @@
 .gd-venue       { font-size: 0.7rem; color: var(--text3); }
 
 /* Linescore */
-.gd-linescore-wrap { }
 .gd-linescore-scroll { overflow-x: auto; scrollbar-width: none; &::-webkit-scrollbar { display: none; } }
 
 .gd-linescore {
@@ -81,13 +80,8 @@
   letter-spacing: 0.3px;
 
   svg { width: 15px; height: 15px; flex-shrink: 0; }
-
   &:hover { color: var(--text2); }
-
-  &.active {
-    color: var(--text);
-    border-bottom-color: var(--red);
-  }
+  &.active { color: var(--text); border-bottom-color: var(--red); }
 }
 
 /* ── Section headers ── */
@@ -121,28 +115,81 @@
   width: 100%; border-collapse: collapse; font-size: 0.78rem;
   margin-bottom: 2px;
 
-  th, td { padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th, td {
+    padding: 8px 9px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
 
   thead th {
     background: var(--bg3); color: var(--text3);
-    font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.8px;
-    text-align: center; position: sticky; top: 0; z-index: 1;
+    font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.8px;
+    text-align: center;
+    position: sticky; top: 0; z-index: 1;
+
+    &.th-num    { width: 24px; text-align: center; padding: 8px 4px; }
     &.th-player { text-align: left; min-width: 140px; }
+    &.th-season { color: var(--text2); border-left: 1px solid var(--border2); }
   }
 
   td { color: var(--text2); text-align: center; font-family: var(--font-mono); font-size: 0.76rem; }
   tbody tr:last-child td { border-bottom: none; }
-  tbody tr:hover td { background: var(--surface2); }
+  tbody tr:hover td { background: rgba(255,255,255,0.02); }
 
+  /* Lineup number column */
+  .lineup-num {
+    text-align: center;
+    font-family: var(--font-head);
+    font-size: 0.9rem;
+    color: var(--text3);
+    padding: 8px 4px;
+    min-width: 24px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Player name cells */
   .player-name-cell {
     text-align: left; font-family: var(--font-body);
     color: var(--text); cursor: pointer; font-size: 0.82rem; font-weight: 500;
     &:hover { color: var(--red); }
   }
 
-  .pos-tag   { color: var(--text3); font-size: 0.68rem; margin-left: 5px; font-family: var(--font-body); }
-  .avg-cell  { color: var(--text); font-weight: 600; }
-  .ops-cell  { color: var(--gold); }
+  .pos-tag {
+    color: var(--text3); font-size: 0.68rem; margin-left: 5px;
+    font-family: var(--font-body);
+  }
+
+  /* Starter vs sub rows */
+  .starter-row td { }
+
+  .sub-row td {
+    background: rgba(255,255,255,0.01);
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+
+  .sub-player {
+    color: var(--text2) !important;
+    font-weight: 400 !important;
+    font-size: 0.78rem !important;
+    padding-left: 10px !important;
+  }
+
+  .sub-arrow {
+    color: var(--text3);
+    margin-right: 4px;
+    font-size: 0.8rem;
+  }
+
+  /* Season stats — slightly highlighted */
+  .season-stat {
+    color: var(--text);
+    font-weight: 600;
+    border-left: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .ops-col {
+    color: var(--gold) !important;
+  }
 }
 
 /* ── Plays feed ── */
@@ -159,11 +206,7 @@
   transition: border-color var(--transition);
 
   &:hover { border-color: var(--border2); }
-
-  &.play-card--first {
-    border-color: rgba(200,16,46,0.3);
-    background: rgba(200,16,46,0.04);
-  }
+  &.play-card--first { border-color: rgba(200,16,46,0.3); background: rgba(200,16,46,0.04); }
 }
 
 .play-header {
@@ -187,15 +230,14 @@
   &.badge-hit       { color: #34d399; background: rgba(52,211,153,0.1);  border-color: rgba(52,211,153,0.25); }
   &.badge-homerun   { color: var(--gold); background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.3); }
   &.badge-walk      { color: #60a5fa; background: rgba(96,165,250,0.1);  border-color: rgba(96,165,250,0.25); }
-  &.badge-strikeout { color: var(--red); background: var(--red-dim);     border-color: rgba(200,16,46,0.3); }
+  &.badge-strikeout { color: var(--red); background: var(--red-dim); border-color: rgba(200,16,46,0.3); }
   &.badge-run       { color: var(--gold); background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.25); }
-  &.badge-other     { color: var(--text3); background: transparent;      border-color: var(--border); }
+  &.badge-other     { color: var(--text3); background: transparent; border-color: var(--border); }
 }
 
 .play-score {
   margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: 0.7rem; color: var(--text3);
+  font-family: var(--font-mono); font-size: 0.7rem; color: var(--text3);
 }
 
 .play-description {
@@ -203,18 +245,14 @@
   line-height: 1.45; margin-bottom: 8px;
 }
 
-/* Pitch pips */
 .play-pitches {
-  display: flex; flex-wrap: wrap; gap: 4px;
-  margin-top: 4px;
+  display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;
 }
 
 .pitch-pip {
   width: 10px; height: 10px;
-  border-radius: 50%;
-  border: 1.5px solid;
-  display: inline-block;
-  flex-shrink: 0;
+  border-radius: 50%; border: 1.5px solid;
+  display: inline-block; flex-shrink: 0;
 
   &.pitch-ball   { background: rgba(96,165,250,0.25); border-color: rgba(96,165,250,0.5); }
   &.pitch-strike { background: rgba(248,113,113,0.25); border-color: rgba(248,113,113,0.5); }
@@ -223,10 +261,9 @@
 }
 
 @media (max-width: 640px) {
-  .gd-header  { padding: 18px 14px 12px; }
-  .gd-body    { }
-  .gd-main-tabs { padding: 0 14px; }
-  .gd-score   { font-size: 2.5rem; }
+  .gd-header      { padding: 18px 14px 12px; }
+  .gd-main-tabs   { padding: 0 14px; }
+  .gd-score       { font-size: 2.5rem; }
   .section-header { padding: 12px 14px 6px; }
   .bs-table-wrap  { padding: 0 14px 4px; }
   .plays-feed     { padding: 12px 14px 20px; }
