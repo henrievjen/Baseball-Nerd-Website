@@ -140,6 +140,7 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
   // ─────────────────────────────────────────────────────
 
   private pollSub?: Subscription;
+  private detailPollSub?: Subscription;
   private days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   private months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -156,6 +157,7 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnDestroy() {
     this.stopPolling();
+    this.stopDetailPolling();
   }
 
   buildDateTabs(baseDate: Date = new Date()) {
@@ -263,7 +265,6 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
         const newGames = (data.dates ?? []).flatMap((d: any) => d.games ?? []);
         this.updateGames(newGames);
         this.loading = false;
-        if (this.selectedGame) this.refreshSelectedGame();
       },
       error: () => { this.loading = false; }
     });
@@ -273,16 +274,50 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
     this.games = newGames;
     if (this.selectedGame) {
       const updated = newGames.find(g => g.gamePk === this.selectedGame.gamePk);
-      if (updated) this.selectedGame = updated;
+      if (updated) {
+        this.selectedGame = updated;
+      }
+    }
+  }
+
+  private startDetailPolling() {
+    this.stopDetailPolling();
+    if (!this.selectedGame) return;
+
+    // Aggressive polling for active games
+    const isLive = this.selectedGame.status?.abstractGameState === 'Live';
+    const interval = isLive ? 8000 : 30000; // 8s for live, 30s otherwise
+
+    this.detailPollSub = timer(0, interval).subscribe(() => {
+      this.refreshSelectedGame();
+    });
+  }
+
+  private stopDetailPolling() {
+    if (this.detailPollSub) {
+      this.detailPollSub.unsubscribe();
+      this.detailPollSub = undefined;
     }
   }
 
   private refreshSelectedGame() {
     if (!this.selectedGame) return;
+
+    // Refresh the basic game object from schedule if possible to keep status/score synced
+    const tab = this.dateTabs[this.activeDateIdx];
+    this.api.getSchedule({ date: tab.dateStr, gamePks: this.selectedGame.gamePk.toString() })
+      .pipe(catchError(() => of(null)))
+      .subscribe(data => {
+        if (data?.dates?.[0]?.games?.[0]) {
+          this.selectedGame = data.dates[0].games[0];
+        }
+      });
+
     this.api.getBoxscore(this.selectedGame.gamePk).pipe(catchError(() => of(null)))
       .subscribe({ next: (bs) => { if (bs) this.boxscore = bs; } });
     this.api.getPlayByPlay(this.selectedGame.gamePk).pipe(catchError(() => of(null)))
       .subscribe({ next: (p) => { if (p) this.plays = p; } });
+
     if (this.selectedGame.status?.abstractGameState === 'Live') {
       this.api.getLiveFeed(this.selectedGame.gamePk).pipe(catchError(() => of(null)))
         .subscribe({ next: (lf) => { if (lf) this.liveFeed = lf; } });
@@ -302,22 +337,19 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
     this.liveFeed = null;
     this.loadingDetail = true;
     this.loadingPlays = true;
-    this.api.getBoxscore(game.gamePk).subscribe({
-      next: (bs) => { this.boxscore = bs; this.loadingDetail = false; },
-      error: () => { this.loadingDetail = false; }
-    });
-    this.api.getPlayByPlay(game.gamePk).subscribe({
-      next: (p) => { this.plays = p; this.loadingPlays = false; },
-      error: () => { this.loadingPlays = false; }
-    });
-    // Only fetch live feed for live games
-    if (game.status?.abstractGameState === 'Live') {
-      this.api.getLiveFeed(game.gamePk).subscribe({
-        next: (lf) => { this.liveFeed = lf; },
-        error: () => {}
-      });
-    }
+
+    this.refreshSelectedGame();
+    this.loadingDetail = false;
+    this.loadingPlays = false;
+
+    this.startDetailPolling();
   }
 
-  closeGame() { this.selectedGame = null; this.boxscore = null; this.plays = null; this.liveFeed = null; }
+  closeGame() {
+    this.selectedGame = null;
+    this.boxscore = null;
+    this.plays = null;
+    this.liveFeed = null;
+    this.stopDetailPolling();
+  }
 }

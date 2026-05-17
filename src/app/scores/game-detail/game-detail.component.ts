@@ -437,7 +437,7 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   formatSpeed(speed?: number): string {
-    return speed != null ? speed.toFixed(1) + ' mph' : '';
+    return speed != null ? speed.toFixed(1): '';
   }
 
   pitchCallLabel(code: string): string {
