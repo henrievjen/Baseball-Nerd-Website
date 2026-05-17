@@ -26,19 +26,19 @@
       </div>
 
       <!-- Linescore -->
-      <div *ngIf="innings.length > 0" class="gd-linescore-wrap">
+      <div *ngIf="displayInnings.length > 0" class="gd-linescore-wrap">
         <div class="gd-linescore-scroll">
           <table class="gd-linescore">
             <thead><tr>
               <th class="ls-team-col"></th>
-              <th *ngFor="let inn of innings; trackBy: trackByInning">{{ inn.num }}</th>
+              <th *ngFor="let inn of displayInnings; trackBy: trackByInning">{{ inn.num }}</th>
               <th class="ls-total">R</th><th class="ls-total">H</th><th class="ls-total">E</th>
             </tr></thead>
             <tbody>
             <tr>
               <td class="ls-team-name">{{ away?.team?.abbreviation || teams.abbr(awayId) }}</td>
-              <td *ngFor="let inn of innings; trackBy: trackByInning">
-                {{ inn.away?.runs === null && state === 'final' ? 'x' : (inn.away?.runs ?? '') }}
+              <td *ngFor="let inn of displayInnings; trackBy: trackByInning">
+                {{ getInningRuns(inn, 'away') }}
               </td>
               <td class="ls-total ls-val">{{ awayLineR }}</td>
               <td class="ls-total ls-val">{{ awayLineH }}</td>
@@ -46,8 +46,8 @@
             </tr>
             <tr>
               <td class="ls-team-name">{{ home?.team?.abbreviation || teams.abbr(homeId) }}</td>
-              <td *ngFor="let inn of innings; trackBy: trackByInning">
-                {{ inn.home?.runs === null && state === 'final' ? 'x' : (inn.home?.runs ?? '') }}
+              <td *ngFor="let inn of displayInnings; trackBy: trackByInning">
+                {{ getInningRuns(inn, 'home') }}
               </td>
               <td class="ls-total ls-val">{{ homeLineR }}</td>
               <td class="ls-total ls-val">{{ homeLineH }}</td>
@@ -104,19 +104,19 @@
               <!-- Count and Bases -->
               <div class="sz-count-block">
                 <div class="sz-count-row">
-                  <span class="sz-count-label">S</span>
+                  <span class="sz-count-label">Strikes</span>
                   <div class="sz-pips">
                     <span class="sz-pip" *ngFor="let i of countArray(3)" [class.sz-pip--on]="count.strikes > i" [class.sz-pip--strike]="true"></span>
                   </div>
                 </div>
                 <div class="sz-count-row">
-                  <span class="sz-count-label">B</span>
+                  <span class="sz-count-label">Balls</span>
                   <div class="sz-pips">
                     <span class="sz-pip" *ngFor="let i of countArray(4)" [class.sz-pip--on]="count.balls > i" [class.sz-pip--ball]="true"></span>
                   </div>
                 </div>
                 <div class="sz-count-row">
-                  <span class="sz-count-label">O</span>
+                  <span class="sz-count-label">Outs</span>
                   <div class="sz-pips">
                     <span class="sz-pip" *ngFor="let i of countArray(3)" [class.sz-pip--on]="count.outs > i" [class.sz-pip--out]="true"></span>
                   </div>

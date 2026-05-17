@@ -361,7 +361,7 @@
 .sz-count-row {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .sz-count-label {
@@ -369,15 +369,21 @@
   font-weight: 700;
   text-transform: uppercase;
   color: var(--text3);
-  width: 10px;
   letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+.sz-pips {
+  display: flex;
+  gap: 3px;
+  align-items: center;
 }
 
 .sz-pip {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  border: 1.5px solid rgba(255,255,255,0.2);
+  border: 1.5px solid var(--border2);
   background: transparent;
   transition: background 0.12s, border-color 0.12s;
 
@@ -400,8 +406,8 @@
   position: absolute;
   width: 11px;
   height: 11px;
-  background: rgba(255,255,255,0.08);
-  border: 1.5px solid rgba(255,255,255,0.2);
+  background: var(--bg3);
+  border: 1.2px solid var(--border2);
   border-radius: 2px;
   transform: rotate(45deg);
   transition: background 0.15s, border-color 0.15s;

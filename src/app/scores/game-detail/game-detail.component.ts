@@ -132,19 +132,35 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
     return 'upcoming';
   }
 
-  get ls()          { return this.game?.linescore || {}; }
+  get ls()          { return this.liveFeed?.liveData?.linescore || this.game?.linescore || {}; }
   get inningLabel() {
     const half  = this.ls.inningHalf;
     const arrow = half === 'Top' ? '▲' : half === 'Bottom' ? '▼' : '';
     return `${arrow} ${this.ls.currentInningOrdinal || ''}`.trim();
   }
   get innings()   { return this.ls.innings || []; }
-  get awayLineR() { return this.ls.teams?.away?.runs  ?? ''; }
-  get homeLineR() { return this.ls.teams?.home?.runs  ?? ''; }
-  get awayLineH() { return this.ls.teams?.away?.hits  ?? ''; }
-  get homeLineH() { return this.ls.teams?.home?.hits  ?? ''; }
-  get awayLineE() { return this.ls.teams?.away?.errors ?? ''; }
-  get homeLineE() { return this.ls.teams?.home?.errors ?? ''; }
+
+  get displayInnings() {
+    const current = this.ls.innings || [];
+    const count = Math.max(9, current.length);
+    const result = [];
+    for (let i = 1; i <= count; i++) {
+      const inn = current.find((x: any) => x.num === i);
+      if (inn) {
+        result.push(inn);
+      } else {
+        result.push({ num: i, away: {}, home: {}, _padded: true });
+      }
+    }
+    return result;
+  }
+
+  get awayLineR() { return this.ls.teams?.away?.runs  ?? (this.state === 'upcoming' ? '' : 0); }
+  get homeLineR() { return this.ls.teams?.home?.runs  ?? (this.state === 'upcoming' ? '' : 0); }
+  get awayLineH() { return this.ls.teams?.away?.hits  ?? (this.state === 'upcoming' ? '' : 0); }
+  get homeLineH() { return this.ls.teams?.home?.hits  ?? (this.state === 'upcoming' ? '' : 0); }
+  get awayLineE() { return this.ls.teams?.away?.errors ?? (this.state === 'upcoming' ? '' : 0); }
+  get homeLineE() { return this.ls.teams?.home?.errors ?? (this.state === 'upcoming' ? '' : 0); }
 
   get runners() {
     return {
@@ -159,6 +175,7 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
     if (val !== undefined && val !== null && val !== '') {
       return val.toString();
     }
+    if (inn._padded) return '';
     if (this.state === 'final') return 'x';
     return '';
   }
@@ -243,19 +260,33 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   get currentBatter(): any {
-    return this.liveFeed?.liveData?.plays?.currentPlay?.matchup?.batter ?? null;
+    return this.liveFeed?.liveData?.plays?.currentPlay?.matchup?.batter || this.ls?.offense?.batter || null;
   }
 
   get currentPitcher(): any {
-    return this.liveFeed?.liveData?.plays?.currentPlay?.matchup?.pitcher ?? null;
+    return this.liveFeed?.liveData?.plays?.currentPlay?.matchup?.pitcher || this.ls?.defense?.pitcher || null;
   }
 
   get batterSide(): string {
-    return this.liveFeed?.liveData?.plays?.currentPlay?.matchup?.batSide?.code ?? '';
+    const side = this.liveFeed?.liveData?.plays?.currentPlay?.matchup?.batSide?.code;
+    if (side) return side;
+    const batterId = this.currentBatter?.id;
+    if (batterId) {
+      const p = this.awayBs?.players?.[`ID${batterId}`] || this.homeBs?.players?.[`ID${batterId}`];
+      if (p?.person?.batSide?.code) return p.person.batSide.code;
+    }
+    return '';
   }
 
   get pitcherHand(): string {
-    return this.liveFeed?.liveData?.plays?.currentPlay?.matchup?.pitchHand?.code ?? '';
+    const hand = this.liveFeed?.liveData?.plays?.currentPlay?.matchup?.pitchHand?.code;
+    if (hand) return hand;
+    const pitcherId = this.currentPitcher?.id;
+    if (pitcherId) {
+      const p = this.awayBs?.players?.[`ID${pitcherId}`] || this.homeBs?.players?.[`ID${pitcherId}`];
+      if (p?.person?.pitchHand?.code) return p.person.pitchHand.code;
+    }
+    return '';
   }
 
   get count(): { balls: number; strikes: number; outs: number } {
@@ -338,7 +369,7 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
           speed: pe.pitchData?.startSpeed ?? undefined,
           callCode: code,
           isBall:   ['B','I','P','V'].includes(code),
-          isStrike: ['C','S','F','T','L','O','M','Q','R'].includes(code),
+          isStrike: ['C','S','F','T','L','0','M','Q','R'].includes(code),
           isInPlay: code === 'X',
           callClass: this.getPitchCallClass(code),
           callLabel: this.pitchCallLabel(code)
