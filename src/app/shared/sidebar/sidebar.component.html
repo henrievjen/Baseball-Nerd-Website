@@ -39,6 +39,16 @@
     </a>
   </nav>
 
+  <!-- AdSense unit — only shown when sidebar is expanded -->
+  <div class="sidebar-ad" *ngIf="!collapsed">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="XXXXXXXXXX"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+  </div>
+
   <!-- Collapse toggle -->
   <button class="collapse-btn" (click)="toggleCollapsed()" [title]="collapsed ? 'Expand' : 'Collapse'">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">

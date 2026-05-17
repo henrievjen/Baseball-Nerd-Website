@@ -86,6 +86,20 @@
   letter-spacing: 0.2px;
 }
 
+/* AdSense unit */
+.sidebar-ad {
+  padding: 10px 10px 0;
+  flex-shrink: 0;
+
+  ins.adsbygoogle {
+    display: block;
+    min-width: 0;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--surface);
+  }
+}
+
 /* Collapse button */
 .collapse-btn {
   background: none; border: none;
