@@ -91,14 +91,63 @@
   }
 }
 
-/* Calendar Picker */
+/* ── Today / Refresh Picker (left) ── */
+.today-picker {
+  flex: 0 0 72px;
+  height: 72px;
+  margin-top: 4px;
+  position: sticky;
+  left: 0;
+  z-index: 20;
+}
+
+.today-btn {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text2);
+  cursor: pointer;
+  transition: var(--transition);
+
+  svg {
+    width: 22px;
+    height: 22px;
+    transition: transform 0.35s ease;
+  }
+
+  &:hover {
+    border-color: var(--border2);
+    color: var(--red);
+    background: var(--surface2);
+    svg { transform: rotate(-45deg); }
+  }
+
+  /* Dim when already on today — button is a no-op */
+  &.is-today {
+    opacity: 0.35;
+    cursor: default;
+    &:hover {
+      color: var(--text2);
+      background: var(--surface);
+      border-color: var(--border);
+      svg { transform: none; }
+    }
+  }
+}
+
+/* ── Calendar Picker ── */
 .calendar-picker {
   flex: 0 0 72px;
   height: 72px;
-  margin-top: 4px; /* Align with date tabs padding */
+  margin-top: 4px;
   position: sticky;
   right: 0;
-  z-index: 10;
+  z-index: 20;
 }
 
 .calendar-btn {
@@ -114,27 +163,141 @@
   cursor: pointer;
   transition: var(--transition);
 
+  svg { width: 22px; height: 22px; }
+
   &:hover {
     border-color: var(--border2);
     color: var(--red);
     background: var(--surface2);
   }
 
-  svg {
-    width: 24px;
-    height: 24px;
+  &.open {
+    background: var(--surface2);
+    border-color: var(--red);
+    color: var(--red);
   }
 }
 
-.hidden-date-input {
+/* ── Dropdown panel ── */
+.cal-dropdown {
   position: absolute;
-  top: 0; left: 0;
-  opacity: 0;
-  width: 1px; height: 1px;
-  pointer-events: none;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 280px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04);
+  animation: calDrop 0.18s ease;
+  z-index: 30;
 }
 
-/* Grid */
+@keyframes calDrop {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+/* Month header */
+.cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.cal-month-label {
+  font-family: var(--font-head);
+  font-size: 1.1rem;
+  letter-spacing: 0.8px;
+  color: var(--text);
+}
+
+.cal-nav {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--text2);
+  transition: var(--transition);
+
+  svg { width: 14px; height: 14px; }
+
+  &:hover {
+    background: var(--surface2);
+    border-color: var(--border2);
+    color: var(--text);
+  }
+}
+
+/* Day-of-week row */
+.cal-dow-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 6px;
+}
+
+.cal-dow {
+  text-align: center;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 4px 0;
+}
+
+/* Day grid */
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  color: var(--text2);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+
+  &:hover {
+    background: var(--surface2);
+    color: var(--text);
+    border-color: var(--border);
+  }
+
+  &.other-month {
+    color: var(--text3);
+    opacity: 0.45;
+  }
+
+  &.is-today:not(.is-selected) {
+    color: var(--red);
+    font-weight: 700;
+    border-color: rgba(200, 16, 46, 0.35);
+  }
+
+  &.is-selected {
+    background: var(--red);
+    color: #fff;
+    border-color: var(--red);
+    font-weight: 700;
+
+    &:hover { background: #a80d26; }
+  }
+}
+
+/* ── Grid ── */
 .games-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -150,6 +313,10 @@
   }
 
   .calendar-picker {
+    flex: 0 0 60px;
+    height: 60px;
+  }
+  .today-picker {
     flex: 0 0 60px;
     height: 60px;
   }

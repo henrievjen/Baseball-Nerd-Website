@@ -21,10 +21,12 @@
     <!-- Away -->
     <div class="team-row">
       <div class="team-left">
-        <img class="team-logo team-logo--card"
-             [src]="teams.logo(awayId)"
-             [alt]="away?.team?.name"
-             (error)="logoError($event, awayId)"/>
+        <div class="team-logo-wrap">
+          <img class="team-logo team-logo--card"
+               [src]="teams.logo(awayId)"
+               [alt]="away?.team?.name"
+               (error)="logoError($event, awayId)"/>
+        </div>
         <div class="team-info">
           <div class="team-name" [class.dim]="homeWin">{{ away?.team?.name }}</div>
           <div class="team-record" *ngIf="away?.leagueRecord">
@@ -43,10 +45,12 @@
     <!-- Home -->
     <div class="team-row">
       <div class="team-left">
-        <img class="team-logo team-logo--card"
-             [src]="teams.logo(homeId)"
-             [alt]="home?.team?.name"
-             (error)="logoError($event, homeId)"/>
+        <div class="team-logo-wrap">
+          <img class="team-logo team-logo--card"
+               [src]="teams.logo(homeId)"
+               [alt]="home?.team?.name"
+               (error)="logoError($event, homeId)"/>
+        </div>
         <div class="team-info">
           <div class="team-name" [class.dim]="awayWin">{{ home?.team?.name }}</div>
           <div class="team-record" *ngIf="home?.leagueRecord">
@@ -72,29 +76,29 @@
       <div class="linescore-scroll">
         <table class="linescore">
           <thead>
-            <tr>
-              <th class="ls-team-col"></th>
-              <th *ngFor="let inn of displayInnings">{{ inn.num }}</th>
-              <th class="ls-total">R</th>
-              <th class="ls-total">H</th>
-              <th class="ls-total">E</th>
-            </tr>
+          <tr>
+            <th class="ls-team-col"></th>
+            <th *ngFor="let inn of displayInnings">{{ inn.num }}</th>
+            <th class="ls-total">R</th>
+            <th class="ls-total">H</th>
+            <th class="ls-total">E</th>
+          </tr>
           </thead>
           <tbody>
-            <tr>
-              <td class="ls-team-name">{{ away?.team?.abbreviation || teams.abbr(awayId) }}</td>
-              <td *ngFor="let inn of displayInnings">{{ inn.away?.runs ?? '' }}</td>
-              <td class="ls-total ls-total--val">{{ awayLineR }}</td>
-              <td class="ls-total ls-total--val">{{ awayLineH }}</td>
-              <td class="ls-total ls-total--val">{{ awayLineE }}</td>
-            </tr>
-            <tr>
-              <td class="ls-team-name">{{ home?.team?.abbreviation || teams.abbr(homeId) }}</td>
-              <td *ngFor="let inn of displayInnings">{{ inn.home?.runs ?? '' }}</td>
-              <td class="ls-total ls-total--val">{{ homeLineR }}</td>
-              <td class="ls-total ls-total--val">{{ homeLineH }}</td>
-              <td class="ls-total ls-total--val">{{ homeLineE }}</td>
-            </tr>
+          <tr>
+            <td class="ls-team-name">{{ away?.team?.abbreviation || teams.abbr(awayId) }}</td>
+            <td *ngFor="let inn of displayInnings">{{ inn.away?.runs ?? '' }}</td>
+            <td class="ls-total ls-total--val">{{ awayLineR }}</td>
+            <td class="ls-total ls-total--val">{{ awayLineH }}</td>
+            <td class="ls-total ls-total--val">{{ awayLineE }}</td>
+          </tr>
+          <tr>
+            <td class="ls-team-name">{{ home?.team?.abbreviation || teams.abbr(homeId) }}</td>
+            <td *ngFor="let inn of displayInnings">{{ inn.home?.runs ?? '' }}</td>
+            <td class="ls-total ls-total--val">{{ homeLineR }}</td>
+            <td class="ls-total ls-total--val">{{ homeLineH }}</td>
+            <td class="ls-total ls-total--val">{{ homeLineE }}</td>
+          </tr>
           </tbody>
         </table>
       </div>
@@ -117,17 +121,41 @@
   <div class="card-footer">
     <!-- Live Info -->
     <div *ngIf="state === 'live'" class="live-footer">
-      <div class="count-row">
-        <span class="count-item">B <strong>{{ ls.balls ?? 0 }}</strong></span>
-        <span class="count-item">S <strong>{{ ls.strikes ?? 0 }}</strong></span>
-        <span class="count-item">O <strong>{{ ls.outs ?? 0 }}</strong></span>
+
+      <!-- Count pips -->
+      <div class="count-pips">
+        <div class="pip-group">
+          <span class="pip-label">B</span>
+          <div class="pips">
+            <div class="pip" [class.pip--on]="(ls.balls ?? 0) > 0"></div>
+            <div class="pip" [class.pip--on]="(ls.balls ?? 0) > 1"></div>
+            <div class="pip" [class.pip--on]="(ls.balls ?? 0) > 2"></div>
+          </div>
+        </div>
+        <div class="pip-group">
+          <span class="pip-label">S</span>
+          <div class="pips">
+            <div class="pip" [class.pip--on]="(ls.strikes ?? 0) > 0"></div>
+            <div class="pip" [class.pip--on]="(ls.strikes ?? 0) > 1"></div>
+          </div>
+        </div>
+        <div class="pip-group">
+          <span class="pip-label">O</span>
+          <div class="pips">
+            <div class="pip pip--out" [class.pip--on]="(ls.outs ?? 0) > 0"></div>
+            <div class="pip pip--out" [class.pip--on]="(ls.outs ?? 0) > 1"></div>
+            <div class="pip pip--out" [class.pip--on]="(ls.outs ?? 0) > 2"></div>
+          </div>
+        </div>
       </div>
-      <svg class="diamond" viewBox="0 0 44 44" fill="none">
-        <polygon points="22,2 42,22 22,42 2,22" stroke="#ffffff15" stroke-width="1.5"/>
-        <circle cx="22" cy="4"  r="5" [attr.fill]="runners.second ? '#F59E0B' : '#ffffff10'"/>
-        <circle cx="40" cy="22" r="5" [attr.fill]="runners.first  ? '#F59E0B' : '#ffffff10'"/>
-        <circle cx="4"  cy="22" r="5" [attr.fill]="runners.third  ? '#F59E0B' : '#ffffff10'"/>
-      </svg>
+
+      <!-- Bases: 1st, 2nd, 3rd as horizontal diamonds -->
+      <div class="bases-row">
+        <div class="base-diamond" [class.base--on]="runners.third"  title="3rd"></div>
+        <div class="base-diamond" [class.base--on]="runners.second" title="2nd"></div>
+        <div class="base-diamond" [class.base--on]="runners.first"  title="1st"></div>
+      </div>
+
     </div>
 
     <!-- Decisions (Final only) -->

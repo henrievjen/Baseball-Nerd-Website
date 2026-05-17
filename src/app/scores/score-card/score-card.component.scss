@@ -55,10 +55,19 @@
   display: flex; align-items: center; gap: 10px;
 }
 
+/* Logo in white circle */
+.team-logo-wrap {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+}
+
 .team-logo--card {
-  width: 36px; height: 36px;
+  width: 28px; height: 28px;
   object-fit: contain;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
 }
 
 .team-info {}
@@ -147,19 +156,80 @@
 /* Live footer */
 .live-footer {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 14px;
+  padding: 8px 14px 10px;
+  gap: 12px;
 }
 
-.count-row {
-  display: flex; gap: 10px;
-  font-size: 0.75rem; color: var(--text2);
-  strong { color: var(--text); font-family: var(--font-mono); font-size: 0.9rem; }
+/* ── Count pip circles ── */
+.count-pips {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.count-item { display: flex; align-items: center; gap: 4px; }
+.pip-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
 
-.diamond {
-  width: 38px; height: 38px;
+.pip-label {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text3);
+  line-height: 1;
+}
+
+.pips {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+
+.pip {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  background: transparent;
+  transition: background 0.15s, border-color 0.15s;
+
+  &.pip--on {
+    background: #22C55E;       /* green for balls & strikes */
+    border-color: #22C55E;
+  }
+
+  /* Outs use red */
+  &.pip--out { border-color: rgba(255,255,255,0.2); }
+  &.pip--out.pip--on {
+    background: var(--red);
+    border-color: var(--red);
+  }
+}
+
+/* ── Bases row ── */
+.bases-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.base-diamond {
+  width: 14px; height: 14px;
+  background: rgba(255,255,255,0.08);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 3px;
+  transform: rotate(45deg);
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+
+  &.base--on {
+    background: #F59E0B;
+    border-color: #F59E0B;
+    box-shadow: 0 0 6px rgba(245,158,11,0.5);
+  }
 }
 
 /* Probables */

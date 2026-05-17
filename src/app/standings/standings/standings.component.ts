@@ -7,6 +7,7 @@ interface TeamRow {
   wins: number; losses: number; pct: string;
   gb: string; wcGb?: string; rank: number; wcRank?: number;
   divisionLeader?: boolean;
+  divisionShortName?: string;
 }
 
 interface Division {
@@ -24,6 +25,8 @@ export class StandingsComponent implements OnInit {
 
   alDivisions: Division[] = [];
   nlDivisions: Division[] = [];
+  alDivisionLeaders: TeamRow[] = [];
+  nlDivisionLeaders: TeamRow[] = [];
   alWildCard: TeamRow[] = [];
   nlWildCard: TeamRow[] = [];
 
@@ -73,6 +76,14 @@ export class StandingsComponent implements OnInit {
     const nlOrder = ['National League East','National League Central','National League West'];
     this.alDivisions = alOrder.map(n => divMap[n]).filter(Boolean);
     this.nlDivisions = nlOrder.map(n => divMap[n]).filter(Boolean);
+
+    // Extract the rank-1 team from each division for the Wild Card tab
+    this.alDivisionLeaders = this.alDivisions
+      .map(div => ({ ...div.teams[0], divisionShortName: div.shortName }))
+      .filter(Boolean);
+    this.nlDivisionLeaders = this.nlDivisions
+      .map(div => ({ ...div.teams[0], divisionShortName: div.shortName }))
+      .filter(Boolean);
   }
 
   buildWildCard(records: any[]) {

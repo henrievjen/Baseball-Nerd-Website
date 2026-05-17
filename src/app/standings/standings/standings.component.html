@@ -21,25 +21,25 @@
           <h2 class="div-title">{{ div.shortName }}</h2>
           <table class="st-table">
             <thead>
-              <tr>
-                <th class="th-team">Team</th>
-                <th>W</th><th>L</th><th>PCT</th><th>GB</th>
-              </tr>
+            <tr>
+              <th class="th-team">Team</th>
+              <th>W</th><th>L</th><th>PCT</th><th>GB</th>
+            </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let t of div.teams; let i = index" [class.leader-row]="i === 0">
-                <td class="td-team">
-                  <span class="rank-num">{{ t.rank }}</span>
-                  <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
-                  <span class="team-name-text">{{ t.teamName }}</span>
-                </td>
-                <td class="num-cell">{{ t.wins }}</td>
-                <td class="num-cell">{{ t.losses }}</td>
-                <td class="num-cell pct-cell">{{ t.pct }}</td>
-                <td class="num-cell gb-cell" [class.gb-leader]="isGbLeader(t.gb)">
-                  {{ isGbLeader(t.gb) ? '—' : t.gb }}
-                </td>
-              </tr>
+            <tr *ngFor="let t of div.teams; let i = index" [class.leader-row]="i === 0">
+              <td class="td-team">
+                <span class="rank-num">{{ t.rank }}</span>
+                <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
+                <span class="team-name-text">{{ t.teamName }}</span>
+              </td>
+              <td class="num-cell">{{ t.wins }}</td>
+              <td class="num-cell">{{ t.losses }}</td>
+              <td class="num-cell pct-cell">{{ t.pct }}</td>
+              <td class="num-cell gb-cell" [class.gb-leader]="isGbLeader(t.gb)">
+                {{ isGbLeader(t.gb) ? '—' : t.gb }}
+              </td>
+            </tr>
             </tbody>
           </table>
         </div>
@@ -53,25 +53,25 @@
           <h2 class="div-title">{{ div.shortName }}</h2>
           <table class="st-table">
             <thead>
-              <tr>
-                <th class="th-team">Team</th>
-                <th>W</th><th>L</th><th>PCT</th><th>GB</th>
-              </tr>
+            <tr>
+              <th class="th-team">Team</th>
+              <th>W</th><th>L</th><th>PCT</th><th>GB</th>
+            </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let t of div.teams; let i = index" [class.leader-row]="i === 0">
-                <td class="td-team">
-                  <span class="rank-num">{{ t.rank }}</span>
-                  <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
-                  <span class="team-name-text">{{ t.teamName }}</span>
-                </td>
-                <td class="num-cell">{{ t.wins }}</td>
-                <td class="num-cell">{{ t.losses }}</td>
-                <td class="num-cell pct-cell">{{ t.pct }}</td>
-                <td class="num-cell gb-cell" [class.gb-leader]="isGbLeader(t.gb)">
-                  {{ isGbLeader(t.gb) ? '—' : t.gb }}
-                </td>
-              </tr>
+            <tr *ngFor="let t of div.teams; let i = index" [class.leader-row]="i === 0">
+              <td class="td-team">
+                <span class="rank-num">{{ t.rank }}</span>
+                <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
+                <span class="team-name-text">{{ t.teamName }}</span>
+              </td>
+              <td class="num-cell">{{ t.wins }}</td>
+              <td class="num-cell">{{ t.losses }}</td>
+              <td class="num-cell pct-cell">{{ t.pct }}</td>
+              <td class="num-cell gb-cell" [class.gb-leader]="isGbLeader(t.gb)">
+                {{ isGbLeader(t.gb) ? '—' : t.gb }}
+              </td>
+            </tr>
             </tbody>
           </table>
         </div>
@@ -80,46 +80,113 @@
   </div>
 
   <!-- Wild Card Tab -->
-  <div *ngIf="!loading && activeTab === 'WC'" class="divisions-grid">
-    <div class="division-section" *ngIf="alWildCard.length">
-      <h2 class="div-title">AL Wild Card</h2>
-      <table class="st-table">
-        <thead><tr><th class="th-team">Team</th><th>W</th><th>L</th><th>PCT</th><th>WCGB</th></tr></thead>
-        <tbody>
-          <tr *ngFor="let t of alWildCard; let i = index">
-            <td class="td-team">
-              <span class="rank-num">{{ t.wcRank }}</span>
-              <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
-              <span class="team-name-text">{{ t.teamName }}</span>
-              <span *ngIf="(t.wcRank ?? 99) <= 3" class="wc-badge">WC</span>
-            </td>
-            <td class="num-cell">{{ t.wins }}</td>
-            <td class="num-cell">{{ t.losses }}</td>
-            <td class="num-cell pct-cell">{{ t.pct }}</td>
-            <td class="num-cell">{{ t.wcGb }}</td>
-          </tr>
-        </tbody>
-      </table>
+  <div *ngIf="!loading && activeTab === 'WC'">
+
+    <!-- AL -->
+    <div class="league-section">
+      <h2 class="league-header">American League</h2>
+
+      <div class="wc-layout">
+        <!-- Division Leaders column -->
+        <div class="division-section" *ngIf="alDivisionLeaders.length">
+          <h2 class="div-title">Division Leaders</h2>
+          <table class="st-table">
+            <thead><tr><th class="th-team">Team</th><th>W</th><th>L</th><th>PCT</th><th>GB</th></tr></thead>
+            <tbody>
+            <tr *ngFor="let t of alDivisionLeaders" class="leader-row div-leader-row">
+              <td class="td-team">
+                <span class="div-crown">👑</span>
+                <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
+                <div class="team-name-stack">
+                  <span class="team-name-text">{{ t.teamName }}</span>
+                  <span class="div-name-sub">{{ t.divisionShortName }}</span>
+                </div>
+              </td>
+              <td class="num-cell">{{ t.wins }}</td>
+              <td class="num-cell">{{ t.losses }}</td>
+              <td class="num-cell pct-cell">{{ t.pct }}</td>
+              <td class="num-cell gb-cell gb-leader">—</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Wild Card column -->
+        <div class="division-section" *ngIf="alWildCard.length">
+          <h2 class="div-title">Wild Card</h2>
+          <table class="st-table">
+            <thead><tr><th class="th-team">Team</th><th>W</th><th>L</th><th>PCT</th><th>WCGB</th></tr></thead>
+            <tbody>
+            <tr *ngFor="let t of alWildCard" [class.wc-spot-row]="(t.wcRank ?? 99) <= 3" [class.wc-bubble-row]="(t.wcRank ?? 99) > 3">
+              <td class="td-team">
+                <span class="rank-num">{{ t.wcRank }}</span>
+                <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
+                <span class="team-name-text">{{ t.teamName }}</span>
+                <span *ngIf="(t.wcRank ?? 99) <= 3" class="wc-badge">WC</span>
+              </td>
+              <td class="num-cell">{{ t.wins }}</td>
+              <td class="num-cell">{{ t.losses }}</td>
+              <td class="num-cell pct-cell">{{ t.pct }}</td>
+              <td class="num-cell">{{ t.wcGb }}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
-    <div class="division-section" *ngIf="nlWildCard.length">
-      <h2 class="div-title">NL Wild Card</h2>
-      <table class="st-table">
-        <thead><tr><th class="th-team">Team</th><th>W</th><th>L</th><th>PCT</th><th>WCGB</th></tr></thead>
-        <tbody>
-          <tr *ngFor="let t of nlWildCard; let i = index">
-            <td class="td-team">
-              <span class="rank-num">{{ t.wcRank }}</span>
-              <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
-              <span class="team-name-text">{{ t.teamName }}</span>
-              <span *ngIf="(t.wcRank ?? 99) <= 3" class="wc-badge">WC</span>
-            </td>
-            <td class="num-cell">{{ t.wins }}</td>
-            <td class="num-cell">{{ t.losses }}</td>
-            <td class="num-cell pct-cell">{{ t.pct }}</td>
-            <td class="num-cell">{{ t.wcGb }}</td>
-          </tr>
-        </tbody>
-      </table>
+
+    <!-- NL -->
+    <div class="league-section">
+      <h2 class="league-header">National League</h2>
+
+      <div class="wc-layout">
+        <!-- Division Leaders column -->
+        <div class="division-section" *ngIf="nlDivisionLeaders.length">
+          <h2 class="div-title">Division Leaders</h2>
+          <table class="st-table">
+            <thead><tr><th class="th-team">Team</th><th>W</th><th>L</th><th>PCT</th><th>GB</th></tr></thead>
+            <tbody>
+            <tr *ngFor="let t of nlDivisionLeaders" class="leader-row div-leader-row">
+              <td class="td-team">
+                <span class="div-crown">👑</span>
+                <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
+                <div class="team-name-stack">
+                  <span class="team-name-text">{{ t.teamName }}</span>
+                  <span class="div-name-sub">{{ t.divisionShortName }}</span>
+                </div>
+              </td>
+              <td class="num-cell">{{ t.wins }}</td>
+              <td class="num-cell">{{ t.losses }}</td>
+              <td class="num-cell pct-cell">{{ t.pct }}</td>
+              <td class="num-cell gb-cell gb-leader">—</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Wild Card column -->
+        <div class="division-section" *ngIf="nlWildCard.length">
+          <h2 class="div-title">Wild Card</h2>
+          <table class="st-table">
+            <thead><tr><th class="th-team">Team</th><th>W</th><th>L</th><th>PCT</th><th>WCGB</th></tr></thead>
+            <tbody>
+            <tr *ngFor="let t of nlWildCard" [class.wc-spot-row]="(t.wcRank ?? 99) <= 3" [class.wc-bubble-row]="(t.wcRank ?? 99) > 3">
+              <td class="td-team">
+                <span class="rank-num">{{ t.wcRank }}</span>
+                <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
+                <span class="team-name-text">{{ t.teamName }}</span>
+                <span *ngIf="(t.wcRank ?? 99) <= 3" class="wc-badge">WC</span>
+              </td>
+              <td class="num-cell">{{ t.wins }}</td>
+              <td class="num-cell">{{ t.losses }}</td>
+              <td class="num-cell pct-cell">{{ t.pct }}</td>
+              <td class="num-cell">{{ t.wcGb }}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
+
   </div>
 </div>

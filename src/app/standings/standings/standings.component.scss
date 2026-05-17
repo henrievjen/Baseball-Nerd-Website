@@ -109,6 +109,43 @@
   letter-spacing: 0.5px;
 }
 
+/* Wild Card tab layout: leaders + WC side by side */
+.wc-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+}
+
+/* Division leader rows */
+.div-leader-row td { background: rgba(255, 215, 0, 0.04); }
+
+.div-crown {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.team-name-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.div-name-sub {
+  font-size: 0.65rem;
+  color: var(--text3);
+  font-weight: 400;
+  letter-spacing: 0.3px;
+}
+
+/* WC spot vs bubble rows */
+.wc-spot-row td   { }
+.wc-bubble-row td { opacity: 0.65; }
+
+@media (max-width: 860px) {
+  .wc-layout { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 600px) {
   .standings-page { padding: 18px 14px 60px; }
   .divisions-grid { grid-template-columns: 1fr; }
