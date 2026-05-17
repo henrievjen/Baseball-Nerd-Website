@@ -65,6 +65,8 @@ export class MlbApiService {
 
   /** Live feed — includes current at-bat, matchup, and all pitch coordinates */
   getLiveFeed(gamePk: number) {
-    return this.get<any>(`v1/game/${gamePk}/feed/live`);
+    return this.get<any>(`v1/game/${gamePk}/feed/live`, {
+      hydrate: 'pitchData,hitData'
+    });
   }
 }

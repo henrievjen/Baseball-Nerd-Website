@@ -354,32 +354,39 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   flex-shrink: 0;
 }
 
-.sz-count-row {
+.count-pips {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 6px;
 }
 
-.sz-count-label {
+.pip-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pip-label {
   font-size: 0.58rem;
   font-weight: 700;
   text-transform: uppercase;
   color: var(--text3);
   letter-spacing: 0.5px;
   line-height: 1;
+  width: 50px;
 }
 
-.sz-pips {
+.pips {
   display: flex;
   gap: 3px;
   align-items: center;
 }
 
-.sz-pip {
+.pip {
   width: 9px;
   height: 9px;
   border-radius: 50%;
@@ -387,32 +394,32 @@
   background: transparent;
   transition: background 0.12s, border-color 0.12s;
 
-  &.sz-pip--on {
-    &.sz-pip--ball   { background: #3b82f6; border-color: #3b82f6; }
-    &.sz-pip--strike { background: #f59e0b; border-color: #f59e0b; }
-    &.sz-pip--out    { background: var(--red); border-color: var(--red); }
+  &.pip--on {
+    &.pip--ball   { background: #3b82f6; border-color: #3b82f6; }
+    &.pip--strike { background: #f59e0b; border-color: #f59e0b; }
+    &.pip--out    { background: var(--red); border-color: var(--red); }
   }
 }
 
-/* ── Bases diamond ── */
-.sz-bases {
+/* ── Bases diamond layout ── */
+.bases-diamond {
   position: relative;
   width: 32px;
   height: 32px;
   margin-top: 2px;
 }
 
-.sz-base {
+.base-spot {
   position: absolute;
   width: 11px;
   height: 11px;
   background: var(--bg3);
-  border: 1.2px solid var(--border2);
+  border: 1.5px solid var(--border2);
   border-radius: 2px;
   transform: rotate(45deg);
   transition: background 0.15s, border-color 0.15s;
 
-  &.sz-base--on {
+  &.base--on {
     background: #F59E0B;
     border-color: #F59E0B;
     box-shadow: 0 0 6px rgba(245,158,11,0.5);

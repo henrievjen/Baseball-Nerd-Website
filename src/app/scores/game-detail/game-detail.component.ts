@@ -112,7 +112,7 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
       this.cachedHomePitchers = this.buildPitchers(this.boxscore?.teams?.home);
     }
 
-    if (changes['liveFeed'] || changes['game']) {
+    if (changes['liveFeed'] || changes['game'] || changes['plays']) {
       this.updateStrikeZone();
     }
   }
@@ -181,24 +181,29 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   // ── Live strikezone ─────────────────────────────────────────
-  private readonly SVG_W   = 300;
-  private readonly SVG_H   = 340;
+  private readonly SVG_W   = 280;
+  private readonly SVG_H   = 400;
   private readonly PAD     = 40;
 
   private toSvgX(pX: number): number {
-    const rangeX = 3.2;
+    const rangeX = 3.2; // Width of coverage area in feet
     const drawW  = this.SVG_W - this.PAD * 2;
     return this.PAD + drawW * (1 - (pX + rangeX / 2) / rangeX);
   }
 
   private toSvgY(pZ: number): number {
-    const maxZ  = 5.0;
+    const maxZ  = 5.0; // Height of coverage area in feet
     const drawH = this.SVG_H - this.PAD * 2;
     return this.PAD + drawH * (1 - pZ / maxZ);
   }
 
   private updateStrikeZone() {
-    const play = this.liveFeed?.liveData?.plays?.currentPlay;
+    // Try currentPlay from liveFeed first, then fallback to last play in plays feed
+    let play = this.liveFeed?.liveData?.plays?.currentPlay;
+    if (!play && this.plays?.allPlays?.length) {
+      play = this.plays.allPlays[this.plays.allPlays.length - 1];
+    }
+
     if (!play) {
       this.cachedZonePitches = [];
       this.cachedSzRect = { x: this.toSvgX(0.83), y: this.toSvgY(3.5), w: Math.abs(this.toSvgX(0.83) - this.toSvgX(-0.83)), h: Math.abs(this.toSvgY(3.5) - this.toSvgY(1.5)) };
@@ -215,7 +220,7 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
       ? (events.find((e: any) => e.pitchData?.strikeZoneBottom)?.pitchData?.strikeZoneBottom ?? 1.5)
       : 1.5;
 
-    const x1 = this.toSvgX(-0.83);
+    const x1 = this.toSvgX(-0.83); // ~17 inches + ball radius
     const x2 = this.toSvgX(0.83);
     const y1 = this.toSvgY(szTop);
     const y2 = this.toSvgY(szBottom);
@@ -245,11 +250,12 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private getAtBatEvents(play: any): any[] {
-    if (!play || !play.playEvents) return [];
+    if (!play) return [];
+    const playEvts = play.playEvents || [];
     if (play.pitchIndex && Array.isArray(play.pitchIndex)) {
-      return play.pitchIndex.map((idx: number) => play.playEvents[idx]).filter((e: any) => !!e);
+      return play.pitchIndex.map((idx: number) => playEvts[idx]).filter((e: any) => !!e);
     }
-    return play.playEvents.filter((e: any) => e.isPitch || e.type === 'pitch');
+    return playEvts.filter((e: any) => e.isPitch || e.type === 'pitch');
   }
 
   private getPitchDotClass(code: string): string {
@@ -359,22 +365,39 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
       const inning  = about.inning ?? 0;
       const halfStr = about.halfInning === 'top' ? 'Top' : 'Bottom';
 
-      const pitches: PitchEvent[] = (play.pitchIndex ?? []).map((pi: number) => {
-        const pe = play.playEvents?.[pi] ?? {};
-        const details = pe.details ?? {};
-        const code = details.code ?? '';
-        return {
-          num: pe.pitchNumber ?? (pi + 1),
-          description: details.description ?? '',
-          speed: pe.pitchData?.startSpeed ?? undefined,
-          callCode: code,
-          isBall:   ['B','I','P','V'].includes(code),
-          isStrike: ['C','S','F','T','L','0','M','Q','R'].includes(code),
-          isInPlay: code === 'X',
-          callClass: this.getPitchCallClass(code),
-          callLabel: this.pitchCallLabel(code)
-        };
-      });
+      const playEvts = play.playEvents || [];
+      const pitches: PitchEvent[] = (play.pitchIndex && Array.isArray(play.pitchIndex))
+        ? play.pitchIndex.map((pi: number) => {
+            const pe = playEvts[pi] || {};
+            const details = pe.details || {};
+            const code = details.code || '';
+            return {
+              num: pe.pitchNumber || (pi + 1),
+              description: details.description || '',
+              speed: pe.pitchData?.startSpeed || undefined,
+              callCode: code,
+              isBall:   ['B','I','P','V'].includes(code),
+              isStrike: ['C','S','F','T','L','0','M','Q','R'].includes(code),
+              isInPlay: code === 'X',
+              callClass: this.getPitchCallClass(code),
+              callLabel: this.pitchCallLabel(code)
+            };
+          })
+        : playEvts.filter((e: any) => e.isPitch || e.type === 'pitch').map((pe: any, pi: number) => {
+            const details = pe.details || {};
+            const code = details.code || '';
+            return {
+              num: pe.pitchNumber || (pi + 1),
+              description: details.description || '',
+              speed: pe.pitchData?.startSpeed || undefined,
+              callCode: code,
+              isBall:   ['B','I','P','V'].includes(code),
+              isStrike: ['C','S','F','T','L','0','M','Q','R'].includes(code),
+              isInPlay: code === 'X',
+              callClass: this.getPitchCallClass(code),
+              callLabel: this.pitchCallLabel(code)
+            };
+          });
 
       const eventType = result.eventType ?? result.event ?? '';
       let resultType: PlayEvent['resultType'] = 'other';
@@ -429,11 +452,15 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
 
   getPitcherRecord(pitcher: any): string {
     if (!pitcher?.stats) return '';
-    const seasonStats = pitcher.stats.find((s: any) =>
-      s.type?.displayName?.toLowerCase().includes('season') &&
-      s.group?.displayName?.toLowerCase().includes('pitching')
+    const statsArray = pitcher.stats || pitcher.person?.stats;
+    if (!statsArray || !Array.isArray(statsArray)) return '';
+
+    const seasonStats = statsArray.find((s: any) =>
+      (s.type?.displayName?.toLowerCase().includes('season') || s.type?.displayName?.toLowerCase() === 'stats') &&
+      (s.group?.displayName?.toLowerCase() === 'pitching' || s.group?.code === 'pitching')
     );
-    const stat = seasonStats?.splits?.[0]?.stat || seasonStats?.stats;
+
+    const stat = seasonStats?.stats || seasonStats?.splits?.[0]?.stat;
     if (stat && stat.wins !== undefined && stat.losses !== undefined) {
       return ` (${stat.wins}-${stat.losses})`;
     }

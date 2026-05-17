@@ -103,30 +103,32 @@
 
               <!-- Count and Bases -->
               <div class="sz-count-block">
-                <div class="sz-count-row">
-                  <span class="sz-count-label">Strikes</span>
-                  <div class="sz-pips">
-                    <span class="sz-pip" *ngFor="let i of countArray(3)" [class.sz-pip--on]="count.strikes > i" [class.sz-pip--strike]="true"></span>
+                <div class="count-pips">
+                  <div class="pip-group">
+                    <span class="pip-label">Strikes</span>
+                    <div class="pips">
+                      <div class="pip pip--strike" *ngFor="let i of countArray(3)" [class.pip--on]="count.strikes > i"></div>
+                    </div>
                   </div>
-                </div>
-                <div class="sz-count-row">
-                  <span class="sz-count-label">Balls</span>
-                  <div class="sz-pips">
-                    <span class="sz-pip" *ngFor="let i of countArray(4)" [class.sz-pip--on]="count.balls > i" [class.sz-pip--ball]="true"></span>
+                  <div class="pip-group">
+                    <span class="pip-label">Balls</span>
+                    <div class="pips">
+                      <div class="pip pip--ball" *ngFor="let i of countArray(4)" [class.pip--on]="count.balls > i"></div>
+                    </div>
                   </div>
-                </div>
-                <div class="sz-count-row">
-                  <span class="sz-count-label">Outs</span>
-                  <div class="sz-pips">
-                    <span class="sz-pip" *ngFor="let i of countArray(3)" [class.sz-pip--on]="count.outs > i" [class.sz-pip--out]="true"></span>
+                  <div class="pip-group">
+                    <span class="pip-label">Outs</span>
+                    <div class="pips">
+                      <div class="pip pip--out" *ngFor="let i of countArray(3)" [class.pip--on]="count.outs > i"></div>
+                    </div>
                   </div>
                 </div>
 
                 <!-- Bases Diamond -->
-                <div class="sz-bases">
-                  <div class="sz-base base--2nd" [class.sz-base--on]="runners.second" title="2nd"></div>
-                  <div class="sz-base base--3rd" [class.sz-base--on]="runners.third"  title="3rd"></div>
-                  <div class="sz-base base--1st" [class.sz-base--on]="runners.first"  title="1st"></div>
+                <div class="bases-diamond">
+                  <div class="base-spot base--2nd" [class.base--on]="runners.second" title="2nd"></div>
+                  <div class="base-spot base--3rd" [class.base--on]="runners.third"  title="3rd"></div>
+                  <div class="base-spot base--1st" [class.base--on]="runners.first"  title="1st"></div>
                 </div>
               </div>
 
