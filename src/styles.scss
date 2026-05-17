@@ -24,6 +24,20 @@
   --transition: 0.18s ease;
 }
 
+body.light-mode {
+  --bg:         #f3f4f6;
+  --bg2:        #ffffff;
+  --bg3:        #f9fafb;
+  --surface:    #e5e7eb;
+  --surface2:   #d1d5db;
+  --border:     rgba(0,0,0,0.08);
+  --border2:    rgba(0,0,0,0.15);
+  --text:       #111827;
+  --text2:      #4b5563;
+  --text3:      #9ca3af;
+  --red-dim:    rgba(200,16,46,0.1);
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html {
@@ -37,6 +51,11 @@ body {
   color: var(--text);
   font-family: var(--font-body);
   overflow-x: hidden;
+  transition: background-color var(--transition), color var(--transition);
+
+  &.modal-open {
+    overflow: hidden;
+  }
 }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -117,10 +136,9 @@ img { max-width: 100%; }
 /* ── Modal overlay ── */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 300;
-  background: rgba(0,0,0,0.75);
+  background: rgba(0,0,0,0.8);
   display: flex; align-items: center; justify-content: center;
   padding: 20px;
-  backdrop-filter: blur(6px);
   animation: fadeIn 0.18s ease;
 }
 @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
@@ -150,7 +168,6 @@ img { max-width: 100%; }
 /* ── Shared team logo ── */
 .team-logo {
   object-fit: contain;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
 }
 
 @media (max-width: 768px) {

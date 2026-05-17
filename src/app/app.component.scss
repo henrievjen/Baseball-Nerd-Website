@@ -13,9 +13,46 @@
   flex: 1;
   min-width: 0;
   overflow-x: hidden;
+  position: relative;
+}
+
+.theme-toggle {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 100;
+  transition: var(--transition);
+  padding: 0;
+
+  &:hover {
+    background: var(--surface2);
+    transform: scale(1.05);
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 @media (max-width: 768px) {
   .app-shell { padding-left: 0; }
   .main-content { padding-bottom: 64px; }
+
+  .theme-toggle {
+    top: 14px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+  }
 }

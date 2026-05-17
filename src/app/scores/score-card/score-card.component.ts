@@ -28,6 +28,10 @@ export class ScoreCardComponent {
   }
 
   get inningLabel(): string {
+    const d = this.game?.status?.detailedState || '';
+    if (d.includes('Delay') || d.includes('Delayed')) return 'DELAYED';
+    if (d === 'Suspended') return 'SUSPENDED';
+
     const half = this.ls.inningHalf;
     const ord  = this.ls.currentInningOrdinal || '';
     const arrow = half === 'Top' ? '▲' : half === 'Bottom' ? '▼' : '';
@@ -35,9 +39,17 @@ export class ScoreCardComponent {
   }
 
   get gameTime(): string {
-    if (this.game?.status?.startTimeTBD) return 'TBD';
-    const d = this.game?.gameDate ? new Date(this.game.gameDate) : null;
-    return d ? d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
+    const status = this.game?.status;
+    const d = status?.detailedState || '';
+
+    if (d === 'Postponed') return 'POSTPONED';
+    if (d === 'Cancelled') return 'CANCELLED';
+    if (d.includes('Delay') || d.includes('Delayed')) return 'DELAYED';
+    if (d === 'Suspended') return 'SUSPENDED';
+
+    if (status?.startTimeTBD) return 'TBD';
+    const date = this.game?.gameDate ? new Date(this.game.gameDate) : null;
+    return date ? date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
   }
 
   get extraInnings(): string {
@@ -64,9 +76,28 @@ export class ScoreCardComponent {
     const result = [];
     for (let i = 1; i <= count; i++) {
       const inn = current.find((x: any) => x.num === i);
-      result.push(inn || { num: i, away: { runs: '' }, home: { runs: '' } });
+      if (inn) {
+        result.push(inn);
+      } else {
+        // Padded inning
+        result.push({ num: i, away: {}, home: {}, _padded: true });
+      }
     }
     return result;
+  }
+
+  getInningRuns(inn: any, team: 'away' | 'home'): string {
+    const val = inn[team]?.runs;
+    if (val !== undefined && val !== null && val !== '') {
+      return val.toString();
+    }
+    // If it's a padded inning (beyond what's in the linescore), leave blank
+    if (inn._padded) return '';
+
+    // If game is final and we have an inning object but no runs for this half, show 'x'
+    if (this.state === 'final') return 'x';
+
+    return '';
   }
 
   get awayLineR() { return this.ls.teams?.away?.runs ?? 0; }

@@ -1,4 +1,5 @@
-import { Component, Input, Output, EventEmitter, HostListener, OnChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, OnChanges, SimpleChanges, ChangeDetectionStrategy, OnInit, OnDestroy, Renderer2, Inject } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { TeamDataService } from '../../shared/team-data.service';
 import { PlayerService } from '../../shared/player.service';
 
@@ -18,6 +19,7 @@ export interface PlayEvent {
   pitches: PitchEvent[];
   awayScore?: number;
   homeScore?: number;
+  atBatIndex?: number;
 }
 
 export interface PitchEvent {
@@ -28,6 +30,8 @@ export interface PitchEvent {
   isBall: boolean;
   isStrike: boolean;
   isInPlay: boolean;
+  callClass: string;
+  callLabel: string;
 }
 
 /** A pitch plotted on the SVG strikezone */
@@ -40,15 +44,17 @@ export interface ZonePitch {
   pitchType?: string;
   num: number;
   isCurrent: boolean;   // most recent pitch of the at-bat
+  dotClass: string;
 }
 
 @Component({
   selector: 'app-game-detail',
   templateUrl: './game-detail.component.html',
   styleUrl: './game-detail.component.scss',
-  standalone: false
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class GameDetailComponent implements OnChanges {
+export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
   @Input() game: any;
   @Input() boxscore: any;
   @Input() loading = false;
@@ -59,7 +65,29 @@ export class GameDetailComponent implements OnChanges {
 
   mainTab: 'lineups' | 'plays' = 'lineups';
 
-  constructor(public teams: TeamDataService, private playerSvc: PlayerService) {}
+  // Cached data to avoid expensive re-calculations in getters
+  cachedParsedPlays: PlayEvent[] = [];
+  cachedAwayLineup: LineupSlot[] = [];
+  cachedHomeLineup: LineupSlot[] = [];
+  cachedAwayPitchers: any[] = [];
+  cachedHomePitchers: any[] = [];
+  cachedZonePitches: ZonePitch[] = [];
+  cachedSzRect = { x: 0, y: 0, w: 0, h: 0 };
+
+  constructor(
+    public teams: TeamDataService,
+    private playerSvc: PlayerService,
+    private renderer: Renderer2,
+    @Inject(DOCUMENT) private document: Document
+  ) {}
+
+  ngOnInit() {
+    this.renderer.addClass(this.document.body, 'modal-open');
+  }
+
+  ngOnDestroy() {
+    this.renderer.removeClass(this.document.body, 'modal-open');
+  }
 
   @HostListener('document:keydown.escape')
   onEscape() { this.closed.emit(); }
@@ -68,8 +96,25 @@ export class GameDetailComponent implements OnChanges {
     if ((e.target as HTMLElement).classList.contains('modal-overlay')) this.closed.emit();
   }
 
-  ngOnChanges() {
-    if (!this.boxscore && !this.plays) this.mainTab = 'lineups';
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['boxscore'] || changes['plays']) {
+      if (!this.boxscore && !this.plays) this.mainTab = 'lineups';
+    }
+
+    if (changes['plays']) {
+      this.cachedParsedPlays = this.parsePlays();
+    }
+
+    if (changes['boxscore']) {
+      this.cachedAwayLineup = this.buildLineupSlots(this.boxscore?.teams?.away);
+      this.cachedHomeLineup = this.buildLineupSlots(this.boxscore?.teams?.home);
+      this.cachedAwayPitchers = this.buildPitchers(this.boxscore?.teams?.away);
+      this.cachedHomePitchers = this.buildPitchers(this.boxscore?.teams?.home);
+    }
+
+    if (changes['liveFeed'] || changes['game']) {
+      this.updateStrikeZone();
+    }
   }
 
   // ── Game state ──────────────────────────────────────────────
@@ -101,66 +146,57 @@ export class GameDetailComponent implements OnChanges {
   get awayLineE() { return this.ls.teams?.away?.errors ?? ''; }
   get homeLineE() { return this.ls.teams?.home?.errors ?? ''; }
 
+  get runners() {
+    return {
+      first:  !!this.ls.offense?.first?.id,
+      second: !!this.ls.offense?.second?.id,
+      third:  !!this.ls.offense?.third?.id
+    };
+  }
+
   // ── Live strikezone ─────────────────────────────────────────
-  /**
-   * SVG canvas constants.
-   * The MLB coordinate system:
-   *   pX: feet from centre plate, positive = catcher's right (pitcher's LEFT)
-   *   pZ: feet above ground
-   * Pitch view = from the pitcher's perspective, so we FLIP pX (mirror left/right).
-   * Typical strike zone: pX ±0.83 ft (half plate 17 in + half ball ~1.45 in each side)
-   *                      pZ ~1.5–3.5 ft (varies by batter; use strikeZoneBottom/Top)
-   * We render a 300×340 SVG.
-   */
   private readonly SVG_W   = 300;
   private readonly SVG_H   = 340;
-  private readonly PAD     = 40;   // padding around zone
+  private readonly PAD     = 40;
 
-  /** Horizontal: map pX ∈ [-1.6, 1.6] → SVG x, flipped (pitcher's view) */
   private toSvgX(pX: number): number {
     const rangeX = 3.2;
     const drawW  = this.SVG_W - this.PAD * 2;
-    // flip: pitcher sees catcher's right on the left
     return this.PAD + drawW * (1 - (pX + rangeX / 2) / rangeX);
   }
 
-  /** Vertical: map pZ ∈ [0, 5] → SVG y (invert so higher = up) */
   private toSvgY(pZ: number): number {
     const maxZ  = 5.0;
     const drawH = this.SVG_H - this.PAD * 2;
     return this.PAD + drawH * (1 - pZ / maxZ);
   }
 
-  /** The strike zone rect in SVG coords, computed from live feed */
-  get szRect(): { x: number; y: number; w: number; h: number } {
+  private updateStrikeZone() {
     const play = this.liveFeed?.liveData?.plays?.currentPlay;
-    const szTop    = play?.pitchIndex?.length
-      ? (this.currentAtBatEvents.find((e: any) => e.pitchData?.strikeZoneTop)?.pitchData?.strikeZoneTop ?? 3.5)
+    if (!play) {
+      this.cachedZonePitches = [];
+      this.cachedSzRect = { x: this.toSvgX(0.83), y: this.toSvgY(3.5), w: Math.abs(this.toSvgX(0.83) - this.toSvgX(-0.83)), h: Math.abs(this.toSvgY(3.5) - this.toSvgY(1.5)) };
+      return;
+    }
+
+    const events = this.getAtBatEvents(play);
+
+    // Update rect
+    const szTop    = events.length
+      ? (events.find((e: any) => e.pitchData?.strikeZoneTop)?.pitchData?.strikeZoneTop ?? 3.5)
       : 3.5;
-    const szBottom = play?.pitchIndex?.length
-      ? (this.currentAtBatEvents.find((e: any) => e.pitchData?.strikeZoneBottom)?.pitchData?.strikeZoneBottom ?? 1.5)
+    const szBottom = events.length
+      ? (events.find((e: any) => e.pitchData?.strikeZoneBottom)?.pitchData?.strikeZoneBottom ?? 1.5)
       : 1.5;
 
     const x1 = this.toSvgX(-0.83);
     const x2 = this.toSvgX(0.83);
     const y1 = this.toSvgY(szTop);
     const y2 = this.toSvgY(szBottom);
-    return { x: Math.min(x1,x2), y: Math.min(y1,y2), w: Math.abs(x2-x1), h: Math.abs(y2-y1) };
-  }
+    this.cachedSzRect = { x: Math.min(x1,x2), y: Math.min(y1,y2), w: Math.abs(x2-x1), h: Math.abs(y2-y1) };
 
-  /** All play events for the current at-bat */
-  private get currentAtBatEvents(): any[] {
-    const play = this.liveFeed?.liveData?.plays?.currentPlay;
-    if (!play) return [];
-    return (play.playEvents ?? []).filter((e: any) => e.isPitch);
-  }
-
-  /** Pitches plotted on the zone, most recent last (drawn on top) */
-  get zonePitches(): ZonePitch[] {
-    const events = this.currentAtBatEvents;
-    if (!events.length) return [];
-
-    return events.map((e: any, i: number) => {
+    // Update pitches
+    this.cachedZonePitches = events.map((e: any, i: number) => {
       const pd   = e.pitchData ?? {};
       const coords = pd.coordinates ?? {};
       const pX   = coords.pX ?? null;
@@ -177,39 +213,42 @@ export class GameDetailComponent implements OnChanges {
         pitchType: e.details?.type?.description ?? undefined,
         num:       e.pitchNumber ?? (i + 1),
         isCurrent: i === events.length - 1,
+        dotClass:  this.getPitchDotClass(code)
       } as ZonePitch;
     }).filter(Boolean) as ZonePitch[];
   }
 
-  pitchDotClass(p: ZonePitch): string {
-    const code = p.callCode;
+  private getAtBatEvents(play: any): any[] {
+    if (!play || !play.playEvents) return [];
+    if (play.pitchIndex && Array.isArray(play.pitchIndex)) {
+      return play.pitchIndex.map((idx: number) => play.playEvents[idx]).filter((e: any) => !!e);
+    }
+    return play.playEvents.filter((e: any) => e.isPitch || e.type === 'pitch');
+  }
+
+  private getPitchDotClass(code: string): string {
     if (['B','I','P','V'].includes(code)) return 'dot-ball';
     if (code === 'X')                     return 'dot-inplay';
     if (['C','S','F','T','L','O','M','Q','R'].includes(code)) return 'dot-strike';
     return 'dot-other';
   }
 
-  /** Current batter from live feed */
   get currentBatter(): any {
     return this.liveFeed?.liveData?.plays?.currentPlay?.matchup?.batter ?? null;
   }
 
-  /** Current pitcher from live feed */
   get currentPitcher(): any {
     return this.liveFeed?.liveData?.plays?.currentPlay?.matchup?.pitcher ?? null;
   }
 
-  /** Batter stance (L/R) */
   get batterSide(): string {
     return this.liveFeed?.liveData?.plays?.currentPlay?.matchup?.batSide?.code ?? '';
   }
 
-  /** Pitcher hand (L/R) */
   get pitcherHand(): string {
     return this.liveFeed?.liveData?.plays?.currentPlay?.matchup?.pitchHand?.code ?? '';
   }
 
-  /** Count from the linescore */
   get count(): { balls: number; strikes: number; outs: number } {
     return {
       balls:   this.ls.balls   ?? 0,
@@ -224,7 +263,7 @@ export class GameDetailComponent implements OnChanges {
   get svgHeight(): number { return this.SVG_H; }
 
   // ── Lineup building ─────────────────────────────────────────
-  getLineupSlots(teamBs: any): LineupSlot[] {
+  private buildLineupSlots(teamBs: any): LineupSlot[] {
     if (!teamBs?.batters) return [];
     const players = teamBs.batters
       .map((id: number) => teamBs.players?.[`ID${id}`])
@@ -249,7 +288,7 @@ export class GameDetailComponent implements OnChanges {
     return slots;
   }
 
-  getPitchers(teamBs: any): any[] {
+  private buildPitchers(teamBs: any): any[] {
     if (!teamBs?.pitchers) return [];
     return teamBs.pitchers
       .map((id: number) => teamBs.players?.[`ID${id}`])
@@ -270,7 +309,7 @@ export class GameDetailComponent implements OnChanges {
   logoError(ev: Event) { (ev.target as HTMLImageElement).style.display = 'none'; }
 
   // ── Play-by-play ────────────────────────────────────────────
-  get parsedPlays(): PlayEvent[] {
+  private parsePlays(): PlayEvent[] {
     const allPlays: any[] = this.plays?.allPlays ?? [];
     if (!allPlays.length) return [];
 
@@ -292,6 +331,8 @@ export class GameDetailComponent implements OnChanges {
           isBall:   ['B','I','P','V'].includes(code),
           isStrike: ['C','S','F','T','L','O','M','Q','R'].includes(code),
           isInPlay: code === 'X',
+          callClass: this.getPitchCallClass(code),
+          callLabel: this.pitchCallLabel(code)
         };
       });
 
@@ -312,6 +353,7 @@ export class GameDetailComponent implements OnChanges {
         resultType, pitches,
         awayScore: about.awayScore,
         homeScore: about.homeScore,
+        atBatIndex: play.atBatIndex
       };
     });
 
@@ -324,7 +366,7 @@ export class GameDetailComponent implements OnChanges {
     return n + (s[(v - 20) % 10] || s[v] || s[0]);
   }
 
-  pitchCallClass(code: string): string {
+  private getPitchCallClass(code: string): string {
     if (['B','I','P','V'].includes(code)) return 'pitch-ball';
     if (code === 'X')                     return 'pitch-inplay';
     if (['C','S','F','T','L','O','M','Q','R'].includes(code)) return 'pitch-strike';
@@ -344,4 +386,12 @@ export class GameDetailComponent implements OnChanges {
     };
     return labels[code] ?? code;
   }
+
+  // TrackBy functions for better performance
+  trackByPlay(index: number, play: PlayEvent) { return play.atBatIndex || index; }
+  trackByPitch(index: number, pitch: PitchEvent) { return pitch.num; }
+  trackBySlot(index: number, slot: LineupSlot) { return slot.lineupNum || index; }
+  trackByPlayer(index: number, player: any) { return player?.person?.id || index; }
+  trackByInning(index: number, inn: any) { return inn.num; }
+  trackByZonePitch(index: number, p: ZonePitch) { return p.num; }
 }

@@ -31,20 +31,24 @@
           <table class="gd-linescore">
             <thead><tr>
               <th class="ls-team-col"></th>
-              <th *ngFor="let inn of innings">{{ inn.num }}</th>
+              <th *ngFor="let inn of innings; trackBy: trackByInning">{{ inn.num }}</th>
               <th class="ls-total">R</th><th class="ls-total">H</th><th class="ls-total">E</th>
             </tr></thead>
             <tbody>
             <tr>
               <td class="ls-team-name">{{ away?.team?.abbreviation || teams.abbr(awayId) }}</td>
-              <td *ngFor="let inn of innings">{{ inn.away?.runs ?? '' }}</td>
+              <td *ngFor="let inn of innings; trackBy: trackByInning">
+                {{ inn.away?.runs === null && state === 'final' ? 'x' : (inn.away?.runs ?? '') }}
+              </td>
               <td class="ls-total ls-val">{{ awayLineR }}</td>
               <td class="ls-total ls-val">{{ awayLineH }}</td>
               <td class="ls-total ls-val">{{ awayLineE }}</td>
             </tr>
             <tr>
               <td class="ls-team-name">{{ home?.team?.abbreviation || teams.abbr(homeId) }}</td>
-              <td *ngFor="let inn of innings">{{ inn.home?.runs ?? '' }}</td>
+              <td *ngFor="let inn of innings; trackBy: trackByInning">
+                {{ inn.home?.runs === null && state === 'final' ? 'x' : (inn.home?.runs ?? '') }}
+              </td>
               <td class="ls-total ls-val">{{ homeLineR }}</td>
               <td class="ls-total ls-val">{{ homeLineH }}</td>
               <td class="ls-total ls-val">{{ homeLineE }}</td>
@@ -97,19 +101,32 @@
                 </div>
               </div>
 
-              <!-- Count -->
+              <!-- Count and Bases -->
               <div class="sz-count-block">
                 <div class="sz-count-row">
-                  <span class="sz-count-label">B</span>
-                  <span class="sz-pip" *ngFor="let i of countArray(4)" [class.sz-pip--on]="count.balls > i" [class.sz-pip--ball]="true"></span>
+                  <span class="sz-count-label">S</span>
+                  <div class="sz-pips">
+                    <span class="sz-pip" *ngFor="let i of countArray(3)" [class.sz-pip--on]="count.strikes > i" [class.sz-pip--strike]="true"></span>
+                  </div>
                 </div>
                 <div class="sz-count-row">
-                  <span class="sz-count-label">S</span>
-                  <span class="sz-pip" *ngFor="let i of countArray(3)" [class.sz-pip--on]="count.strikes > i" [class.sz-pip--strike]="true"></span>
+                  <span class="sz-count-label">B</span>
+                  <div class="sz-pips">
+                    <span class="sz-pip" *ngFor="let i of countArray(4)" [class.sz-pip--on]="count.balls > i" [class.sz-pip--ball]="true"></span>
+                  </div>
                 </div>
                 <div class="sz-count-row">
                   <span class="sz-count-label">O</span>
-                  <span class="sz-pip" *ngFor="let i of countArray(3)" [class.sz-pip--on]="count.outs > i" [class.sz-pip--out]="true"></span>
+                  <div class="sz-pips">
+                    <span class="sz-pip" *ngFor="let i of countArray(3)" [class.sz-pip--on]="count.outs > i" [class.sz-pip--out]="true"></span>
+                  </div>
+                </div>
+
+                <!-- Bases Diamond -->
+                <div class="sz-bases">
+                  <div class="sz-base base--2nd" [class.sz-base--on]="runners.second" title="2nd"></div>
+                  <div class="sz-base base--3rd" [class.sz-base--on]="runners.third"  title="3rd"></div>
+                  <div class="sz-base base--1st" [class.sz-base--on]="runners.first"  title="1st"></div>
                 </div>
               </div>
 
@@ -140,40 +157,40 @@
                         fill="#e8e8e8" stroke="#999" stroke-width="1.5"/>
 
                 <!-- Strike zone inner thirds (3×3 grid) -->
-                <g class="sz-thirds" *ngIf="szRect.w > 0">
+                <g class="sz-thirds" *ngIf="cachedSzRect.w > 0">
                   <!-- vertical lines dividing zone into thirds -->
-                  <line [attr.x1]="szRect.x + szRect.w / 3"  [attr.y1]="szRect.y"
-                        [attr.x2]="szRect.x + szRect.w / 3"  [attr.y2]="szRect.y + szRect.h"
+                  <line [attr.x1]="cachedSzRect.x + cachedSzRect.w / 3"  [attr.y1]="cachedSzRect.y"
+                        [attr.x2]="cachedSzRect.x + cachedSzRect.w / 3"  [attr.y2]="cachedSzRect.y + cachedSzRect.h"
                         stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="3 3"/>
-                  <line [attr.x1]="szRect.x + szRect.w * 2/3" [attr.y1]="szRect.y"
-                        [attr.x2]="szRect.x + szRect.w * 2/3" [attr.y2]="szRect.y + szRect.h"
+                  <line [attr.x1]="cachedSzRect.x + cachedSzRect.w * 2/3" [attr.y1]="cachedSzRect.y"
+                        [attr.x2]="cachedSzRect.x + cachedSzRect.w * 2/3" [attr.y2]="cachedSzRect.y + cachedSzRect.h"
                         stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="3 3"/>
                   <!-- horizontal lines -->
-                  <line [attr.x1]="szRect.x" [attr.y1]="szRect.y + szRect.h / 3"
-                        [attr.x2]="szRect.x + szRect.w" [attr.y2]="szRect.y + szRect.h / 3"
+                  <line [attr.x1]="cachedSzRect.x" [attr.y1]="cachedSzRect.y + cachedSzRect.h / 3"
+                        [attr.x2]="cachedSzRect.x + cachedSzRect.w" [attr.y2]="cachedSzRect.y + cachedSzRect.h / 3"
                         stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="3 3"/>
-                  <line [attr.x1]="szRect.x" [attr.y1]="szRect.y + szRect.h * 2/3"
-                        [attr.x2]="szRect.x + szRect.w" [attr.y2]="szRect.y + szRect.h * 2/3"
+                  <line [attr.x1]="cachedSzRect.x" [attr.y1]="cachedSzRect.y + cachedSzRect.h * 2/3"
+                        [attr.x2]="cachedSzRect.x + cachedSzRect.w" [attr.y2]="cachedSzRect.y + cachedSzRect.h * 2/3"
                         stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="3 3"/>
                 </g>
 
                 <!-- Strike zone border -->
                 <rect
-                        [attr.x]="szRect.x" [attr.y]="szRect.y"
-                        [attr.width]="szRect.w" [attr.height]="szRect.h"
+                        [attr.x]="cachedSzRect.x" [attr.y]="cachedSzRect.y"
+                        [attr.width]="cachedSzRect.w" [attr.height]="cachedSzRect.h"
                         fill="rgba(255,255,255,0.04)"
                         stroke="rgba(255,255,255,0.55)"
                         stroke-width="2"
                         rx="2"/>
 
                 <!-- Pitch dots — earlier pitches first, current last (on top) -->
-                <g *ngFor="let p of zonePitches; let idx = index">
+                <g *ngFor="let p of cachedZonePitches; trackBy: trackByZonePitch; let idx = index">
                   <!-- Trail circle for non-current pitches -->
                   <circle
                           *ngIf="!p.isCurrent"
                           [attr.cx]="p.cx" [attr.cy]="p.cy" r="9"
-                          [attr.class]="'sz-dot ' + pitchDotClass(p)"
-                          [attr.opacity]="0.55 + (idx / zonePitches.length) * 0.3">
+                          [attr.class]="'sz-dot ' + p.dotClass"
+                          [attr.opacity]="0.55 + (idx / cachedZonePitches.length) * 0.3">
                   </circle>
                   <!-- Pitch number label for non-current -->
                   <text *ngIf="!p.isCurrent"
@@ -186,13 +203,12 @@
                   <!-- Current pitch: larger, pulsing ring -->
                   <circle *ngIf="p.isCurrent"
                           [attr.cx]="p.cx" [attr.cy]="p.cy" r="13"
-                          [attr.class]="'sz-dot sz-dot-current ' + pitchDotClass(p)"
-                          fill-opacity="0.2"
-                          [attr.stroke-class]="'sz-dot ' + pitchDotClass(p)">
+                          [attr.class]="'sz-dot sz-dot-current ' + p.dotClass"
+                          fill-opacity="0.2">
                   </circle>
                   <circle *ngIf="p.isCurrent"
                           [attr.cx]="p.cx" [attr.cy]="p.cy" r="9"
-                          [attr.class]="'sz-dot ' + pitchDotClass(p)">
+                          [attr.class]="'sz-dot ' + p.dotClass">
                   </circle>
                   <text *ngIf="p.isCurrent"
                         [attr.x]="p.cx" [attr.y]="p.cy + 4"
@@ -219,20 +235,22 @@
               </div>
 
               <!-- Last pitch detail -->
-              <div class="sz-last-pitch" *ngIf="zonePitches.length > 0">
+              <div class="sz-last-pitch" *ngIf="cachedZonePitches.length > 0">
                 <span class="sz-lp-label">Last pitch</span>
-                <span class="sz-lp-type">{{ zonePitches[zonePitches.length-1].pitchType }}</span>
-                <span class="sz-lp-speed" *ngIf="zonePitches[zonePitches.length-1].speed">
-                  {{ formatSpeed(zonePitches[zonePitches.length-1].speed) }} mph
+                <span class="sz-lp-type">{{ cachedZonePitches[cachedZonePitches.length-1].pitchType }}</span>
+                <span class="sz-lp-speed" *ngIf="cachedZonePitches[cachedZonePitches.length-1].speed">
+                  {{ formatSpeed(cachedZonePitches[cachedZonePitches.length-1].speed) }} mph
                 </span>
-                <span class="sz-lp-call">{{ zonePitches[zonePitches.length-1].label }}</span>
+                <span class="sz-lp-call">{{ cachedZonePitches[cachedZonePitches.length-1].label }}</span>
               </div>
 
             </div>
 
             <div class="sz-divider"></div>
           </div>
-          <!-- end live strikezone -->          <!-- AWAY BATTING -->
+          <!-- end live strikezone -->
+
+          <!-- AWAY BATTING -->
           <div class="section-header">
             <img class="section-logo" [src]="teams.logo(awayId)" (error)="logoError($event)"/>
             <span>{{ away?.team?.name }}</span>
@@ -246,7 +264,7 @@
                 <th class="th-season">AVG</th><th class="th-season">OBP</th><th class="th-season">SLG</th><th class="th-season ops-col">OPS</th>
               </tr></thead>
               <tbody>
-              <ng-container *ngFor="let slot of getLineupSlots(awayBs)">
+              <ng-container *ngFor="let slot of cachedAwayLineup; trackBy: trackBySlot">
                 <!-- Starter row -->
                 <tr class="starter-row">
                   <td class="lineup-num">{{ slot.lineupNum > 0 ? slot.lineupNum : '' }}</td>
@@ -267,7 +285,7 @@
                   <td class="season-stat ops-col">{{ seasonBat(slot.starter,'ops') }}</td>
                 </tr>
                 <!-- Sub rows -->
-                <tr *ngFor="let sub of slot.subs" class="sub-row">
+                <tr *ngFor="let sub of slot.subs; trackBy: trackByPlayer" class="sub-row">
                   <td class="lineup-num"></td>
                   <td class="player-name-cell sub-player" (click)="openPlayer(sub)">
                     <span class="sub-arrow">↳</span>
@@ -304,7 +322,7 @@
                 <th class="th-season">ERA</th><th class="th-season">WHIP</th>
               </tr></thead>
               <tbody>
-              <tr *ngFor="let p of getPitchers(awayBs)">
+              <tr *ngFor="let p of cachedAwayPitchers; trackBy: trackByPlayer">
                 <td class="player-name-cell" (click)="openPlayer(p)">{{ p.person?.fullName }}</td>
                 <td>{{ gamePit(p,'inningsPitched') }}</td>
                 <td>{{ gamePit(p,'hits') }}</td>
@@ -339,7 +357,7 @@
                 <th class="th-season">AVG</th><th class="th-season">OBP</th><th class="th-season">SLG</th><th class="th-season ops-col">OPS</th>
               </tr></thead>
               <tbody>
-              <ng-container *ngFor="let slot of getLineupSlots(homeBs)">
+              <ng-container *ngFor="let slot of cachedHomeLineup; trackBy: trackBySlot">
                 <tr class="starter-row">
                   <td class="lineup-num">{{ slot.lineupNum > 0 ? slot.lineupNum : '' }}</td>
                   <td class="player-name-cell" (click)="openPlayer(slot.starter)">
@@ -358,7 +376,7 @@
                   <td class="season-stat">{{ seasonBat(slot.starter,'slg') }}</td>
                   <td class="season-stat ops-col">{{ seasonBat(slot.starter,'ops') }}</td>
                 </tr>
-                <tr *ngFor="let sub of slot.subs" class="sub-row">
+                <tr *ngFor="let sub of slot.subs; trackBy: trackByPlayer" class="sub-row">
                   <td class="lineup-num"></td>
                   <td class="player-name-cell sub-player" (click)="openPlayer(sub)">
                     <span class="sub-arrow">↳</span>
@@ -395,7 +413,7 @@
                 <th class="th-season">ERA</th><th class="th-season">WHIP</th>
               </tr></thead>
               <tbody>
-              <tr *ngFor="let p of getPitchers(homeBs)">
+              <tr *ngFor="let p of cachedHomePitchers; trackBy: trackByPlayer">
                 <td class="player-name-cell" (click)="openPlayer(p)">{{ p.person?.fullName }}</td>
                 <td>{{ gamePit(p,'inningsPitched') }}</td>
                 <td>{{ gamePit(p,'hits') }}</td>
@@ -420,9 +438,9 @@
       <!-- ══ PLAYS TAB ══ -->
       <ng-container *ngIf="mainTab === 'plays'">
         <div *ngIf="loadingPlays" class="spinner-wrap"><div class="spinner"></div><span>Loading plays…</span></div>
-        <div *ngIf="!loadingPlays && parsedPlays.length === 0" class="empty-state"><p>No play data available yet</p></div>
-        <div *ngIf="!loadingPlays && parsedPlays.length > 0" class="plays-feed">
-          <div *ngFor="let play of parsedPlays; let i = index" class="play-card" [class.play-card--first]="i === 0">
+        <div *ngIf="!loadingPlays && cachedParsedPlays.length === 0" class="empty-state"><p>No play data available yet</p></div>
+        <div *ngIf="!loadingPlays && cachedParsedPlays.length > 0" class="plays-feed">
+          <div *ngFor="let play of cachedParsedPlays; trackBy: trackByPlay; let i = index" class="play-card" [class.play-card--first]="i === 0">
             <div class="play-header">
               <span class="play-inning">{{ play.inningLabel }}</span>
               <span class="play-result-badge" [ngClass]="'badge-' + play.resultType">{{ play.result }}</span>
@@ -432,9 +450,9 @@
             </div>
             <div class="play-description">{{ play.description }}</div>
             <div class="play-pitches" *ngIf="play.pitches.length > 0">
-              <span *ngFor="let pitch of play.pitches" class="pitch-pip"
-                    [ngClass]="pitchCallClass(pitch.callCode)"
-                    [title]="pitchCallLabel(pitch.callCode) + (pitch.speed ? ' · ' + pitch.speed + ' mph' : '')">
+              <span *ngFor="let pitch of play.pitches; trackBy: trackByPitch" class="pitch-pip"
+                    [ngClass]="pitch.callClass"
+                    [title]="pitch.callLabel + (pitch.speed ? ' · ' + pitch.speed + ' mph' : '')">
               </span>
             </div>
           </div>

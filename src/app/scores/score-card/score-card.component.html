@@ -87,14 +87,14 @@
           <tbody>
           <tr>
             <td class="ls-team-name">{{ away?.team?.abbreviation || teams.abbr(awayId) }}</td>
-            <td *ngFor="let inn of displayInnings">{{ inn.away?.runs ?? '' }}</td>
+            <td *ngFor="let inn of displayInnings">{{ getInningRuns(inn, 'away') }}</td>
             <td class="ls-total ls-total--val">{{ awayLineR }}</td>
             <td class="ls-total ls-total--val">{{ awayLineH }}</td>
             <td class="ls-total ls-total--val">{{ awayLineE }}</td>
           </tr>
           <tr>
             <td class="ls-team-name">{{ home?.team?.abbreviation || teams.abbr(homeId) }}</td>
-            <td *ngFor="let inn of displayInnings">{{ inn.home?.runs ?? '' }}</td>
+            <td *ngFor="let inn of displayInnings">{{ getInningRuns(inn, 'home') }}</td>
             <td class="ls-total ls-total--val">{{ homeLineR }}</td>
             <td class="ls-total ls-total--val">{{ homeLineH }}</td>
             <td class="ls-total ls-total--val">{{ homeLineE }}</td>
@@ -107,11 +107,11 @@
     <!-- Pitcher Matchup (Upcoming) -->
     <div *ngIf="state === 'upcoming'" class="probables">
       <div class="pitcher-row">
-        <span class="p-label">Away:</span>
+        <span class="p-label">{{ away?.team?.abbreviation || teams.abbr(awayId) }}: </span>
         <span class="p-name">{{ away?.probablePitcher?.fullName || 'TBD' }}</span>
       </div>
       <div class="pitcher-row">
-        <span class="p-label">Home:</span>
+        <span class="p-label">{{ home?.team?.abbreviation || teams.abbr(homeId) }}: </span>
         <span class="p-name">{{ home?.probablePitcher?.fullName || 'TBD' }}</span>
       </div>
     </div>
@@ -122,21 +122,23 @@
     <!-- Live Info -->
     <div *ngIf="state === 'live'" class="live-footer">
 
-      <!-- Count pips -->
+      <!-- Count pips: S then B then O -->
       <div class="count-pips">
-        <div class="pip-group">
-          <span class="pip-label">B</span>
-          <div class="pips">
-            <div class="pip" [class.pip--on]="(ls.balls ?? 0) > 0"></div>
-            <div class="pip" [class.pip--on]="(ls.balls ?? 0) > 1"></div>
-            <div class="pip" [class.pip--on]="(ls.balls ?? 0) > 2"></div>
-          </div>
-        </div>
         <div class="pip-group">
           <span class="pip-label">S</span>
           <div class="pips">
-            <div class="pip" [class.pip--on]="(ls.strikes ?? 0) > 0"></div>
-            <div class="pip" [class.pip--on]="(ls.strikes ?? 0) > 1"></div>
+            <div class="pip pip--strike" [class.pip--on]="(ls.strikes ?? 0) > 0"></div>
+            <div class="pip pip--strike" [class.pip--on]="(ls.strikes ?? 0) > 1"></div>
+            <div class="pip pip--strike" [class.pip--on]="(ls.strikes ?? 0) > 2"></div>
+          </div>
+        </div>
+        <div class="pip-group">
+          <span class="pip-label">B</span>
+          <div class="pips">
+            <div class="pip pip--ball" [class.pip--on]="(ls.balls ?? 0) > 0"></div>
+            <div class="pip pip--ball" [class.pip--on]="(ls.balls ?? 0) > 1"></div>
+            <div class="pip pip--ball" [class.pip--on]="(ls.balls ?? 0) > 2"></div>
+            <div class="pip pip--ball" [class.pip--on]="(ls.balls ?? 0) > 3"></div>
           </div>
         </div>
         <div class="pip-group">
@@ -149,11 +151,11 @@
         </div>
       </div>
 
-      <!-- Bases: 1st, 2nd, 3rd as horizontal diamonds -->
-      <div class="bases-row">
-        <div class="base-diamond" [class.base--on]="runners.third"  title="3rd"></div>
-        <div class="base-diamond" [class.base--on]="runners.second" title="2nd"></div>
-        <div class="base-diamond" [class.base--on]="runners.first"  title="1st"></div>
+      <!-- Bases diamond layout -->
+      <div class="bases-diamond">
+        <div class="base-spot base--2nd" [class.base--on]="runners.second" title="2nd"></div>
+        <div class="base-spot base--3rd" [class.base--on]="runners.third"  title="3rd"></div>
+        <div class="base-spot base--1st" [class.base--on]="runners.first"  title="1st"></div>
       </div>
 
     </div>

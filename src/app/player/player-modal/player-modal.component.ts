@@ -1,4 +1,5 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, Renderer2, Inject } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { PlayerService } from '../../shared/player.service';
 import { MlbApiService } from '../../shared/mlb-api.service';
 import { TeamDataService } from '../../shared/team-data.service';
@@ -9,7 +10,7 @@ import { TeamDataService } from '../../shared/team-data.service';
   styleUrl: './player-modal.component.scss',
   standalone: false
 })
-export class PlayerModalComponent implements OnInit {
+export class PlayerModalComponent implements OnInit, OnDestroy {
   player: any = null;
   loading = false;
   error = false;
@@ -18,11 +19,20 @@ export class PlayerModalComponent implements OnInit {
   constructor(
     private playerSvc: PlayerService,
     private api: MlbApiService,
-    public teams: TeamDataService
+    public teams: TeamDataService,
+    private renderer: Renderer2,
+    @Inject(DOCUMENT) private document: Document
   ) {}
 
   ngOnInit() {
-    this.playerSvc.openPlayer$.subscribe(id => this.load(id));
+    this.playerSvc.openPlayer$.subscribe(id => {
+      this.load(id);
+      this.renderer.addClass(this.document.body, 'modal-open');
+    });
+  }
+
+  ngOnDestroy() {
+    this.renderer.removeClass(this.document.body, 'modal-open');
   }
 
   @HostListener('document:keydown.escape')
@@ -46,7 +56,11 @@ export class PlayerModalComponent implements OnInit {
     this.activeTab = isPitcher ? 'pitching-season' : 'hitting-season';
   }
 
-  close() { this.player = null; this.loading = false; }
+  close() {
+    this.player = null;
+    this.loading = false;
+    this.renderer.removeClass(this.document.body, 'modal-open');
+  }
 
   closeOnOverlay(e: MouseEvent) {
     if ((e.target as HTMLElement).classList.contains('modal-overlay')) this.close();
