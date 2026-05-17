@@ -30,12 +30,12 @@ export class SidebarComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    // Initialise the AdSense unit after the DOM is ready.
-    // The global adsbygoogle array is pushed to by the AdSense script.
+    // Push once — the <ins> element is always in the DOM (uses [hidden], not *ngIf)
+    // so this single call is sufficient for the lifetime of the sidebar.
     try {
       ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
     } catch (e) {
-      // AdSense script not yet loaded or blocked — fail silently.
+      // Fail silently if AdSense script is blocked or not yet loaded.
     }
   }
 

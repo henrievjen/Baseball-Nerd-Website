@@ -39,14 +39,13 @@
     </a>
   </nav>
 
-  <!-- AdSense unit — only shown when sidebar is expanded -->
-  <div class="sidebar-ad" *ngIf="!collapsed">
+  <!-- AdSense unit — hidden via CSS when collapsed, never destroyed -->
+  <div class="sidebar-ad" [hidden]="collapsed">
     <ins class="adsbygoogle"
-         style="display:block"
          data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
          data-ad-slot="XXXXXXXXXX"
-         data-ad-format="auto"
-         data-full-width-responsive="true"></ins>
+         data-ad-format="rectangle"
+         style="display:block; width:100%; aspect-ratio:1/1;"></ins>
   </div>
 
   <!-- Collapse toggle -->

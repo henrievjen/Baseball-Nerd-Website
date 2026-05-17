@@ -86,17 +86,18 @@
   letter-spacing: 0.2px;
 }
 
-/* AdSense unit */
+/* AdSense square unit */
 .sidebar-ad {
   padding: 10px 10px 0;
   flex-shrink: 0;
 
   ins.adsbygoogle {
     display: block;
-    min-width: 0;
+    width: 100%;
+    aspect-ratio: 1 / 1;
     border-radius: var(--radius-sm);
     overflow: hidden;
-    background: var(--surface);
+    background: var(--surface);  /* placeholder colour while ad loads */
   }
 }
 
