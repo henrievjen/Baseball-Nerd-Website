@@ -1,0 +1,117 @@
+.standings-page { padding: 28px 28px 60px; max-width: 1100px; margin: 0 auto; }
+
+.page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 28px; flex-wrap: wrap; gap: 14px;
+}
+
+.page-title {
+  font-family: var(--font-head); font-size: clamp(28px, 4vw, 42px);
+  letter-spacing: 2px; line-height: 1;
+}
+
+.league-section {
+  margin-bottom: 40px;
+  &:last-child { margin-bottom: 0; }
+}
+
+.league-header {
+  font-family: var(--font-head);
+  font-size: 1.8rem;
+  color: var(--red);
+  margin-bottom: 20px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--red-dim);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.divisions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 22px;
+}
+
+.division-section {}
+
+.div-title {
+  font-family: var(--font-head); font-size: 1.3rem;
+  letter-spacing: 1px; color: var(--text2);
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 10px;
+  &::after { content: ''; flex:1; height:1px; background: var(--border); }
+}
+
+.st-table {
+  width: 100%; border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+
+  th {
+    padding: 10px 12px;
+    font-size: 0.68rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    color: var(--text3); background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    text-align: right;
+    &.th-team { text-align: left; }
+  }
+
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface2); }
+
+  .leader-row td { background: rgba(255,255,255,0.02); }
+}
+
+.td-team {
+  display: flex; align-items: center; gap: 8px; text-align: left;
+}
+
+.rank-num {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--text);
+  font-weight: 700;
+  min-width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+}
+
+.st-logo {
+  width: 24px; height: 24px; object-fit: contain; flex-shrink: 0;
+  background: white;
+  border-radius: 50%;
+  padding: 2px;
+}
+
+.team-name-text { font-size: 0.85rem; font-weight: 500; color: var(--text); }
+
+.num-cell {
+  text-align: right; font-family: var(--font-mono);
+  font-size: 0.8rem; color: var(--text2);
+}
+
+.pct-cell  { color: var(--text); font-weight: 600; }
+.gb-cell   { }
+.gb-leader { color: var(--text3); }
+
+.wc-badge {
+  background: var(--gold); color: #000;
+  font-size: 0.58rem; font-weight: 700;
+  padding: 2px 5px; border-radius: 3px;
+  letter-spacing: 0.5px;
+}
+
+@media (max-width: 600px) {
+  .standings-page { padding: 18px 14px 60px; }
+  .divisions-grid { grid-template-columns: 1fr; }
+  .page-header    { flex-direction: column; align-items: flex-start; }
+  .league-header  { font-size: 1.5rem; }
+}

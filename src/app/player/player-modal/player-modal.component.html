@@ -1,0 +1,143 @@
+<div *ngIf="loading || player || error" class="modal-overlay" (click)="closeOnOverlay($event)">
+  <div class="modal-box player-modal-box">
+    <button class="modal-close" (click)="close()">&#x2715;</button>
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="spinner-wrap" style="padding: 80px 20px;">
+      <div class="spinner"></div>
+      <span>Loading player…</span>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="error && !loading" class="empty-state" style="padding: 80px 20px;">
+      <p>Could not load player info</p>
+    </div>
+
+    <!-- Player content -->
+    <ng-container *ngIf="player && !loading">
+
+      <!-- Hero header -->
+      <div class="player-hero" [style.background]="'linear-gradient(135deg, ' + teams.color(teamId) + '22 0%, transparent 60%)'">
+        <div class="player-hero-inner">
+          <div class="player-photo-wrap">
+            <img class="player-photo" [src]="teams.photo(player.id)" [alt]="player.fullName" (error)="photoError($event)"/>
+            <img *ngIf="teamId" class="player-team-badge" [src]="teams.logo(teamId)" (error)="logoError($event)"/>
+          </div>
+          <div class="player-hero-info">
+            <div class="player-number" *ngIf="player.primaryNumber">#{{ player.primaryNumber }}</div>
+            <h2 class="player-name">{{ player.fullName }}</h2>
+            <div class="player-meta-row">
+              <span *ngIf="player.primaryPosition" class="pos-badge">{{ player.primaryPosition.abbreviation }}</span>
+              <span *ngIf="player.currentTeam?.name" class="meta-team">{{ player.currentTeam.name }}</span>
+              <span *ngIf="player.batSide?.code" class="meta-item">Bats {{ player.batSide.code }}</span>
+              <span *ngIf="player.pitchHand?.code" class="meta-item">Throws {{ player.pitchHand.code }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bio grid -->
+      <div class="bio-section">
+        <div class="bio-grid">
+          <div class="bio-item" *ngIf="player.currentAge">
+            <div class="bio-label">Age</div>
+            <div class="bio-val">{{ player.currentAge }}</div>
+          </div>
+          <div class="bio-item" *ngIf="player.height">
+            <div class="bio-label">Height</div>
+            <div class="bio-val">{{ player.height }}</div>
+          </div>
+          <div class="bio-item" *ngIf="player.weight">
+            <div class="bio-label">Weight</div>
+            <div class="bio-val">{{ player.weight }} lbs</div>
+          </div>
+          <div class="bio-item" *ngIf="player.birthDate">
+            <div class="bio-label">Born</div>
+            <div class="bio-val">{{ birthDateFormatted }}</div>
+          </div>
+          <div class="bio-item" *ngIf="player.birthCity">
+            <div class="bio-label">Hometown</div>
+            <div class="bio-val">{{ player.birthCity }}</div>
+          </div>
+          <div class="bio-item" *ngIf="player.mlbDebutDate">
+            <div class="bio-label">Debut</div>
+            <div class="bio-val">{{ player.mlbDebutDate | slice:0:4 }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-section">
+        <!-- Stat tabs -->
+        <div class="stat-tabs">
+          <button *ngIf="hitSeason"  class="tab-btn" [class.active]="activeTab === 'hitting-season'"  (click)="activeTab = 'hitting-season'">Season</button>
+          <button *ngIf="hitCareer"  class="tab-btn" [class.active]="activeTab === 'hitting-career'"  (click)="activeTab = 'hitting-career'">Career</button>
+          <button *ngIf="pitSeason"  class="tab-btn" [class.active]="activeTab === 'pitching-season'" (click)="activeTab = 'pitching-season'">Pitching</button>
+          <button *ngIf="pitCareer"  class="tab-btn" [class.active]="activeTab === 'pitching-career'" (click)="activeTab = 'pitching-career'">Pitching Career</button>
+        </div>
+
+        <!-- Hitting Season -->
+        <div *ngIf="activeTab === 'hitting-season' && hitSeason" class="stat-grid">
+          <div class="stat-item"><div class="stat-label">AVG</div><div class="stat-val">{{ hitSeason.avg }}</div></div>
+          <div class="stat-item"><div class="stat-label">OPS</div><div class="stat-val">{{ hitSeason.ops }}</div></div>
+          <div class="stat-item"><div class="stat-label">HR</div><div class="stat-val">{{ hitSeason.homeRuns }}</div></div>
+          <div class="stat-item"><div class="stat-label">RBI</div><div class="stat-val">{{ hitSeason.rbi }}</div></div>
+          <div class="stat-item"><div class="stat-label">R</div><div class="stat-val">{{ hitSeason.runs }}</div></div>
+          <div class="stat-item"><div class="stat-label">H</div><div class="stat-val">{{ hitSeason.hits }}</div></div>
+          <div class="stat-item"><div class="stat-label">2B</div><div class="stat-val">{{ hitSeason.doubles }}</div></div>
+          <div class="stat-item"><div class="stat-label">3B</div><div class="stat-val">{{ hitSeason.triples }}</div></div>
+          <div class="stat-item"><div class="stat-label">SB</div><div class="stat-val">{{ hitSeason.stolenBases }}</div></div>
+          <div class="stat-item"><div class="stat-label">BB</div><div class="stat-val">{{ hitSeason.baseOnBalls }}</div></div>
+          <div class="stat-item"><div class="stat-label">SO</div><div class="stat-val">{{ hitSeason.strikeOuts }}</div></div>
+          <div class="stat-item"><div class="stat-label">OBP</div><div class="stat-val">{{ hitSeason.obp }}</div></div>
+          <div class="stat-item"><div class="stat-label">SLG</div><div class="stat-val">{{ hitSeason.slg }}</div></div>
+          <div class="stat-item"><div class="stat-label">G</div><div class="stat-val">{{ hitSeason.gamesPlayed }}</div></div>
+        </div>
+
+        <!-- Hitting Career -->
+        <div *ngIf="activeTab === 'hitting-career' && hitCareer" class="stat-grid">
+          <div class="stat-item"><div class="stat-label">AVG</div><div class="stat-val">{{ hitCareer.avg }}</div></div>
+          <div class="stat-item"><div class="stat-label">OPS</div><div class="stat-val">{{ hitCareer.ops }}</div></div>
+          <div class="stat-item"><div class="stat-label">HR</div><div class="stat-val">{{ hitCareer.homeRuns }}</div></div>
+          <div class="stat-item"><div class="stat-label">RBI</div><div class="stat-val">{{ hitCareer.rbi }}</div></div>
+          <div class="stat-item"><div class="stat-label">H</div><div class="stat-val">{{ hitCareer.hits }}</div></div>
+          <div class="stat-item"><div class="stat-label">BB</div><div class="stat-val">{{ hitCareer.baseOnBalls }}</div></div>
+          <div class="stat-item"><div class="stat-label">SO</div><div class="stat-val">{{ hitCareer.strikeOuts }}</div></div>
+          <div class="stat-item"><div class="stat-label">SB</div><div class="stat-val">{{ hitCareer.stolenBases }}</div></div>
+          <div class="stat-item"><div class="stat-label">G</div><div class="stat-val">{{ hitCareer.gamesPlayed }}</div></div>
+        </div>
+
+        <!-- Pitching Season -->
+        <div *ngIf="activeTab === 'pitching-season' && pitSeason" class="stat-grid">
+          <div class="stat-item"><div class="stat-label">ERA</div><div class="stat-val">{{ pitSeason.era }}</div></div>
+          <div class="stat-item"><div class="stat-label">WHIP</div><div class="stat-val">{{ pitSeason.whip }}</div></div>
+          <div class="stat-item"><div class="stat-label">W</div><div class="stat-val">{{ pitSeason.wins }}</div></div>
+          <div class="stat-item"><div class="stat-label">L</div><div class="stat-val">{{ pitSeason.losses }}</div></div>
+          <div class="stat-item"><div class="stat-label">K</div><div class="stat-val">{{ pitSeason.strikeOuts }}</div></div>
+          <div class="stat-item"><div class="stat-label">IP</div><div class="stat-val">{{ pitSeason.inningsPitched }}</div></div>
+          <div class="stat-item"><div class="stat-label">SV</div><div class="stat-val">{{ pitSeason.saves }}</div></div>
+          <div class="stat-item"><div class="stat-label">G</div><div class="stat-val">{{ pitSeason.gamesPitched }}</div></div>
+          <div class="stat-item"><div class="stat-label">GS</div><div class="stat-val">{{ pitSeason.gamesStarted }}</div></div>
+          <div class="stat-item"><div class="stat-label">BB</div><div class="stat-val">{{ pitSeason.baseOnBalls }}</div></div>
+          <div class="stat-item"><div class="stat-label">H</div><div class="stat-val">{{ pitSeason.hits }}</div></div>
+          <div class="stat-item"><div class="stat-label">ER</div><div class="stat-val">{{ pitSeason.earnedRuns }}</div></div>
+        </div>
+
+        <!-- Pitching Career -->
+        <div *ngIf="activeTab === 'pitching-career' && pitCareer" class="stat-grid">
+          <div class="stat-item"><div class="stat-label">ERA</div><div class="stat-val">{{ pitCareer.era }}</div></div>
+          <div class="stat-item"><div class="stat-label">WHIP</div><div class="stat-val">{{ pitCareer.whip }}</div></div>
+          <div class="stat-item"><div class="stat-label">W</div><div class="stat-val">{{ pitCareer.wins }}</div></div>
+          <div class="stat-item"><div class="stat-label">L</div><div class="stat-val">{{ pitCareer.losses }}</div></div>
+          <div class="stat-item"><div class="stat-label">K</div><div class="stat-val">{{ pitCareer.strikeOuts }}</div></div>
+          <div class="stat-item"><div class="stat-label">IP</div><div class="stat-val">{{ pitCareer.inningsPitched }}</div></div>
+          <div class="stat-item"><div class="stat-label">G</div><div class="stat-val">{{ pitCareer.gamesPitched }}</div></div>
+          <div class="stat-item"><div class="stat-label">SV</div><div class="stat-val">{{ pitCareer.saves }}</div></div>
+        </div>
+
+        <div *ngIf="!hitSeason && !pitSeason" class="empty-state"><p>No stats available</p></div>
+      </div>
+
+    </ng-container>
+  </div>
+</div>

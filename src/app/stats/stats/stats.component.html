@@ -1,0 +1,76 @@
+<div class="stats-page page-enter">
+  <header class="page-header">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">LEAGUE <span class="accent">LEADERS</span></h1>
+        <p class="season-sub">{{ season }} Season</p>
+      </div>
+      <div class="season-picker">
+        <label for="season-select">Season:</label>
+        <select id="season-select" class="season-select" (change)="onSeasonChange($event)">
+          <option *ngFor="let year of years" [value]="year" [selected]="year === season">{{ year }}</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <div class="stats-layout">
+    <!-- Category sidebar -->
+    <aside class="cat-sidebar">
+      <ng-container *ngFor="let grp of catGroups">
+        <div class="cat-group-label">{{ grp.group }}</div>
+        <button
+          *ngFor="let cat of grp.cats"
+          class="cat-btn"
+          [class.active]="cat.key === activeCat.key"
+          (click)="selectCat(cat)">
+          {{ cat.label }}
+        </button>
+      </ng-container>
+    </aside>
+
+    <!-- Leaders list -->
+    <div class="leaders-panel">
+      <div class="leaders-table-wrap">
+        <table class="leaders-table">
+          <thead>
+            <tr>
+              <th class="th-rank">#</th>
+              <th>Player</th>
+              <th class="th-stat">{{ activeCat.label }}</th>
+            </tr>
+          </thead>
+          <tbody *ngIf="!isFetching && leaders.length > 0">
+            <tr *ngFor="let l of leaders; let i = index" (click)="openPlayer(l.person?.id)" class="leader-row">
+              <td class="td-rank">{{ l.rank ?? (i + 1) }}</td>
+              <td class="td-player">
+                <div class="leader-cell">
+                  <img class="player-headshot" [src]="teams.photo(l.person?.id)" [alt]="l.person?.fullName" (error)="photoError($event)"/>
+                  <div class="leader-info">
+                    <div class="leader-name">{{ l.person?.fullName }}</div>
+                    <div class="leader-team">
+                      <img [src]="teams.logo(l.team?.id)" class="leader-team-logo" (error)="logoError($event)"/>
+                      {{ l.team?.name }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="td-stat">{{ l.value }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Loading spinner inside the wrap, below the header -->
+        <div *ngIf="loading && isFetching" class="spinner-wrap">
+          <div class="spinner"></div>
+          <span>Loading leaders…</span>
+        </div>
+
+        <!-- Empty state inside the wrap, below the header -->
+        <div *ngIf="loading && !isFetching && leaders.length === 0" class="empty-state">
+          <p>No data available</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

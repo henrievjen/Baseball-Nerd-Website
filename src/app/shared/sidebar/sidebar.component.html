@@ -1,0 +1,49 @@
+<aside class="sidebar" [class.collapsed]="collapsed">
+  <!-- Brand -->
+  <div class="brand" (click)="navigate('/scores')">
+    <div class="brand-logo">
+      <img src="assets/logo.png" alt="Baseball Nerd" class="logo-img"/>
+    </div>
+    <span class="brand-name" *ngIf="!collapsed">
+      Baseball <strong>Nerd</strong>
+    </span>
+  </div>
+
+  <!-- Nav -->
+  <nav class="nav">
+    <a class="nav-item" *ngFor="let item of navItems"
+       [class.active]="isActive(item.route)"
+       (click)="navigate(item.route)">
+
+      <!-- Scores icon -->
+      <svg *ngIf="item.icon === 'scores'" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+
+      <!-- Standings icon -->
+      <svg *ngIf="item.icon === 'standings'" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <rect x="18" y="3" width="4" height="18" rx="1"/>
+        <rect x="10" y="8" width="4" height="13" rx="1"/>
+        <rect x="2"  y="13" width="4" height="8" rx="1"/>
+      </svg>
+
+      <!-- Stats icon -->
+      <svg *ngIf="item.icon === 'stats'" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+
+      <span class="nav-label" *ngIf="!collapsed">{{ item.label }}</span>
+
+      <span class="active-indicator" *ngIf="isActive(item.route)"></span>
+    </a>
+  </nav>
+
+  <!-- Collapse toggle -->
+  <button class="collapse-btn" (click)="toggleCollapsed()" [title]="collapsed ? 'Expand' : 'Collapse'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <polyline *ngIf="!collapsed" points="15 18 9 12 15 6"/>
+      <polyline *ngIf="collapsed"  points="9 18 15 12 9 6"/>
+    </svg>
+  </button>
+</aside>

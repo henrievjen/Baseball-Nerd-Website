@@ -1,0 +1,150 @@
+<div class="card" [class.card-live]="state === 'live'" (click)="gameSelected.emit(game)">
+
+  <!-- Card Header -->
+  <div class="card-header">
+    <span class="series-label">{{ game?.seriesDescription || '' }}</span>
+
+    <div *ngIf="state === 'live'" class="status-live">
+      <div class="live-dot"></div>
+      {{ inningLabel }}
+    </div>
+    <div *ngIf="state === 'final'" class="status-final">
+      FINAL{{ extraInnings }}
+    </div>
+    <div *ngIf="state === 'upcoming'" class="status-upcoming">
+      {{ gameTime }}
+    </div>
+  </div>
+
+  <!-- Teams -->
+  <div class="teams">
+    <!-- Away -->
+    <div class="team-row">
+      <div class="team-left">
+        <img class="team-logo team-logo--card"
+             [src]="teams.logo(awayId)"
+             [alt]="away?.team?.name"
+             (error)="logoError($event, awayId)"/>
+        <div class="team-info">
+          <div class="team-name" [class.dim]="homeWin">{{ away?.team?.name }}</div>
+          <div class="team-record" *ngIf="away?.leagueRecord">
+            {{ away.leagueRecord.wins }}-{{ away.leagueRecord.losses }}
+          </div>
+        </div>
+      </div>
+      <div class="score"
+           [class.score--win]="awayWin"
+           [class.score--loss]="homeWin && state === 'final'"
+           *ngIf="state !== 'upcoming'">
+        {{ away?.score ?? 0 }}
+      </div>
+    </div>
+
+    <!-- Home -->
+    <div class="team-row">
+      <div class="team-left">
+        <img class="team-logo team-logo--card"
+             [src]="teams.logo(homeId)"
+             [alt]="home?.team?.name"
+             (error)="logoError($event, homeId)"/>
+        <div class="team-info">
+          <div class="team-name" [class.dim]="awayWin">{{ home?.team?.name }}</div>
+          <div class="team-record" *ngIf="home?.leagueRecord">
+            {{ home.leagueRecord.wins }}-{{ home.leagueRecord.losses }}
+          </div>
+        </div>
+      </div>
+      <div class="score"
+           [class.score--win]="homeWin"
+           [class.score--loss]="awayWin && state === 'final'"
+           *ngIf="state !== 'upcoming'">
+        {{ home?.score ?? 0 }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="card-content">
+    <div class="divider"></div>
+
+    <!-- Linescore (Live or Final) -->
+    <div *ngIf="state !== 'upcoming'" class="linescore-wrap">
+      <div class="linescore-scroll">
+        <table class="linescore">
+          <thead>
+            <tr>
+              <th class="ls-team-col"></th>
+              <th *ngFor="let inn of displayInnings">{{ inn.num }}</th>
+              <th class="ls-total">R</th>
+              <th class="ls-total">H</th>
+              <th class="ls-total">E</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="ls-team-name">{{ away?.team?.abbreviation || teams.abbr(awayId) }}</td>
+              <td *ngFor="let inn of displayInnings">{{ inn.away?.runs ?? '' }}</td>
+              <td class="ls-total ls-total--val">{{ awayLineR }}</td>
+              <td class="ls-total ls-total--val">{{ awayLineH }}</td>
+              <td class="ls-total ls-total--val">{{ awayLineE }}</td>
+            </tr>
+            <tr>
+              <td class="ls-team-name">{{ home?.team?.abbreviation || teams.abbr(homeId) }}</td>
+              <td *ngFor="let inn of displayInnings">{{ inn.home?.runs ?? '' }}</td>
+              <td class="ls-total ls-total--val">{{ homeLineR }}</td>
+              <td class="ls-total ls-total--val">{{ homeLineH }}</td>
+              <td class="ls-total ls-total--val">{{ homeLineE }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pitcher Matchup (Upcoming) -->
+    <div *ngIf="state === 'upcoming'" class="probables">
+      <div class="pitcher-row">
+        <span class="p-label">Away:</span>
+        <span class="p-name">{{ away?.probablePitcher?.fullName || 'TBD' }}</span>
+      </div>
+      <div class="pitcher-row">
+        <span class="p-label">Home:</span>
+        <span class="p-name">{{ home?.probablePitcher?.fullName || 'TBD' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="card-footer">
+    <!-- Live Info -->
+    <div *ngIf="state === 'live'" class="live-footer">
+      <div class="count-row">
+        <span class="count-item">B <strong>{{ ls.balls ?? 0 }}</strong></span>
+        <span class="count-item">S <strong>{{ ls.strikes ?? 0 }}</strong></span>
+        <span class="count-item">O <strong>{{ ls.outs ?? 0 }}</strong></span>
+      </div>
+      <svg class="diamond" viewBox="0 0 44 44" fill="none">
+        <polygon points="22,2 42,22 22,42 2,22" stroke="#ffffff15" stroke-width="1.5"/>
+        <circle cx="22" cy="4"  r="5" [attr.fill]="runners.second ? '#F59E0B' : '#ffffff10'"/>
+        <circle cx="40" cy="22" r="5" [attr.fill]="runners.first  ? '#F59E0B' : '#ffffff10'"/>
+        <circle cx="4"  cy="22" r="5" [attr.fill]="runners.third  ? '#F59E0B' : '#ffffff10'"/>
+      </svg>
+    </div>
+
+    <!-- Decisions (Final only) -->
+    <div *ngIf="state === 'final' && decisions" class="decisions">
+      <div class="decision-row" *ngIf="winner">
+        <span class="d-label">W:</span>
+        <span class="d-name">{{ winner.fullName }}</span>
+      </div>
+      <div class="decision-row" *ngIf="loser">
+        <span class="d-label">L:</span>
+        <span class="d-name">{{ loser.fullName }}</span>
+      </div>
+      <div class="decision-row" *ngIf="save">
+        <span class="d-label">S:</span>
+        <span class="d-name">{{ save.fullName }}</span>
+      </div>
+    </div>
+  </div>
+
+</div>

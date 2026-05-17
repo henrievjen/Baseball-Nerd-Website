@@ -1,0 +1,21 @@
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  transition: padding-left 0.22s ease;
+  padding-left: var(--sidebar-w);
+
+  &.sidebar-collapsed {
+    padding-left: var(--sidebar-collapsed);
+  }
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+  .app-shell { padding-left: 0; }
+  .main-content { padding-bottom: 64px; }
+}

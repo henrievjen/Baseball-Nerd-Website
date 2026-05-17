@@ -1,0 +1,171 @@
+.stats-page {
+  padding: 28px 28px 60px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 24px;
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+}
+
+.page-title {
+  font-family: var(--font-head); font-size: clamp(28px, 4vw, 42px);
+  letter-spacing: 2px; line-height: 1;
+  .accent { color: var(--red); }
+}
+
+.season-sub { font-size: 0.8rem; color: var(--text3); margin-top: 4px; }
+
+.season-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+}
+
+.season-select {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  font-family: var(--font-mono);
+  outline: none;
+  cursor: pointer;
+
+  &:focus {
+    border-color: var(--red);
+  }
+}
+
+.stats-layout {
+  display: grid; grid-template-columns: 150px 1fr;
+  gap: 20px; align-items: start;
+}
+
+/* Category sidebar */
+.cat-sidebar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  position: sticky; top: 20px;
+  width: 150px; /* Explicit width to prevent any recalculation */
+}
+
+.cat-group-label {
+  padding: 10px 14px 6px;
+  font-size: 0.62rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.2px;
+  color: var(--text3);
+  border-top: 1px solid var(--border);
+  &:first-child { border-top: none; }
+}
+
+.cat-btn {
+  display: block; width: 100%;
+  background: none; border: none;
+  padding: 9px 14px; text-align: left;
+  font-size: 0.85rem; font-weight: 500;
+  color: var(--text2); transition: var(--transition);
+
+  &:hover { color: var(--text); background: var(--surface2); }
+  &.active { color: var(--red); background: rgba(200,16,46,0.12); font-weight: 600; }
+}
+
+/* Leaders */
+.leaders-panel {
+  min-height: 600px; /* Reserve space to prevent layout jumps when loading */
+}
+
+.leaders-table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.leaders-table {
+  width: 100%; border-collapse: collapse;
+
+  th {
+    padding: 12px 16px;
+    font-size: 0.68rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    color: var(--text3); background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    &.th-rank { width: 44px; }
+    &.th-stat { text-align: right; width: 80px; }
+  }
+
+  .leader-row {
+    cursor: pointer;
+    td { border-bottom: 1px solid var(--border); padding: 12px 16px; }
+    &:last-child td { border-bottom: none; }
+    &:hover td { background: var(--surface2); }
+  }
+
+  .td-rank {
+    font-family: var(--font-mono); font-size: 1rem; color: var(--text);
+    text-align: center;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .td-player { }
+
+  .td-stat {
+    font-family: var(--font-mono); font-size: 1rem; font-weight: 700;
+    color: var(--text); text-align: right;
+  }
+}
+
+.leader-cell {
+  display: flex; align-items: center; gap: 12px;
+}
+
+.player-headshot {
+  width: 40px; height: 40px; border-radius: 50%;
+  object-fit: cover; background: var(--surface2); flex-shrink: 0;
+}
+
+.leader-name  { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+
+.leader-team  {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.72rem; color: var(--text3); margin-top: 2px;
+}
+
+.leader-team-logo {
+  width: 18px; height: 18px;
+  object-fit: contain;
+  background: white;
+  border-radius: 50%;
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 700px) {
+  .stats-page  { padding: 18px 14px 60px; }
+  .page-header .header-content { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .stats-layout{ grid-template-columns: 1fr; }
+  .cat-sidebar {
+    position: static; display: flex; flex-wrap: wrap;
+    gap: 0; padding: 6px; width: auto;
+    .cat-group-label { display: none; }
+    .cat-btn { width: auto; padding: 7px 12px; border-radius: var(--radius-sm); }
+  }
+  .leaders-panel { min-height: auto; }
+}

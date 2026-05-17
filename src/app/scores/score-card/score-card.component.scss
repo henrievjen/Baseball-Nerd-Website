@@ -1,0 +1,172 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+    border-color: var(--border2);
+  }
+
+  &.card-live {
+    border-color: rgba(200,16,46,0.3);
+    box-shadow: 0 0 0 1px rgba(200,16,46,0.12);
+  }
+}
+
+/* Header */
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px 0;
+  font-size: 0.7rem; font-weight: 500;
+  letter-spacing: 0.4px; text-transform: uppercase;
+}
+
+.series-label { color: var(--text3); }
+
+.status-live {
+  display: flex; align-items: center; gap: 5px;
+  color: var(--red); font-weight: 700; font-size: 0.75rem;
+}
+.status-final   { color: var(--text3); }
+.status-upcoming{ color: var(--text2); }
+
+/* Teams */
+.teams { padding: 10px 14px 12px; }
+
+.team-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 0;
+}
+
+.team-left {
+  display: flex; align-items: center; gap: 10px;
+}
+
+.team-logo--card {
+  width: 36px; height: 36px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+}
+
+.team-info {}
+
+.team-name {
+  font-size: 0.875rem; font-weight: 600; color: var(--text);
+  &.dim { color: var(--text3); }
+}
+
+.team-record { font-size: 0.7rem; color: var(--text3); margin-top: 1px; }
+
+.score {
+  font-family: var(--font-head);
+  font-size: 2.1rem; line-height: 1;
+  min-width: 38px; text-align: right;
+  color: var(--text2);
+
+  &.score--win  { color: var(--text); }
+  &.score--loss { color: var(--text3); }
+}
+
+/* Content area that fills remaining space */
+.card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Divider */
+.divider { height: 1px; background: var(--border); margin: 0 14px; }
+
+/* Linescore */
+.linescore-wrap {
+  padding: 0;
+  flex: 1;
+}
+
+.linescore-scroll { overflow-x: auto; scrollbar-width: none; padding: 6px 14px; }
+.linescore-scroll::-webkit-scrollbar { display: none; }
+
+.linescore {
+  border-collapse: collapse;
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  width: 100%;
+
+  th, td {
+    text-align: center;
+    padding: 2px 4px;
+    min-width: 18px;
+    color: var(--text3);
+  }
+
+  th { border-bottom: 1px solid var(--border); font-weight: 500; }
+
+  .ls-team-col  { width: 30px; }
+  .ls-team-name { text-align: left; color: var(--text2); font-family: var(--font-body); font-weight: 600; font-size: 0.7rem; padding-left: 0; }
+  .ls-total     { border-left: 1px solid var(--border); }
+  .ls-total--val{ color: var(--text); font-weight: 600; }
+}
+
+/* Decisions */
+.decisions {
+  padding: 4px 14px 10px;
+  font-size: 0.72rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.decision-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.d-label {
+  font-weight: 700;
+  color: var(--text3);
+}
+
+.d-name {
+  color: var(--text2);
+}
+
+/* Live footer */
+.live-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px;
+}
+
+.count-row {
+  display: flex; gap: 10px;
+  font-size: 0.75rem; color: var(--text2);
+  strong { color: var(--text); font-family: var(--font-mono); font-size: 0.9rem; }
+}
+
+.count-item { display: flex; align-items: center; gap: 4px; }
+
+.diamond {
+  width: 38px; height: 38px;
+}
+
+/* Probables */
+.probables {
+  padding: 8px 14px;
+  font-size: 0.72rem; color: var(--text2);
+  flex: 1;
+}
+
+.vs-sep { color: var(--text3); margin: 0 5px; }
