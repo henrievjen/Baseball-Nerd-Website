@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "baseball-nerd-website",
+  "compatibility_date": "2026-05-17",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "dist/baseball-nerd/browser"
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}
