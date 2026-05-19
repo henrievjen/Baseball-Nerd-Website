@@ -51,9 +51,30 @@ export class MlbApiService {
     });
   }
 
+  /** Full player profile with season, career, and yearByYear for year picker */
   getPerson(personId: number) {
     return this.get<any>(`v1/people/${personId}`, {
-      hydrate: 'stats(group=[hitting,pitching],type=[season,career],gameType=R),currentTeam,primaryPosition'
+      hydrate: 'stats(group=[hitting,pitching],type=[season,career,yearByYear],gameType=R),currentTeam,primaryPosition'
+    });
+  }
+
+  /** Fetch season stats for a specific prior year */
+  getPlayerStatsBySeason(personId: number, season: number) {
+    return this.get<any>(`v1/people/${personId}/stats`, {
+      stats: 'season',
+      group: 'hitting,pitching',
+      season,
+      gameType: 'R'
+    });
+  }
+
+  /** Fetch game-by-game log for a player */
+  getPlayerGameLog(personId: number, group: 'hitting' | 'pitching', season: number) {
+    return this.get<any>(`v1/people/${personId}/stats`, {
+      stats: 'gameLog',
+      group,
+      season,
+      gameType: 'R'
     });
   }
 
@@ -63,7 +84,6 @@ export class MlbApiService {
     });
   }
 
-  /** Live feed — includes current at-bat, matchup, and all pitch coordinates */
   getLiveFeed(gamePk: number) {
     return this.get<any>(`v1/game/${gamePk}/feed/live`, {
       hydrate: 'pitchData,hitData'

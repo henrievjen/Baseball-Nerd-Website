@@ -200,9 +200,108 @@
   letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--text);
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
+}
+
+/* Pitcher matchup layout */
+.gd-pitcher-matchup {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.gd-pitcher-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 16px 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  transition: border-color var(--transition), background var(--transition);
+
+  &.gd-pitcher-card--clickable {
+    cursor: pointer;
+    &:hover {
+      border-color: var(--border2);
+      background: var(--surface2);
+    }
+  }
+}
+
+.gd-pitcher-team-abbr {
+  font-family: var(--font-head);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.gd-pitcher-photo {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--bg3);
+  border: 2px solid var(--border2);
+  flex-shrink: 0;
+}
+
+.gd-pitcher-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.gd-pitcher-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+  width: 100%;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.gd-pstat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.gd-pstat-val {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+.gd-pstat-lbl {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text3);
+  font-weight: 600;
+}
+
+.gd-pitcher-vs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-head);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 2px;
+  padding: 0 14px;
+  flex-shrink: 0;
 }
 
 .gd-proj-rows, .gd-info-rows {
@@ -569,6 +668,12 @@
 
   .gd-projected-view { padding: 16px 16px 0; }
   .gd-game-info { padding: 16px; }
+  .gd-pitcher-matchup { gap: 0; }
+  .gd-pitcher-card { padding: 14px 10px; gap: 8px; }
+  .gd-pitcher-photo { width: 54px; height: 54px; }
+  .gd-pitcher-name { font-size: 0.78rem; }
+  .gd-pitcher-vs { padding: 0 8px; font-size: 0.85rem; }
+  .gd-pstat-val { font-size: 0.82rem; }
   .gd-proj-row, .gd-info-row { font-size: 0.88rem; flex-direction: column; align-items: flex-start; gap: 4px; }
   .p-label { min-width: auto; }
 }

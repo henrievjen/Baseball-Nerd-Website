@@ -244,18 +244,67 @@
             <!-- CASE B: No Lineups Available -> Show Projected Matchup -->
             <ng-template #projectedView>
               <div class="gd-projected-view">
-                <div class="gd-projected-matchup">
-                  <h3 class="gd-proj-title">Projected Starters</h3>
-                  <div class="gd-proj-rows">
-                    <div class="gd-proj-row">
-                      <span class="p-label">{{ away?.team?.abbreviation || teams.abbr(awayId) }}:</span>
-                      <span class="p-name">{{ away?.probablePitcher?.fullName || 'TBD' }}{{ getPitcherRecord(away?.probablePitcher) }}</span>
-                    </div>
-                    <div class="gd-proj-row">
-                      <span class="p-label">{{ home?.team?.abbreviation || teams.abbr(homeId) }}:</span>
-                      <span class="p-name">{{ home?.probablePitcher?.fullName || 'TBD' }}{{ getPitcherRecord(home?.probablePitcher) }}</span>
-                    </div>
+                <h3 class="gd-proj-title">Projected Starters</h3>
+                <div class="gd-pitcher-matchup">
+
+                  <!-- Away Pitcher -->
+                  <div class="gd-pitcher-card" [class.gd-pitcher-card--clickable]="away?.probablePitcher?.id" (click)="away?.probablePitcher?.id && openPlayer(away.probablePitcher)">
+                    <span class="gd-pitcher-team-abbr" [style.color]="teams.color(awayId)">{{ away?.team?.abbreviation || teams.abbr(awayId) }}</span>
+                    <img class="gd-pitcher-photo" [src]="teams.photo(away?.probablePitcher?.id)" alt="" (error)="logoError($event)" />
+                    <div class="gd-pitcher-name">{{ away?.probablePitcher?.fullName || 'TBD' }}</div>
+                    <ng-container *ngIf="away?.probablePitcher; else tbdStats">
+                      <div class="gd-pitcher-stats">
+                        <div class="gd-pstat">
+                          <span class="gd-pstat-val">{{ getProbablePitcherRecord(away.probablePitcher) }}</span>
+                          <span class="gd-pstat-lbl">Record</span>
+                        </div>
+                        <div class="gd-pstat">
+                          <span class="gd-pstat-val">{{ getProbablePitcherStrikeouts(away.probablePitcher) }}</span>
+                          <span class="gd-pstat-lbl">K</span>
+                        </div>
+                        <div class="gd-pstat">
+                          <span class="gd-pstat-val">{{ getProbablePitcherEra(away.probablePitcher) }}</span>
+                          <span class="gd-pstat-lbl">ERA</span>
+                        </div>
+                        <div class="gd-pstat">
+                          <span class="gd-pstat-val">{{ getProbablePitcherWhip(away.probablePitcher) }}</span>
+                          <span class="gd-pstat-lbl">WHIP</span>
+                        </div>
+                      </div>
+                    </ng-container>
                   </div>
+
+                  <div class="gd-pitcher-vs">VS</div>
+
+                  <!-- Home Pitcher -->
+                  <div class="gd-pitcher-card" [class.gd-pitcher-card--clickable]="home?.probablePitcher?.id" (click)="home?.probablePitcher?.id && openPlayer(home.probablePitcher)">
+                    <span class="gd-pitcher-team-abbr" [style.color]="teams.color(homeId)">{{ home?.team?.abbreviation || teams.abbr(homeId) }}</span>
+                    <img class="gd-pitcher-photo" [src]="teams.photo(home?.probablePitcher?.id)" alt="" (error)="logoError($event)" />
+                    <div class="gd-pitcher-name">{{ home?.probablePitcher?.fullName || 'TBD' }}</div>
+                    <ng-container *ngIf="home?.probablePitcher; else tbdStats">
+                      <div class="gd-pitcher-stats">
+                        <div class="gd-pstat">
+                          <span class="gd-pstat-val">{{ getProbablePitcherRecord(home.probablePitcher) }}</span>
+                          <span class="gd-pstat-lbl">Record</span>
+                        </div>
+                        <div class="gd-pstat">
+                          <span class="gd-pstat-val">{{ getProbablePitcherStrikeouts(home.probablePitcher) }}</span>
+                          <span class="gd-pstat-lbl">K</span>
+                        </div>
+                        <div class="gd-pstat">
+                          <span class="gd-pstat-val">{{ getProbablePitcherEra(home.probablePitcher) }}</span>
+                          <span class="gd-pstat-lbl">ERA</span>
+                        </div>
+                        <div class="gd-pstat">
+                          <span class="gd-pstat-val">{{ getProbablePitcherWhip(home.probablePitcher) }}</span>
+                          <span class="gd-pstat-lbl">WHIP</span>
+                        </div>
+                      </div>
+                    </ng-container>
+                  </div>
+
+                  <ng-template #tbdStats></ng-template>
+
                 </div>
               </div>
             </ng-template>

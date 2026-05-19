@@ -13,7 +13,7 @@
       <p>Could not load player info</p>
     </div>
 
-    <!-- Player content -->
+    <!-- ── Player content ── -->
     <ng-container *ngIf="player && !loading">
 
       <!-- Hero header -->
@@ -34,11 +34,9 @@
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Bio grid -->
-      <div class="bio-section">
-        <div class="bio-grid">
+        <!-- Bio strip -->
+        <div class="bio-strip">
           <div class="bio-item" *ngIf="player.currentAge">
             <div class="bio-label">Age</div>
             <div class="bio-val">{{ player.currentAge }}</div>
@@ -57,7 +55,7 @@
           </div>
           <div class="bio-item" *ngIf="player.birthCity">
             <div class="bio-label">Hometown</div>
-            <div class="bio-val">{{ player.birthCity }}</div>
+            <div class="bio-val">{{ player.birthCity }}<span *ngIf="player.birthCountry && player.birthCountry !== 'USA'">, {{ player.birthCountry }}</span></div>
           </div>
           <div class="bio-item" *ngIf="player.mlbDebutDate">
             <div class="bio-label">Debut</div>
@@ -66,78 +64,250 @@
         </div>
       </div>
 
-      <!-- Stats -->
-      <div class="stats-section">
-        <!-- Stat tabs -->
-        <div class="stat-tabs">
-          <button *ngIf="hitSeason"  class="tab-btn" [class.active]="activeTab === 'hitting-season'"  (click)="activeTab = 'hitting-season'">Season</button>
-          <button *ngIf="hitCareer"  class="tab-btn" [class.active]="activeTab === 'hitting-career'"  (click)="activeTab = 'hitting-career'">Career</button>
-          <button *ngIf="pitSeason"  class="tab-btn" [class.active]="activeTab === 'pitching-season'" (click)="activeTab = 'pitching-season'">Pitching</button>
-          <button *ngIf="pitCareer"  class="tab-btn" [class.active]="activeTab === 'pitching-career'" (click)="activeTab = 'pitching-career'">Pitching Career</button>
+      <!-- ── Stats body ── -->
+      <div class="stats-body">
+
+        <!-- Group tabs (Hitting / Pitching) -->
+        <div class="group-tabs" *ngIf="hasHitting && hasPitching">
+          <button class="group-btn" [class.active]="activeGroup === 'hitting'"  (click)="activeGroup = 'hitting';  activeView = 'season'; gameLogs = []">Hitting</button>
+          <button class="group-btn" [class.active]="activeGroup === 'pitching'" (click)="activeGroup = 'pitching'; activeView = 'season'; gameLogs = []">Pitching</button>
         </div>
 
-        <!-- Hitting Season -->
-        <div *ngIf="activeTab === 'hitting-season' && hitSeason" class="stat-grid">
-          <div class="stat-item"><div class="stat-label">AVG</div><div class="stat-val">{{ hitSeason.avg }}</div></div>
-          <div class="stat-item"><div class="stat-label">OPS</div><div class="stat-val">{{ hitSeason.ops }}</div></div>
-          <div class="stat-item"><div class="stat-label">HR</div><div class="stat-val">{{ hitSeason.homeRuns }}</div></div>
-          <div class="stat-item"><div class="stat-label">RBI</div><div class="stat-val">{{ hitSeason.rbi }}</div></div>
-          <div class="stat-item"><div class="stat-label">R</div><div class="stat-val">{{ hitSeason.runs }}</div></div>
-          <div class="stat-item"><div class="stat-label">H</div><div class="stat-val">{{ hitSeason.hits }}</div></div>
-          <div class="stat-item"><div class="stat-label">2B</div><div class="stat-val">{{ hitSeason.doubles }}</div></div>
-          <div class="stat-item"><div class="stat-label">3B</div><div class="stat-val">{{ hitSeason.triples }}</div></div>
-          <div class="stat-item"><div class="stat-label">SB</div><div class="stat-val">{{ hitSeason.stolenBases }}</div></div>
-          <div class="stat-item"><div class="stat-label">BB</div><div class="stat-val">{{ hitSeason.baseOnBalls }}</div></div>
-          <div class="stat-item"><div class="stat-label">SO</div><div class="stat-val">{{ hitSeason.strikeOuts }}</div></div>
-          <div class="stat-item"><div class="stat-label">OBP</div><div class="stat-val">{{ hitSeason.obp }}</div></div>
-          <div class="stat-item"><div class="stat-label">SLG</div><div class="stat-val">{{ hitSeason.slg }}</div></div>
-          <div class="stat-item"><div class="stat-label">G</div><div class="stat-val">{{ hitSeason.gamesPlayed }}</div></div>
+        <!-- Year picker -->
+        <div class="year-picker-wrap">
+          <div class="year-picker">
+            <button *ngFor="let yr of availableYears; trackBy: trackByYear"
+                    class="year-btn"
+                    [class.active]="selectedYear === yr"
+                    [class.current]="yr === currentYear"
+                    (click)="selectYear(yr)">
+              {{ yr }}
+            </button>
+          </div>
         </div>
 
-        <!-- Hitting Career -->
-        <div *ngIf="activeTab === 'hitting-career' && hitCareer" class="stat-grid">
-          <div class="stat-item"><div class="stat-label">AVG</div><div class="stat-val">{{ hitCareer.avg }}</div></div>
-          <div class="stat-item"><div class="stat-label">OPS</div><div class="stat-val">{{ hitCareer.ops }}</div></div>
-          <div class="stat-item"><div class="stat-label">HR</div><div class="stat-val">{{ hitCareer.homeRuns }}</div></div>
-          <div class="stat-item"><div class="stat-label">RBI</div><div class="stat-val">{{ hitCareer.rbi }}</div></div>
-          <div class="stat-item"><div class="stat-label">H</div><div class="stat-val">{{ hitCareer.hits }}</div></div>
-          <div class="stat-item"><div class="stat-label">BB</div><div class="stat-val">{{ hitCareer.baseOnBalls }}</div></div>
-          <div class="stat-item"><div class="stat-label">SO</div><div class="stat-val">{{ hitCareer.strikeOuts }}</div></div>
-          <div class="stat-item"><div class="stat-label">SB</div><div class="stat-val">{{ hitCareer.stolenBases }}</div></div>
-          <div class="stat-item"><div class="stat-label">G</div><div class="stat-val">{{ hitCareer.gamesPlayed }}</div></div>
+        <!-- View tabs (Season / Career / Game Log) -->
+        <div class="view-tabs">
+          <button class="view-btn" [class.active]="activeView === 'season'"  (click)="selectView('season')">Season</button>
+          <button class="view-btn" [class.active]="activeView === 'career'"  (click)="selectView('career')">Career</button>
+          <button class="view-btn" [class.active]="activeView === 'gamelog'" (click)="selectView('gamelog')">Game Log</button>
         </div>
 
-        <!-- Pitching Season -->
-        <div *ngIf="activeTab === 'pitching-season' && pitSeason" class="stat-grid">
-          <div class="stat-item"><div class="stat-label">ERA</div><div class="stat-val">{{ pitSeason.era }}</div></div>
-          <div class="stat-item"><div class="stat-label">WHIP</div><div class="stat-val">{{ pitSeason.whip }}</div></div>
-          <div class="stat-item"><div class="stat-label">W</div><div class="stat-val">{{ pitSeason.wins }}</div></div>
-          <div class="stat-item"><div class="stat-label">L</div><div class="stat-val">{{ pitSeason.losses }}</div></div>
-          <div class="stat-item"><div class="stat-label">K</div><div class="stat-val">{{ pitSeason.strikeOuts }}</div></div>
-          <div class="stat-item"><div class="stat-label">IP</div><div class="stat-val">{{ pitSeason.inningsPitched }}</div></div>
-          <div class="stat-item"><div class="stat-label">SV</div><div class="stat-val">{{ pitSeason.saves }}</div></div>
-          <div class="stat-item"><div class="stat-label">G</div><div class="stat-val">{{ pitSeason.gamesPitched }}</div></div>
-          <div class="stat-item"><div class="stat-label">GS</div><div class="stat-val">{{ pitSeason.gamesStarted }}</div></div>
-          <div class="stat-item"><div class="stat-label">BB</div><div class="stat-val">{{ pitSeason.baseOnBalls }}</div></div>
-          <div class="stat-item"><div class="stat-label">H</div><div class="stat-val">{{ pitSeason.hits }}</div></div>
-          <div class="stat-item"><div class="stat-label">ER</div><div class="stat-val">{{ pitSeason.earnedRuns }}</div></div>
+        <!-- Year stats loading -->
+        <div *ngIf="loadingYearStats" class="spinner-wrap" style="padding: 40px 0;">
+          <div class="spinner"></div><span>Loading {{ selectedYear }} stats…</span>
         </div>
 
-        <!-- Pitching Career -->
-        <div *ngIf="activeTab === 'pitching-career' && pitCareer" class="stat-grid">
-          <div class="stat-item"><div class="stat-label">ERA</div><div class="stat-val">{{ pitCareer.era }}</div></div>
-          <div class="stat-item"><div class="stat-label">WHIP</div><div class="stat-val">{{ pitCareer.whip }}</div></div>
-          <div class="stat-item"><div class="stat-label">W</div><div class="stat-val">{{ pitCareer.wins }}</div></div>
-          <div class="stat-item"><div class="stat-label">L</div><div class="stat-val">{{ pitCareer.losses }}</div></div>
-          <div class="stat-item"><div class="stat-label">K</div><div class="stat-val">{{ pitCareer.strikeOuts }}</div></div>
-          <div class="stat-item"><div class="stat-label">IP</div><div class="stat-val">{{ pitCareer.inningsPitched }}</div></div>
-          <div class="stat-item"><div class="stat-label">G</div><div class="stat-val">{{ pitCareer.gamesPitched }}</div></div>
-          <div class="stat-item"><div class="stat-label">SV</div><div class="stat-val">{{ pitCareer.saves }}</div></div>
-        </div>
+        <!-- ══ SEASON STATS ══ -->
+        <ng-container *ngIf="activeView === 'season' && !loadingYearStats">
 
-        <div *ngIf="!hitSeason && !pitSeason" class="empty-state"><p>No stats available</p></div>
+          <!-- HITTING SEASON -->
+          <ng-container *ngIf="activeGroup === 'hitting'">
+            <div class="stat-section">
+              <div class="stat-section-title">Rate Stats</div>
+              <div class="stat-tiles">
+                <div class="stat-tile stat-tile--featured" *ngFor="let s of hitRate; trackBy: trackByStat">
+                  <div class="stat-tile-label">{{ s.label }}</div>
+                  <div class="stat-tile-val">{{ getSeasonStat('hitting', s.key) }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="stat-section">
+              <div class="stat-section-title">Standard</div>
+              <div class="stat-tiles">
+                <div class="stat-tile" *ngFor="let s of hitStandard; trackBy: trackByStat">
+                  <div class="stat-tile-label">{{ s.label }}</div>
+                  <div class="stat-tile-val">{{ getSeasonStat('hitting', s.key) }}</div>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- PITCHING SEASON -->
+          <ng-container *ngIf="activeGroup === 'pitching'">
+            <div class="stat-section">
+              <div class="stat-section-title">Rate Stats</div>
+              <div class="stat-tiles">
+                <div class="stat-tile stat-tile--featured" *ngFor="let s of pitRate; trackBy: trackByStat">
+                  <div class="stat-tile-label">{{ s.label }}</div>
+                  <div class="stat-tile-val">{{ getSeasonStat('pitching', s.key) }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="stat-section">
+              <div class="stat-section-title">Outings</div>
+              <div class="stat-tiles">
+                <div class="stat-tile" *ngFor="let s of pitStandard; trackBy: trackByStat">
+                  <div class="stat-tile-label">{{ s.label }}</div>
+                  <div class="stat-tile-val">{{ getSeasonStat('pitching', s.key) }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="stat-section">
+              <div class="stat-section-title">vs. Opponents</div>
+              <div class="stat-tiles">
+                <div class="stat-tile" *ngFor="let s of pitOpponents; trackBy: trackByStat">
+                  <div class="stat-tile-label">{{ s.label }}</div>
+                  <div class="stat-tile-val">{{ getSeasonStat('pitching', s.key) }}</div>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+        </ng-container>
+
+        <!-- ══ CAREER STATS ══ -->
+        <ng-container *ngIf="activeView === 'career'">
+
+          <ng-container *ngIf="activeGroup === 'hitting'">
+            <div class="stat-section">
+              <div class="stat-section-title">Rate Stats</div>
+              <div class="stat-tiles">
+                <div class="stat-tile stat-tile--featured" *ngFor="let s of hitRate; trackBy: trackByStat">
+                  <div class="stat-tile-label">{{ s.label }}</div>
+                  <div class="stat-tile-val">{{ getCareerStat('hitting', s.key) }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="stat-section">
+              <div class="stat-section-title">Standard</div>
+              <div class="stat-tiles">
+                <div class="stat-tile" *ngFor="let s of hitStandard; trackBy: trackByStat">
+                  <div class="stat-tile-label">{{ s.label }}</div>
+                  <div class="stat-tile-val">{{ getCareerStat('hitting', s.key) }}</div>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="activeGroup === 'pitching'">
+            <div class="stat-section">
+              <div class="stat-section-title">Rate Stats</div>
+              <div class="stat-tiles">
+                <div class="stat-tile stat-tile--featured" *ngFor="let s of pitRate; trackBy: trackByStat">
+                  <div class="stat-tile-label">{{ s.label }}</div>
+                  <div class="stat-tile-val">{{ getCareerStat('pitching', s.key) }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="stat-section">
+              <div class="stat-section-title">Outings</div>
+              <div class="stat-tiles">
+                <div class="stat-tile" *ngFor="let s of pitStandard; trackBy: trackByStat">
+                  <div class="stat-tile-label">{{ s.label }}</div>
+                  <div class="stat-tile-val">{{ getCareerStat('pitching', s.key) }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="stat-section">
+              <div class="stat-section-title">vs. Opponents</div>
+              <div class="stat-tiles">
+                <div class="stat-tile" *ngFor="let s of pitOpponents; trackBy: trackByStat">
+                  <div class="stat-tile-label">{{ s.label }}</div>
+                  <div class="stat-tile-val">{{ getCareerStat('pitching', s.key) }}</div>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+        </ng-container>
+
+        <!-- ══ GAME LOG ══ -->
+        <ng-container *ngIf="activeView === 'gamelog'">
+          <div *ngIf="loadingGameLog" class="spinner-wrap" style="padding: 40px 0;">
+            <div class="spinner"></div><span>Loading game log…</span>
+          </div>
+
+          <div *ngIf="!loadingGameLog && gameLogs.length === 0" class="empty-state">
+            <p>No game log available for {{ selectedYear }}</p>
+          </div>
+
+          <div *ngIf="!loadingGameLog && gameLogs.length > 0" class="gamelog-wrap">
+
+            <!-- HITTING game log -->
+            <table *ngIf="activeGroup === 'hitting'" class="gamelog-table">
+              <thead>
+              <tr>
+                <th class="gl-date">Date</th>
+                <th class="gl-opp">Opp</th>
+                <th class="gl-result">W/L</th>
+                <th>AB</th><th>R</th><th>H</th><th>2B</th><th>3B</th>
+                <th>HR</th><th>RBI</th><th>BB</th><th>SO</th><th>SB</th>
+                <th class="gl-rate">AVG</th><th class="gl-rate">OBP</th><th class="gl-rate">SLG</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr *ngFor="let log of gameLogs; trackBy: trackByLog" [class.gl-win]="log.isWin" [class.gl-loss]="log.isLoss">
+                <td class="gl-date">{{ formatGameDate(log.date) }}</td>
+                <td class="gl-opp">
+                  <span class="gl-home-away">{{ log.isHome ? 'vs' : '@' }}</span>
+                  {{ log.opponent?.abbreviation || log.opponent?.name || '—' }}
+                </td>
+                <td class="gl-result">
+                    <span class="gl-wl" [class.gl-wl--win]="log.isWin" [class.gl-wl--loss]="log.isLoss">
+                      {{ log.isWin ? 'W' : log.isLoss ? 'L' : '—' }}
+                    </span>
+                </td>
+                <td>{{ log.stat?.atBats ?? '—' }}</td>
+                <td>{{ log.stat?.runs ?? '—' }}</td>
+                <td class="gl-hits">{{ log.stat?.hits ?? '—' }}</td>
+                <td>{{ log.stat?.doubles ?? '—' }}</td>
+                <td>{{ log.stat?.triples ?? '—' }}</td>
+                <td>{{ log.stat?.homeRuns ?? '—' }}</td>
+                <td>{{ log.stat?.rbi ?? '—' }}</td>
+                <td>{{ log.stat?.baseOnBalls ?? '—' }}</td>
+                <td>{{ log.stat?.strikeOuts ?? '—' }}</td>
+                <td>{{ log.stat?.stolenBases ?? '—' }}</td>
+                <td class="gl-rate">{{ log.stat?.avg ?? '—' }}</td>
+                <td class="gl-rate">{{ log.stat?.obp ?? '—' }}</td>
+                <td class="gl-rate">{{ log.stat?.slg ?? '—' }}</td>
+              </tr>
+              </tbody>
+            </table>
+
+            <!-- PITCHING game log -->
+            <table *ngIf="activeGroup === 'pitching'" class="gamelog-table">
+              <thead>
+              <tr>
+                <th class="gl-date">Date</th>
+                <th class="gl-opp">Opp</th>
+                <th class="gl-result">Dec</th>
+                <th>IP</th><th>H</th><th>R</th><th>ER</th><th>HR</th>
+                <th>BB</th><th>SO</th><th>HBP</th><th>P</th>
+                <th class="gl-rate">ERA</th><th class="gl-rate">WHIP</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr *ngFor="let log of gameLogs; trackBy: trackByLog" [class.gl-win]="log.isWin" [class.gl-loss]="log.isLoss">
+                <td class="gl-date">{{ formatGameDate(log.date) }}</td>
+                <td class="gl-opp">
+                  <span class="gl-home-away">{{ log.isHome ? 'vs' : '@' }}</span>
+                  {{ log.opponent?.abbreviation || log.opponent?.name || '—' }}
+                </td>
+                <td class="gl-result">
+                    <span class="gl-wl" [class.gl-wl--win]="log.isWin" [class.gl-wl--loss]="log.isLoss">
+                      {{ log.isWin ? 'W' : log.isLoss ? 'L' : log.stat?.save ? 'SV' : '—' }}
+                    </span>
+                </td>
+                <td class="gl-ip">{{ log.stat?.inningsPitched ?? '—' }}</td>
+                <td>{{ log.stat?.hits ?? '—' }}</td>
+                <td>{{ log.stat?.runs ?? '—' }}</td>
+                <td>{{ log.stat?.earnedRuns ?? '—' }}</td>
+                <td>{{ log.stat?.homeRuns ?? '—' }}</td>
+                <td>{{ log.stat?.baseOnBalls ?? '—' }}</td>
+                <td class="gl-so">{{ log.stat?.strikeOuts ?? '—' }}</td>
+                <td>{{ log.stat?.hitBatsmen ?? '—' }}</td>
+                <td>{{ log.stat?.numberOfPitches ?? '—' }}</td>
+                <td class="gl-rate">{{ log.stat?.era ?? '—' }}</td>
+                <td class="gl-rate">{{ log.stat?.whip ?? '—' }}</td>
+              </tr>
+              </tbody>
+            </table>
+
+          </div>
+        </ng-container>
+
       </div>
-
     </ng-container>
   </div>
 </div>

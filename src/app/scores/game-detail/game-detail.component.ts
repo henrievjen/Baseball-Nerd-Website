@@ -483,6 +483,48 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
     return '';
   }
 
+  private getProbablePitcherSeasonStat(pitcher: any): any {
+    if (!pitcher) return null;
+    // Try pitcher.stats (direct schedule hydration), then pitcher.person.stats
+    const candidates = [pitcher.stats, pitcher.person?.stats];
+    for (const statsArray of candidates) {
+      if (!Array.isArray(statsArray) || !statsArray.length) continue;
+      // Prefer pitching group; fall back to first entry
+      const entry = statsArray.find((s: any) =>
+        s.group?.displayName?.toLowerCase() === 'pitching' ||
+        s.group?.code === 'pitching'
+      ) ?? statsArray[0];
+      if (!entry) continue;
+      // Data lives in splits[0].stat or directly in .stats
+      const stat = entry.splits?.[0]?.stat ?? entry.stats ?? null;
+      if (stat) return stat;
+    }
+    return null;
+  }
+
+  getProbablePitcherRecord(pitcher: any): string {
+    const stat = this.getProbablePitcherSeasonStat(pitcher);
+    if (stat?.wins !== undefined && stat?.losses !== undefined) {
+      return `${stat.wins}-${stat.losses}`;
+    }
+    return '—';
+  }
+
+  getProbablePitcherEra(pitcher: any): string {
+    const stat = this.getProbablePitcherSeasonStat(pitcher);
+    return stat?.era ?? '—';
+  }
+
+  getProbablePitcherWhip(pitcher: any): string {
+    const stat = this.getProbablePitcherSeasonStat(pitcher);
+    return stat?.whip ?? '—';
+  }
+
+  getProbablePitcherStrikeouts(pitcher: any): string | number {
+    const stat = this.getProbablePitcherSeasonStat(pitcher);
+    return stat?.strikeOuts ?? '—';
+  }
+
   get lineupsAvailable(): boolean {
     return !!(this.awayBs?.batters?.length || this.homeBs?.batters?.length ||
               this.awayBs?.pitchers?.length || this.homeBs?.pitchers?.length);
