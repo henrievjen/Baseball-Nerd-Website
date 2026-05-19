@@ -97,10 +97,6 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['boxscore'] || changes['plays']) {
-      if (!this.boxscore && !this.plays) this.mainTab = 'lineups';
-    }
-
     if (changes['plays']) {
       this.cachedParsedPlays = this.parsePlays();
     }
@@ -114,6 +110,11 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
 
     if (changes['liveFeed'] || changes['game'] || changes['plays']) {
       this.updateStrikeZone();
+    }
+
+    // Default to 'plays' for live games when they first load
+    if (this.state === 'live' && this.playsAvailable && changes['game'] && !changes['game'].previousValue) {
+      this.mainTab = 'plays';
     }
   }
 
@@ -333,6 +334,7 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
     for (const p of players) {
       const order   = p.battingOrder ?? 0;
       const slotNum = Math.floor(order / 100);
+      if (!slotNum) continue;
       if (!slotMap.has(slotNum)) slotMap.set(slotNum, []);
       slotMap.get(slotNum)!.push(p);
     }
@@ -465,7 +467,7 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   getPitcherRecord(pitcher: any): string {
-    if (!pitcher?.stats) return '';
+    if (!pitcher) return '';
     const statsArray = pitcher.stats || pitcher.person?.stats;
     if (!statsArray || !Array.isArray(statsArray)) return '';
 
@@ -479,6 +481,52 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
       return ` (${stat.wins}-${stat.losses})`;
     }
     return '';
+  }
+
+  get lineupsAvailable(): boolean {
+    return !!(this.awayBs?.batters?.length || this.homeBs?.batters?.length ||
+              this.awayBs?.pitchers?.length || this.homeBs?.pitchers?.length);
+  }
+
+  get playsAvailable(): boolean {
+    return !!(this.plays?.allPlays?.length);
+  }
+
+  get venueName() { return this.game?.venue?.name; }
+
+  get homeTv() {
+    return this.game?.broadcasts
+      ?.filter((b: any) => b.type === 'TV' && b.homeAway === 'home')
+      ?.map((b: any) => b.callSign)
+      ?.join(', ');
+  }
+
+  get awayTv() {
+    return this.game?.broadcasts
+      ?.filter((b: any) => b.type === 'TV' && b.homeAway === 'away')
+      ?.map((b: any) => b.callSign)
+      ?.join(', ');
+  }
+
+  get isSameTv(): boolean {
+    return !!this.homeTv && !!this.awayTv && this.homeTv === this.awayTv;
+  }
+
+  getTvArray(tvString: string): string[] {
+    if (!tvString) return [];
+    return tvString.split(',').map(s => s.trim());
+  }
+
+  getNetworkLogo(callSign: string): string | null {
+    const c = callSign.toUpperCase();
+    if (c == 'NBC') return 'assets/nbc.png';
+    if (c == 'NBC/Peacock') return 'assets/nbc.png';
+    if (c == 'NETFLIX') return 'assets/netflix.png';
+    if (c == 'ABC') return 'assets/abc.png';
+    if (c == 'ESPN') return 'assets/espn.png';
+    if (c == 'FS1') return 'assets/fs1.png';
+    if (c == 'Peacock') return 'assets/peacock.png';
+    return null;
   }
 
   // TrackBy functions for better performance

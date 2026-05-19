@@ -1,6 +1,5 @@
 .gd-modal {
   max-width: 860px;
-  /* Use hardware acceleration for the modal container */
   will-change: transform;
 }
 
@@ -139,7 +138,6 @@
   tbody tr:last-child td { border-bottom: none; }
   tbody tr:hover td { background: rgba(255,255,255,0.02); }
 
-  /* Lineup number column */
   .lineup-num {
     text-align: center;
     font-family: var(--font-head);
@@ -150,7 +148,6 @@
     letter-spacing: 0.5px;
   }
 
-  /* Player name cells */
   .player-name-cell {
     text-align: left; font-family: var(--font-body);
     color: var(--text); cursor: pointer; font-size: 0.82rem; font-weight: 500;
@@ -161,9 +158,6 @@
     color: var(--text3); font-size: 0.68rem; margin-left: 5px;
     font-family: var(--font-body);
   }
-
-  /* Starter vs sub rows */
-  .starter-row td { }
 
   .sub-row td {
     background: rgba(255,255,255,0.01);
@@ -183,12 +177,70 @@
     font-size: 0.8rem;
   }
 
-  /* Season stats — slightly highlighted */
   .season-stat {
     color: var(--text);
     font-weight: 600;
     border-left: 1px solid rgba(255,255,255,0.05);
   }
+}
+
+/* ── Projected View & Game Info ── */
+.gd-projected-view {
+  padding: 24px 24px 0;
+}
+
+.gd-game-info {
+  padding: 24px;
+  margin-top: 12px;
+}
+
+.gd-proj-title {
+  font-family: var(--font-head);
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.gd-proj-rows, .gd-info-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gd-proj-row, .gd-info-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+}
+
+.p-label {
+  font-weight: 700;
+  color: var(--text3);
+  min-width: 100px;
+}
+
+.p-name {
+  color: var(--text2);
+}
+
+.tv-items {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.network-logo {
+  height: 20px;
+  width: auto;
+  max-width: 60px;
+  object-fit: contain;
+  display: block;
 }
 
 /* ── Plays feed ── */
@@ -203,8 +255,6 @@
   border-radius: var(--radius-sm);
   padding: 12px 14px;
   transition: border-color var(--transition);
-
-  /* Optimize long list rendering */
   content-visibility: auto;
   contain-intrinsic-size: 100px;
 
@@ -263,14 +313,6 @@
   &.pitch-other  { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); }
 }
 
-@media (max-width: 640px) {
-  .gd-header      { padding: 18px 14px 12px; }
-  .gd-main-tabs   { padding: 0 14px; }
-  .gd-score       { font-size: 2.5rem; }
-  .section-header { padding: 12px 14px 6px; }
-  .bs-table-wrap  { padding: 0 14px 4px; }
-  .plays-feed     { padding: 12px 14px 20px; }
-}
 /* ══ Live Strikezone ══════════════════════════════════════════ */
 
 .sz-section {
@@ -285,7 +327,6 @@
   margin: 20px 0 0;
 }
 
-/* ── Matchup bar ── */
 .sz-matchup {
   display: flex;
   align-items: center;
@@ -320,7 +361,6 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
-
   &.sz-player-info--right { text-align: right; }
 }
 
@@ -345,7 +385,6 @@
   font-family: var(--font-mono);
 }
 
-/* Count pips and Bases */
 .sz-count-block {
   display: flex;
   flex-direction: column;
@@ -397,7 +436,6 @@
   }
 }
 
-/* ── Bases diamond layout ── */
 .bases-diamond {
   position: relative;
   width: 32px;
@@ -426,7 +464,6 @@
   &.base--3rd { top: 10px; left: 0; }
 }
 
-/* ── Canvas ── */
 .sz-canvas-wrap {
   display: flex;
   flex-direction: column;
@@ -443,7 +480,6 @@
   border: 1px solid var(--border);
 }
 
-/* Pitch dot colours */
 .sz-dot {
   &.dot-ball   { fill: #3b82f6; stroke: #93c5fd; stroke-width: 1.5; }
   &.dot-strike { fill: var(--red); stroke: #fca5a5; stroke-width: 1.5; }
@@ -466,7 +502,6 @@
   50%      { opacity: 0.2; r: 17; }
 }
 
-/* Legend */
 .sz-legend {
   display: flex;
   gap: 16px;
@@ -486,13 +521,11 @@
   height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
-
   &.dot-ball   { background: #3b82f6; }
   &.dot-strike { background: var(--red); }
   &.dot-inplay { background: #22c55e; }
 }
 
-/* Last pitch banner */
 .sz-last-pitch {
   display: flex;
   align-items: center;
@@ -505,71 +538,37 @@
   flex-wrap: wrap;
 }
 
-.sz-lp-label {
-  font-size: 0.62rem;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: var(--text3);
-  font-weight: 600;
-}
-
-.sz-lp-type {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text);
-  flex: 1;
-}
-
-.sz-lp-speed {
-  font-family: var(--font-mono);
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.sz-lp-call {
-  font-size: 0.75rem;
-  color: var(--text2);
-}
+.sz-lp-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); font-weight: 600; }
+.sz-lp-type { font-size: 0.82rem; font-weight: 600; color: var(--text); flex: 1; }
+.sz-lp-speed { font-family: var(--font-mono); font-size: 0.88rem; font-weight: 700; color: var(--text); }
+.sz-lp-call { font-size: 0.75rem; color: var(--text2); }
 
 @media (max-width: 640px) {
-  .gd-modal {
-    max-width: 100%;
-  }
-
-  .gd-header      { padding: 16px 14px 10px; }
-  .gd-body        { }
-  .gd-main-tabs   { padding: 0 14px; }
-
-  /* Compact scoreboard */
-  .gd-score       { font-size: 2.4rem; }
-  .gd-team-logo   { width: 40px; height: 40px; }
-  .gd-team-name   { font-size: 0.72rem; }
-  .gd-record      { font-size: 0.65rem; }
-
-  /* Section headers and tables */
+  .gd-modal { max-width: 100%; }
+  .gd-header { padding: 16px 14px 10px; }
+  .gd-main-tabs { padding: 0 14px; }
+  .gd-score { font-size: 2.4rem; }
+  .gd-team-logo { width: 40px; height: 40px; }
   .section-header { padding: 10px 14px 5px; font-size: 0.76rem; }
-  .bs-table-wrap  { padding: 0 12px 4px; }
-
+  .bs-table-wrap { padding: 0 12px 4px; }
   .bs-table {
     th, td { padding: 7px 7px; font-size: 0.7rem; }
     thead th { font-size: 0.58rem; }
     .th-player, .player-name-cell { font-size: 0.76rem; }
     .lineup-num { font-size: 0.8rem; }
   }
-
-  /* Plays */
-  .plays-feed     { padding: 10px 12px 20px; }
-  .play-card      { padding: 10px 12px; }
+  .plays-feed { padding: 10px 12px 20px; }
+  .play-card { padding: 10px 12px; }
   .play-description { font-size: 0.78rem; }
-
-  /* Strikezone matchup */
-  .sz-section     { padding: 12px 12px 0; }
-  .sz-name        { font-size: 0.74rem; }
-  .sz-headshot    { width: 34px; height: 34px; }
-  .sz-matchup     { gap: 8px; }
-
-  /* Strikezone SVG scales via max-width */
-  .sz-svg         { max-width: 100%; height: auto; }
+  .sz-section { padding: 12px 12px 0; }
+  .sz-name { font-size: 0.74rem; }
+  .sz-headshot { width: 34px; height: 34px; }
+  .sz-matchup { gap: 8px; }
+  .sz-svg { max-width: 100%; height: auto; }
   .sz-canvas-wrap { padding: 0; }
+
+  .gd-projected-view { padding: 16px 16px 0; }
+  .gd-game-info { padding: 16px; }
+  .gd-proj-row, .gd-info-row { font-size: 0.88rem; flex-direction: column; align-items: flex-start; gap: 4px; }
+  .p-label { min-width: auto; }
 }
