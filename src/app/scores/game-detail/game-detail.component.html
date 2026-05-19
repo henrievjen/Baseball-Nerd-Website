@@ -150,14 +150,18 @@
                 <rect width="100%" height="100%" fill="transparent"/>
 
                 <!-- Home plate shape (at bottom, pitcher's view) -->
-                <!-- Pointing DOWN away from the strike zone, shifted up a bit -->
                 <polygon
-                        [attr.points]="(svgWidth/2 - 22) + ',' + (svgHeight - 40) + ' ' +
-                                 (svgWidth/2 + 22) + ',' + (svgHeight - 40) + ' ' +
-                                 (svgWidth/2 + 22) + ',' + (svgHeight - 32) + ' ' +
-                                 (svgWidth/2)      + ',' + (svgHeight - 24) + ' ' +
-                                 (svgWidth/2 - 22) + ',' + (svgHeight - 32)"
-                        fill="#e8e8e8" stroke="#999" stroke-width="1.5"/>
+                        [attr.points]="
+                          (svgWidth/2)      + ',' + (svgHeight - 40) + ' ' +
+                          (svgWidth/2 + 22) + ',' + (svgHeight - 32) + ' ' +
+                          (svgWidth/2 + 22) + ',' + (svgHeight - 24) + ' ' +
+                          (svgWidth/2 - 22) + ',' + (svgHeight - 24) + ' ' +
+                          (svgWidth/2 - 22) + ',' + (svgHeight - 32)
+                        "
+                        fill="#e8e8e8"
+                        stroke="#999"
+                        stroke-width="1.5"
+                />
 
                 <!-- Strike zone inner thirds (3×3 grid) -->
                 <g class="sz-thirds" *ngIf="cachedSzRect.w > 0">
