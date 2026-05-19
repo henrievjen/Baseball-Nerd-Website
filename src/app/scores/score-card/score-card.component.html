@@ -117,7 +117,7 @@
         </div>
       </div>
 
-      <div class="upcoming-info">
+      <div class="upcoming-info" *ngIf="hasLiveGames">
         <div class="info-row" *ngIf="venueName">
           <span class="p-label">Venue:</span>
           <span class="p-name">&nbsp;{{ venueName }}</span>

@@ -98,6 +98,7 @@
     <app-score-card
             *ngFor="let game of games; trackBy: trackByGamePk"
             [game]="game"
+            [hasLiveGames]="hasLiveGames"
             (gameSelected)="openGame($event)">
     </app-score-card>
   </div>

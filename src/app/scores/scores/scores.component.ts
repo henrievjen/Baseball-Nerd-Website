@@ -330,6 +330,10 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
 
   trackByGamePk(_index: number, game: any) { return game.gamePk; }
 
+  get hasLiveGames(): boolean {
+    return this.games.some(g => g.status?.abstractGameState === 'Live');
+  }
+
   openGame(game: any) {
     this.selectedGame = game;
     this.boxscore = null;

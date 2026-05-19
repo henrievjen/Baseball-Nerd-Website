@@ -9,6 +9,7 @@ import { TeamDataService } from '../../shared/team-data.service';
 })
 export class ScoreCardComponent {
   @Input() game: any;
+  @Input() hasLiveGames = false;
   @Output() gameSelected = new EventEmitter<any>();
 
   constructor(public teams: TeamDataService) {}
