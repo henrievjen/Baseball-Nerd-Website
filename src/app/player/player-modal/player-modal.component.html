@@ -53,9 +53,9 @@
             <div class="bio-label">Born</div>
             <div class="bio-val">{{ birthDateFormatted }}</div>
           </div>
-          <div class="bio-item" *ngIf="player.birthCity">
+          <div class="bio-item bio-item--hometown" *ngIf="player.birthCity">
             <div class="bio-label">Hometown</div>
-            <div class="bio-val">{{ player.birthCity }}<span *ngIf="player.birthCountry && player.birthCountry !== 'USA'">, {{ player.birthCountry }}</span></div>
+            <div class="bio-val">{{ hometown }}</div>
           </div>
           <div class="bio-item" *ngIf="player.mlbDebutDate">
             <div class="bio-label">Debut</div>
@@ -237,8 +237,15 @@
               </tr>
               </thead>
               <tbody>
-              <tr *ngFor="let log of gameLogs; trackBy: trackByLog" [class.gl-win]="log.isWin" [class.gl-loss]="log.isLoss">
-                <td class="gl-date">{{ formatGameDate(log.date) }}</td>
+              <ng-container *ngFor="let log of gameLogs; trackBy: trackByLog">
+              <tr class="gl-row gl-row--clickable"
+                  [class.gl-win]="log.isWin" [class.gl-loss]="log.isLoss"
+                  [class.gl-row--expanded]="expandedGamePk === log.game?.gamePk"
+                  (click)="toggleGameDetail(log)">
+                <td class="gl-date">
+                  <span class="gl-expand-caret">{{ expandedGamePk === log.game?.gamePk ? '▾' : '▸' }}</span>
+                  {{ formatGameDate(log.date) }}
+                </td>
                 <td class="gl-opp">
                   <span class="gl-home-away">{{ log.isHome ? 'vs' : '@' }}</span>
                   {{ log.opponent?.abbreviation || log.opponent?.name || '—' }}
@@ -262,6 +269,12 @@
                 <td class="gl-rate">{{ log.stat?.obp ?? '—' }}</td>
                 <td class="gl-rate">{{ log.stat?.slg ?? '—' }}</td>
               </tr>
+              <tr *ngIf="expandedGamePk === log.game?.gamePk" class="gl-detail-row">
+                <td [attr.colspan]="16">
+                  <ng-container *ngTemplateOutlet="gameDetailTpl"></ng-container>
+                </td>
+              </tr>
+              </ng-container>
               </tbody>
             </table>
 
@@ -278,8 +291,15 @@
               </tr>
               </thead>
               <tbody>
-              <tr *ngFor="let log of gameLogs; trackBy: trackByLog" [class.gl-win]="log.isWin" [class.gl-loss]="log.isLoss">
-                <td class="gl-date">{{ formatGameDate(log.date) }}</td>
+              <ng-container *ngFor="let log of gameLogs; trackBy: trackByLog">
+              <tr class="gl-row gl-row--clickable"
+                  [class.gl-win]="log.isWin" [class.gl-loss]="log.isLoss"
+                  [class.gl-row--expanded]="expandedGamePk === log.game?.gamePk"
+                  (click)="toggleGameDetail(log)">
+                <td class="gl-date">
+                  <span class="gl-expand-caret">{{ expandedGamePk === log.game?.gamePk ? '▾' : '▸' }}</span>
+                  {{ formatGameDate(log.date) }}
+                </td>
                 <td class="gl-opp">
                   <span class="gl-home-away">{{ log.isHome ? 'vs' : '@' }}</span>
                   {{ log.opponent?.abbreviation || log.opponent?.name || '—' }}
@@ -301,11 +321,49 @@
                 <td class="gl-rate">{{ log.stat?.era ?? '—' }}</td>
                 <td class="gl-rate">{{ log.stat?.whip ?? '—' }}</td>
               </tr>
+              <tr *ngIf="expandedGamePk === log.game?.gamePk" class="gl-detail-row">
+                <td [attr.colspan]="14">
+                  <ng-container *ngTemplateOutlet="gameDetailTpl"></ng-container>
+                </td>
+              </tr>
+              </ng-container>
               </tbody>
             </table>
 
           </div>
         </ng-container>
+
+        <!-- Shared expanded game detail template -->
+        <ng-template #gameDetailTpl>
+          <div class="gl-detail-wrap">
+            <div *ngIf="loadingExpandedPlays" class="gl-detail-loading">
+              <div class="spinner spinner--sm"></div><span>Loading plays…</span>
+            </div>
+            <div *ngIf="!loadingExpandedPlays && expandedPlays.length === 0" class="gl-detail-empty">
+              No {{ activeGroup === 'pitching' ? 'batters faced' : 'plate appearances' }} found for this game.
+            </div>
+            <div *ngIf="!loadingExpandedPlays && expandedPlays.length > 0" class="gl-pa-list">
+              <div class="gl-pa-card" *ngFor="let pa of expandedPlays; trackBy: trackByPlay">
+                <div class="gl-pa-header">
+                  <span class="gl-pa-inning">{{ pa.inningLabel }}</span>
+                  <span class="gl-pa-vs">{{ activeGroup === 'pitching' ? 'vs' : 'off' }} {{ pa.opponentName || '—' }}</span>
+                  <span class="gl-pa-result" [ngClass]="'badge-' + pa.resultType">{{ pa.result || '—' }}</span>
+                </div>
+                <div class="gl-pa-desc" *ngIf="pa.description">{{ pa.description }}</div>
+                <div class="gl-pitches" *ngIf="pa.pitches.length">
+                  <div class="gl-pitch" *ngFor="let pt of pa.pitches; trackBy: trackByPitch"
+                       [ngClass]="pt.callClass"
+                       [title]="(pt.pitchType || '') + ' · ' + pt.callLabel + (pt.speed ? ' · ' + formatPitchSpeed(pt.speed) : '')">
+                    <span class="gl-pitch-num">{{ pt.num }}</span>
+                    <span class="gl-pitch-type" *ngIf="pt.pitchType">{{ pt.pitchType }}</span>
+                    <span class="gl-pitch-speed" *ngIf="pt.speed">{{ formatPitchSpeed(pt.speed) }}</span>
+                    <span class="gl-pitch-call">{{ pt.callLabel }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-template>
 
       </div>
     </ng-container>

@@ -1,6 +1,7 @@
 .player-modal-box {
   max-width: 820px;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* ── Hero ── */
@@ -40,7 +41,11 @@
   border-radius: 50%;
   border: 2px solid var(--bg2);
   object-fit: contain;
-  background: var(--surface2);
+  /* White background so dark team logos (e.g. SD Padres navy/yellow) remain
+     visible against the dark surface of the modal in dark mode. */
+  background: #fff;
+  padding: 2px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
 
 .player-number {
@@ -95,6 +100,8 @@
   min-width: 100px;
   padding: 10px 16px;
   border-right: 1px solid var(--border);
+  overflow: hidden;          /* prevent any child from overflowing into the next column */
+  min-width: 0;              /* allow flex item to actually shrink so contents don't push out */
   &:last-child { border-right: none; }
 }
 
@@ -110,7 +117,18 @@
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--text);
-  white-space: nowrap;
+  /* Allow wrapping so long values like "October 26, 2000" or
+     "Santo Domingo, Dominican Republic" don't overflow their column. */
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+/* Hometown can be long ("Santo Domingo, Dominican Republic") — give it a bit more room. */
+.bio-item--hometown {
+  flex: 1.6 1 160px;
+  min-width: 140px;
 }
 
 /* ── Stats body ── */
@@ -345,6 +363,7 @@
     white-space: nowrap;
   }
 
+  tbody td.gl-opp,
   .gl-opp {
     text-align: left;
     font-family: var(--font-body);
@@ -352,6 +371,7 @@
     color: var(--text);
     white-space: nowrap;
     font-size: 0.76rem;
+    padding-left: 10px;
   }
 
   .gl-home-away {
@@ -379,6 +399,133 @@
     border-left: 1px solid rgba(255,255,255,0.05);
     color: var(--text);
     font-weight: 600;
+  }
+
+  /* Expandable rows */
+  tbody tr.gl-row--clickable {
+    cursor: pointer;
+    user-select: none;
+  }
+  tbody tr.gl-row--expanded td {
+    background: rgba(255,255,255,0.04);
+  }
+  .gl-expand-caret {
+    display: inline-block;
+    width: 12px;
+    color: var(--text3);
+    font-size: 0.7rem;
+    margin-right: 4px;
+  }
+  tbody tr.gl-detail-row td {
+    padding: 0;
+    background: rgba(0,0,0,0.25);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+}
+
+/* ── Expanded game detail (plate appearances / batters faced) ── */
+.gl-detail-wrap {
+  padding: 12px 14px 16px;
+  font-family: var(--font-body);
+}
+.gl-detail-loading, .gl-detail-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text3);
+  font-size: 0.78rem;
+  padding: 8px 4px;
+}
+.spinner.spinner--sm {
+  width: 14px; height: 14px; border-width: 2px;
+}
+.gl-pa-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.gl-pa-card {
+  background: var(--bg2, rgba(255,255,255,0.03));
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.gl-pa-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.78rem;
+}
+.gl-pa-inning {
+  font-family: var(--font-mono);
+  color: var(--text3);
+  font-size: 0.72rem;
+  letter-spacing: 0.5px;
+}
+.gl-pa-vs {
+  color: var(--text2);
+  font-weight: 500;
+}
+.gl-pa-result {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+  &.badge-homerun  { background: rgba(168,85,247,0.22); color: #c4b5fd; }
+  &.badge-hit      { background: rgba(52,211,153,0.18); color: #6ee7b7; }
+  &.badge-walk     { background: rgba(96,165,250,0.18); color: #93c5fd; }
+  &.badge-strikeout{ background: rgba(248,113,113,0.18); color: #fca5a5; }
+  &.badge-out      { background: rgba(255,255,255,0.06); color: var(--text2); }
+}
+.gl-pa-desc {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: var(--text2);
+  line-height: 1.4;
+}
+.gl-pitches {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.gl-pitch {
+  display: grid;
+  grid-template-columns: 24px 1fr 70px 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 4px 8px;
+  background: rgba(255,255,255,0.025);
+  border-left: 3px solid transparent;
+  border-radius: 4px;
+  font-size: 0.74rem;
+  font-family: var(--font-mono);
+  color: var(--text2);
+
+  &.pitch-ball   { border-left-color: #60a5fa; }
+  &.pitch-strike { border-left-color: #f87171; }
+  &.pitch-inplay { border-left-color: #facc15; }
+  &.pitch-other  { border-left-color: rgba(255,255,255,0.2); }
+}
+.gl-pitch-num {
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+}
+.gl-pitch-type { color: var(--text); }
+.gl-pitch-speed { color: var(--text3); }
+.gl-pitch-call { color: var(--text2); text-align: right; }
+
+@media (max-width: 640px) {
+  .gl-pitch {
+    grid-template-columns: 22px 1fr 1fr;
+    .gl-pitch-call { display: none; }
   }
 }
 

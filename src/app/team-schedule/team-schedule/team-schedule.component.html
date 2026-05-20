@@ -1,0 +1,110 @@
+<div class="ts-page page-enter">
+  <header class="page-header">
+    <div class="ts-header-top">
+      <div class="ts-team-id">
+        <img *ngIf="teamId" class="ts-team-logo" [src]="teams.logo(teamId)" [alt]="teamName" (error)="logoError($event)"/>
+        <div class="ts-team-text">
+          <h1 class="page-title">{{ teamName || 'Team Schedule' }}</h1>
+          <p class="ts-sub">
+            {{ season }} Schedule
+            <span *ngIf="recordSummary"> · <strong>{{ recordSummary }}</strong></span>
+          </p>
+        </div>
+      </div>
+
+      <div class="filters">
+        <div class="season-picker">
+          <label for="ts-team-select">Team:</label>
+          <select id="ts-team-select" class="season-select" (change)="onTeamChange($event)">
+            <option *ngFor="let t of teamList; trackBy: trackByTeam" [value]="t.id" [selected]="t.id === teamId">{{ t.name }}</option>
+          </select>
+        </div>
+        <div class="season-picker">
+          <label for="ts-season-select">Season:</label>
+          <select id="ts-season-select" class="season-select" (change)="onSeasonChange($event)">
+            <option *ngFor="let y of years; trackBy: trackByYear" [value]="y" [selected]="y === season">{{ y }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="ts-tabs">
+      <button class="ts-tab-btn" [class.active]="filter === 'all'"       (click)="setFilter('all')">All</button>
+      <button class="ts-tab-btn" [class.active]="filter === 'upcoming'"  (click)="setFilter('upcoming')">Upcoming</button>
+      <button class="ts-tab-btn" [class.active]="filter === 'completed'" (click)="setFilter('completed')">Completed</button>
+    </div>
+  </header>
+
+  <div *ngIf="loading" class="spinner-wrap">
+    <div class="spinner"></div>
+    <span>Loading schedule…</span>
+  </div>
+
+  <div *ngIf="!loading && filteredGames.length === 0" class="empty-state">
+    <p>No games found for the selected filter.</p>
+  </div>
+
+  <div *ngIf="!loading && filteredGames.length > 0" class="ts-table-wrap">
+    <table class="ts-table">
+      <thead>
+        <tr>
+          <th class="ts-date-col">Date</th>
+          <th class="ts-opp-col">Opponent</th>
+          <th class="ts-result-col">Result</th>
+          <th class="ts-record-col">Record</th>
+          <th class="ts-venue-col">Venue</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let g of filteredGames; trackBy: trackByGame"
+            class="ts-row ts-row--clickable"
+            [class.ts-row--win]="g.result === 'W'"
+            [class.ts-row--loss]="g.result === 'L'"
+            [class.ts-row--ppd]="g.statusLabel === 'PPD' || g.statusLabel === 'CANC'"
+            (click)="openGame(g)">
+
+          <td class="ts-date-col">
+            <div class="ts-day">{{ g.dayLabel }}</div>
+            <div class="ts-date">{{ g.dateLabel }}</div>
+            <span class="ts-gtype" *ngIf="g.gameTypeLabel">{{ g.gameTypeLabel }}</span>
+          </td>
+
+          <td class="ts-opp-col">
+            <div class="ts-opp" (click)="$event.stopPropagation(); navigateToOpponent(g.opponentId)">
+              <span class="ts-home-away">{{ g.isHome ? 'vs' : '@' }}</span>
+              <img class="ts-opp-logo" [src]="teams.logo(g.opponentId)" [alt]="g.opponentName" (error)="logoError($event)"/>
+              <span class="ts-opp-name">{{ g.opponentName }}</span>
+            </div>
+            <div class="ts-pp" *ngIf="g.status !== 'Final' && (g.probablePitcherTeam || g.probablePitcherOpp)">
+              <span>{{ g.probablePitcherTeam || 'TBD' }}</span>
+              <span class="ts-pp-vs"> vs </span>
+              <span>{{ g.probablePitcherOpp || 'TBD' }}</span>
+            </div>
+          </td>
+
+          <td class="ts-result-col">
+            <ng-container *ngIf="g.status === 'Final'; else upcoming">
+              <span class="ts-wl" [class.ts-wl--win]="g.result === 'W'" [class.ts-wl--loss]="g.result === 'L'">
+                {{ g.result || '—' }}
+              </span>
+              <span class="ts-score">{{ g.teamScore }}-{{ g.oppScore }}</span>
+            </ng-container>
+            <ng-template #upcoming>
+              <span class="ts-time">{{ g.statusLabel }}</span>
+            </ng-template>
+          </td>
+
+          <td class="ts-record-col">
+            <span *ngIf="g.recordWins !== undefined && g.recordLosses !== undefined">
+              {{ g.recordWins }}-{{ g.recordLosses }}
+            </span>
+            <span *ngIf="g.recordWins === undefined">—</span>
+          </td>
+
+          <td class="ts-venue-col">{{ g.venue || '—' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+

@@ -5,11 +5,20 @@
         <h1 class="page-title">LEAGUE <span class="accent">LEADERS</span></h1>
         <p class="season-sub">{{ season }} Season</p>
       </div>
-      <div class="season-picker">
-        <label for="season-select">Season:</label>
-        <select id="season-select" class="season-select" (change)="onSeasonChange($event)">
-          <option *ngFor="let year of years" [value]="year" [selected]="year === season">{{ year }}</option>
-        </select>
+      <div class="filters">
+        <div class="season-picker">
+          <label for="team-select">Team:</label>
+          <select id="team-select" class="season-select" (change)="onTeamChange($event)">
+            <option [value]="0" [selected]="teamId === 0">All MLB</option>
+            <option *ngFor="let t of teamList" [value]="t.id" [selected]="t.id === teamId">{{ t.name }}</option>
+          </select>
+        </div>
+        <div class="season-picker">
+          <label for="season-select">Season:</label>
+          <select id="season-select" class="season-select" (change)="onSeasonChange($event)">
+            <option *ngFor="let year of years" [value]="year" [selected]="year === season">{{ year }}</option>
+          </select>
+        </div>
       </div>
     </div>
   </header>

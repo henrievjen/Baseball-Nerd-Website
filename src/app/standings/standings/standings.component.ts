@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { MlbApiService } from '../../shared/mlb-api.service';
 import { TeamDataService } from '../../shared/team-data.service';
 
@@ -32,10 +33,36 @@ export class StandingsComponent implements OnInit {
   nlWildCard: TeamRow[] = [];
 
   season = new Date().getFullYear();
+  /** Years available in the season picker (descending). Standings begin in 1901 (modern AL/NL era). */
+  readonly years: number[] = (() => {
+    const now = new Date().getFullYear();
+    const out: number[] = [];
+    for (let y = now; y >= 1901; y--) out.push(y);
+    return out;
+  })();
 
-  constructor(private api: MlbApiService, public teams: TeamDataService) {}
+  constructor(private api: MlbApiService, public teams: TeamDataService, private router: Router) {}
 
   ngOnInit() { this.loadStandings(); }
+
+  goToTeam(teamId: number) {
+    if (teamId) this.router.navigate(['/team-schedule', teamId]);
+  }
+
+  selectSeason(year: number) {
+    if (this.season === year) return;
+    this.season = year;
+    // Reset previous data so the old standings don't flash while loading.
+    this.alDivisions = [];
+    this.nlDivisions = [];
+    this.alDivisionLeaders = [];
+    this.nlDivisionLeaders = [];
+    this.alWildCard = [];
+    this.nlWildCard = [];
+    this.loadStandings();
+  }
+
+  trackByYear(_: number, y: number) { return y; }
 
   loadStandings() {
     this.loading = true;

@@ -6,8 +6,8 @@
     <div class="gd-header">
       <div class="gd-scoreboard">
         <div class="gd-team">
-          <img class="gd-team-logo" [src]="teams.logo(awayId)" [alt]="away?.team?.name" (error)="logoError($event)"/>
-          <div class="gd-team-name">{{ away?.team?.name }}</div>
+          <img class="gd-team-logo gd-team-logo--link" [src]="teams.logo(awayId)" [alt]="away?.team?.name" (error)="logoError($event)" (click)="goToTeam(awayId)"/>
+          <div class="gd-team-name gd-team-name--link" (click)="goToTeam(awayId)">{{ away?.team?.name }}</div>
           <div class="gd-score" [style.color]="teams.color(awayId)">{{ state !== 'upcoming' ? (away?.score ?? 0) : '' }}</div>
           <div class="gd-record" *ngIf="away?.leagueRecord">{{ away.leagueRecord.wins }}-{{ away.leagueRecord.losses }}</div>
         </div>
@@ -18,8 +18,8 @@
           <div class="gd-venue">{{ game?.venue?.name }}</div>
         </div>
         <div class="gd-team">
-          <img class="gd-team-logo" [src]="teams.logo(homeId)" [alt]="home?.team?.name" (error)="logoError($event)"/>
-          <div class="gd-team-name">{{ home?.team?.name }}</div>
+          <img class="gd-team-logo gd-team-logo--link" [src]="teams.logo(homeId)" [alt]="home?.team?.name" (error)="logoError($event)" (click)="goToTeam(homeId)"/>
+          <div class="gd-team-name gd-team-name--link" (click)="goToTeam(homeId)">{{ home?.team?.name }}</div>
           <div class="gd-score" [style.color]="teams.color(homeId)">{{ state !== 'upcoming' ? (home?.score ?? 0) : '' }}</div>
           <div class="gd-record" *ngIf="home?.leagueRecord">{{ home.leagueRecord.wins }}-{{ home.leagueRecord.losses }}</div>
         </div>
@@ -63,7 +63,7 @@
     <div class="gd-body">
 
       <!-- Main tabs -->
-      <div class="gd-main-tabs" *ngIf="playsAvailable">
+      <div class="gd-main-tabs">
         <button class="main-tab-btn" [class.active]="mainTab === 'lineups'" (click)="mainTab = 'lineups'">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
@@ -73,7 +73,7 @@
           </svg>
           {{ lineupsAvailable ? 'Lineups' : 'Matchup' }}
         </button>
-        <button class="main-tab-btn" [class.active]="mainTab === 'plays'" (click)="mainTab = 'plays'">
+        <button *ngIf="playsAvailable" class="main-tab-btn" [class.active]="mainTab === 'plays'" (click)="mainTab = 'plays'">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <polygon points="5 3 19 12 5 21 5 3"/>
           </svg>
@@ -128,12 +128,12 @@
                     <rect width="100%" height="100%" fill="transparent"/>
                     <polygon [attr.points]="(svgWidth/2)+','+(svgHeight-40)+' '+(svgWidth/2+22)+','+(svgHeight-32)+' '+(svgWidth/2+22)+','+(svgHeight-24)+' '+(svgWidth/2-22)+','+(svgHeight-24)+' '+(svgWidth/2-22)+','+(svgHeight-32)" fill="#e8e8e8" stroke="#999" stroke-width="1.5"/>
                     <g class="sz-thirds" *ngIf="cachedSzRect.w > 0">
-                      <line [attr.x1]="cachedSzRect.x + cachedSzRect.w / 3" [attr.y1]="cachedSzRect.y" [attr.x2]="cachedSzRect.x + cachedSzRect.w / 3" [attr.y2]="cachedSzRect.y + cachedSzRect.h" stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="3 3"/>
-                      <line [attr.x1]="cachedSzRect.x + cachedSzRect.w * 2/3" [attr.y1]="cachedSzRect.y" [attr.x2]="cachedSzRect.x + cachedSzRect.w * 2/3" [attr.y2]="cachedSzRect.y + cachedSzRect.h" stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="3 3"/>
-                      <line [attr.x1]="cachedSzRect.x" [attr.y1]="cachedSzRect.y + cachedSzRect.h / 3" [attr.x2]="cachedSzRect.x + cachedSzRect.w" [attr.y2]="cachedSzRect.y + cachedSzRect.h / 3" stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="3 3"/>
-                      <line [attr.x1]="cachedSzRect.x" [attr.y1]="cachedSzRect.y + cachedSzRect.h * 2/3" [attr.x2]="cachedSzRect.x + cachedSzRect.w" [attr.y2]="cachedSzRect.y + cachedSzRect.h * 2/3" stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="3 3"/>
+                      <line class="sz-grid" [attr.x1]="cachedSzRect.x + cachedSzRect.w / 3" [attr.y1]="cachedSzRect.y" [attr.x2]="cachedSzRect.x + cachedSzRect.w / 3" [attr.y2]="cachedSzRect.y + cachedSzRect.h" stroke-width="1" stroke-dasharray="3 3"/>
+                      <line class="sz-grid" [attr.x1]="cachedSzRect.x + cachedSzRect.w * 2/3" [attr.y1]="cachedSzRect.y" [attr.x2]="cachedSzRect.x + cachedSzRect.w * 2/3" [attr.y2]="cachedSzRect.y + cachedSzRect.h" stroke-width="1" stroke-dasharray="3 3"/>
+                      <line class="sz-grid" [attr.x1]="cachedSzRect.x" [attr.y1]="cachedSzRect.y + cachedSzRect.h / 3" [attr.x2]="cachedSzRect.x + cachedSzRect.w" [attr.y2]="cachedSzRect.y + cachedSzRect.h / 3" stroke-width="1" stroke-dasharray="3 3"/>
+                      <line class="sz-grid" [attr.x1]="cachedSzRect.x" [attr.y1]="cachedSzRect.y + cachedSzRect.h * 2/3" [attr.x2]="cachedSzRect.x + cachedSzRect.w" [attr.y2]="cachedSzRect.y + cachedSzRect.h * 2/3" stroke-width="1" stroke-dasharray="3 3"/>
                     </g>
-                    <rect [attr.x]="cachedSzRect.x" [attr.y]="cachedSzRect.y" [attr.width]="cachedSzRect.w" [attr.height]="cachedSzRect.h" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.55)" stroke-width="2" rx="2"/>
+                    <rect class="sz-box" [attr.x]="cachedSzRect.x" [attr.y]="cachedSzRect.y" [attr.width]="cachedSzRect.w" [attr.height]="cachedSzRect.h" stroke-width="2" rx="2"/>
                     <g *ngFor="let p of cachedZonePitches; trackBy: trackByZonePitch; let idx = index">
                       <circle *ngIf="!p.isCurrent" [attr.cx]="p.cx" [attr.cy]="p.cy" r="9" [attr.class]="'sz-dot ' + p.dotClass" [attr.opacity]="0.55 + (idx / cachedZonePitches.length) * 0.3"></circle>
                       <text *ngIf="!p.isCurrent" [attr.x]="p.cx" [attr.y]="p.cy + 4" text-anchor="middle" font-size="8" fill="white" font-weight="600" font-family="monospace">{{ p.num }}</text>
@@ -141,7 +141,7 @@
                       <circle *ngIf="p.isCurrent" [attr.cx]="p.cx" [attr.cy]="p.cy" r="9" [attr.class]="'sz-dot ' + p.dotClass"></circle>
                       <text *ngIf="p.isCurrent" [attr.x]="p.cx" [attr.y]="p.cy + 4" text-anchor="middle" font-size="8" fill="white" font-weight="700" font-family="monospace">{{ p.num }}</text>
                     </g>
-                    <text x="50%" y="16" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.3)" font-family="'DM Sans', sans-serif" letter-spacing="1">PITCHER'S VIEW</text>
+                    <text class="sz-caption" x="50%" y="16" text-anchor="middle" font-size="9" font-family="'DM Sans', sans-serif" letter-spacing="1">PITCHER'S VIEW</text>
                   </svg>
                   <div class="sz-legend">
                     <span class="sz-leg-item"><span class="sz-leg-dot dot-ball"></span>Ball</span>
@@ -249,7 +249,6 @@
 
                   <!-- Away Pitcher -->
                   <div class="gd-pitcher-card" [class.gd-pitcher-card--clickable]="away?.probablePitcher?.id" (click)="away?.probablePitcher?.id && openPlayer(away.probablePitcher)">
-                    <span class="gd-pitcher-team-abbr" [style.color]="teams.color(awayId)">{{ away?.team?.abbreviation || teams.abbr(awayId) }}</span>
                     <img class="gd-pitcher-photo" [src]="teams.photo(away?.probablePitcher?.id)" alt="" (error)="logoError($event)" />
                     <div class="gd-pitcher-name">{{ away?.probablePitcher?.fullName || 'TBD' }}</div>
                     <ng-container *ngIf="away?.probablePitcher; else tbdStats">
@@ -278,7 +277,6 @@
 
                   <!-- Home Pitcher -->
                   <div class="gd-pitcher-card" [class.gd-pitcher-card--clickable]="home?.probablePitcher?.id" (click)="home?.probablePitcher?.id && openPlayer(home.probablePitcher)">
-                    <span class="gd-pitcher-team-abbr" [style.color]="teams.color(homeId)">{{ home?.team?.abbreviation || teams.abbr(homeId) }}</span>
                     <img class="gd-pitcher-photo" [src]="teams.photo(home?.probablePitcher?.id)" alt="" (error)="logoError($event)" />
                     <div class="gd-pitcher-name">{{ home?.probablePitcher?.fullName || 'TBD' }}</div>
                     <ng-container *ngIf="home?.probablePitcher; else tbdStats">
@@ -316,6 +314,24 @@
                 <div class="gd-info-row" *ngIf="venueName">
                   <span class="p-label">Venue:</span>
                   <span class="p-name">{{ venueName }}</span>
+                </div>
+
+                <!-- Final-game extras -->
+                <div class="gd-info-row" *ngIf="isFinal && firstPitchLocal">
+                  <span class="p-label">First Pitch:</span>
+                  <span class="p-name">{{ firstPitchLocal }}</span>
+                </div>
+                <div class="gd-info-row" *ngIf="isFinal && gameDuration">
+                  <span class="p-label">Game Time:</span>
+                  <span class="p-name">{{ gameDuration }}</span>
+                </div>
+                <div class="gd-info-row" *ngIf="isFinal && attendance">
+                  <span class="p-label">Attendance:</span>
+                  <span class="p-name">{{ attendance }}</span>
+                </div>
+                <div class="gd-info-row" *ngIf="isFinal && weather">
+                  <span class="p-label">Weather:</span>
+                  <span class="p-name">{{ weather }}</span>
                 </div>
 
                 <ng-container *ngIf="isSameTv; else differentTv">
@@ -359,14 +375,32 @@
       <!-- ══ PLAYS TAB ══ -->
       <ng-container *ngIf="mainTab === 'plays'">
         <div *ngIf="loadingPlays" class="spinner-wrap"><div class="spinner"></div><span>Loading plays…</span></div>
+
+        <div *ngIf="!loadingPlays && cachedParsedPlays.length > 0" class="plays-filter-bar">
+          <button class="plays-filter-btn" [class.active]="playsFilter === 'all'" (click)="setPlaysFilter('all')">
+            All Plays <span class="plays-filter-count">{{ cachedParsedPlays.length }}</span>
+          </button>
+          <button class="plays-filter-btn" [class.active]="playsFilter === 'scoring'" (click)="setPlaysFilter('scoring')">
+            Scoring Plays <span class="plays-filter-count">{{ scoringPlaysCount }}</span>
+          </button>
+        </div>
+
         <div *ngIf="!loadingPlays && cachedParsedPlays.length === 0" class="empty-state"><p>No play data available yet</p></div>
-        <div *ngIf="!loadingPlays && cachedParsedPlays.length > 0" class="plays-feed">
-          <div *ngFor="let play of cachedParsedPlays; trackBy: trackByPlay; let i = index" class="play-card" [class.play-card--first]="i === 0">
+        <div *ngIf="!loadingPlays && cachedParsedPlays.length > 0 && filteredPlays.length === 0" class="empty-state"><p>No scoring plays yet</p></div>
+        <div *ngIf="!loadingPlays && filteredPlays.length > 0" class="plays-feed">
+          <div *ngFor="let play of filteredPlays; trackBy: trackByPlay; let i = index"
+               class="play-card play-card--clickable"
+               [class.play-card--first]="i === 0"
+               [class.play-card--expanded]="expandedPlayIdx === play.atBatIndex"
+               (click)="togglePlay(play)">
             <div class="play-header">
               <span class="play-inning">{{ play.inningLabel }}</span>
               <span class="play-result-badge" [ngClass]="'badge-' + play.resultType">{{ play.result }}</span>
               <span class="play-score" *ngIf="play.awayScore !== undefined">
                 {{ away?.team?.abbreviation }} {{ play.awayScore }} – {{ play.homeScore }} {{ home?.team?.abbreviation }}
+              </span>
+              <span class="play-caret" *ngIf="play.pitches.length > 0">
+                {{ expandedPlayIdx === play.atBatIndex ? '▾' : '▸' }}
               </span>
             </div>
             <div class="play-description">{{ play.description }}</div>
@@ -376,9 +410,25 @@
                     [title]="pitch.callLabel + (pitch.speed ? ' · ' + pitch.speed + ' mph' : '')">
               </span>
             </div>
+
+            <!-- Per-pitch breakdown (expanded) -->
+            <div class="play-pitch-list"
+                 *ngIf="expandedPlayIdx === play.atBatIndex && play.pitches.length > 0"
+                 (click)="$event.stopPropagation()">
+              <div class="play-pitch-row" *ngFor="let pitch of play.pitches; trackBy: trackByPitch" [ngClass]="pitch.callClass">
+                <span class="pp-num">#{{ pitch.num }}</span>
+                <span class="pp-type">{{ pitch.pitchType || '—' }}</span>
+                <span class="pp-speed">{{ pitch.speed ? (pitch.speed | number:'1.1-1') + ' mph' : '' }}</span>
+                <span class="pp-result">{{ pitch.result || pitch.callLabel }}</span>
+                <span class="pp-count" *ngIf="pitch.balls !== undefined && pitch.strikes !== undefined">
+                  {{ pitch.balls }}-{{ pitch.strikes }}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </ng-container>
+
 
     </div>
   </div>

@@ -23,4 +23,28 @@ export class TeamDataService {
   abbr(id: number): string    { return this.abbrs[id]  ?? 'MLB'; }
   logo(id: number): string    { return `https://www.mlbstatic.com/team-logos/${id}.svg`; }
   photo(id: number): string   { return `https://midfield.mlbstatic.com/v1/people/${id}/spots/120`; }
+
+  /** Full team-name map (id → display name) */
+  private names: Record<number, string> = {
+    108:'Los Angeles Angels',     109:'Arizona Diamondbacks',  110:'Baltimore Orioles',
+    111:'Boston Red Sox',         112:'Chicago Cubs',          113:'Cincinnati Reds',
+    114:'Cleveland Guardians',    115:'Colorado Rockies',      116:'Detroit Tigers',
+    117:'Houston Astros',         118:'Kansas City Royals',    119:'Los Angeles Dodgers',
+    120:'Washington Nationals',   121:'New York Mets',         133:'Athletics',
+    134:'Pittsburgh Pirates',     135:'San Diego Padres',      136:'Seattle Mariners',
+    137:'San Francisco Giants',   138:'St. Louis Cardinals',   139:'Tampa Bay Rays',
+    140:'Texas Rangers',          141:'Toronto Blue Jays',     142:'Minnesota Twins',
+    143:'Philadelphia Phillies',  144:'Atlanta Braves',        145:'Chicago White Sox',
+    146:'Miami Marlins',          147:'New York Yankees',      158:'Milwaukee Brewers'
+  };
+
+  name(id: number): string    { return this.names[id] ?? ''; }
+
+  /** All MLB teams sorted alphabetically by full name (for filter dropdowns) */
+  allTeams(): Array<{ id: number; name: string; abbr: string }> {
+    return Object.keys(this.names)
+      .map(k => Number(k))
+      .map(id => ({ id, name: this.names[id], abbr: this.abbrs[id] ?? '' }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
 }

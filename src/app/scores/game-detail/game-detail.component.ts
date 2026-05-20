@@ -1,7 +1,9 @@
-import { Component, Input, Output, EventEmitter, HostListener, OnChanges, SimpleChanges, ChangeDetectionStrategy, OnInit, OnDestroy, Renderer2, Inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, OnChanges, SimpleChanges, ChangeDetectionStrategy, OnInit, OnDestroy, Renderer2, Inject, ChangeDetectorRef } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
+import { Router } from '@angular/router';
 import { TeamDataService } from '../../shared/team-data.service';
 import { PlayerService } from '../../shared/player.service';
+import { MlbApiService } from '../../shared/mlb-api.service';
 
 export interface LineupSlot {
   lineupNum: number;
@@ -15,11 +17,15 @@ export interface PlayEvent {
   inningLabel: string;
   description: string;
   result: string;
-  resultType: 'out' | 'hit' | 'run' | 'walk' | 'strikeout' | 'homerun' | 'other';
+  resultType: 'out' | 'hit' | 'run' | 'walk' | 'strikeout' | 'homerun' | 'other' | 'inprogress';
   pitches: PitchEvent[];
   awayScore?: number;
   homeScore?: number;
   atBatIndex?: number;
+  inProgress?: boolean;
+  batterName?: string;
+  pitcherName?: string;
+  isScoringPlay?: boolean;
 }
 
 export interface PitchEvent {
@@ -32,6 +38,13 @@ export interface PitchEvent {
   isInPlay: boolean;
   callClass: string;
   callLabel: string;
+  /** Pitch type description, e.g. "4-Seam Fastball" */
+  pitchType?: string;
+  /** Result of this specific pitch e.g. "Ball", "Called Strike", "In play, run(s)" */
+  result?: string;
+  /** Count after this pitch */
+  balls?: number;
+  strikes?: number;
 }
 
 /** A pitch plotted on the SVG strikezone */
@@ -46,6 +59,7 @@ export interface ZonePitch {
   isCurrent: boolean;   // most recent pitch of the at-bat
   dotClass: string;
 }
+
 
 @Component({
   selector: 'app-game-detail',
@@ -65,6 +79,36 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
 
   mainTab: 'lineups' | 'plays' = 'lineups';
 
+  /** Plays sub-filter: show all plays vs. only scoring plays */
+  playsFilter: 'all' | 'scoring' = 'all';
+
+  setPlaysFilter(f: 'all' | 'scoring') {
+    if (this.playsFilter === f) return;
+    this.playsFilter = f;
+    this.expandedPlayIdx = null;
+  }
+
+  get filteredPlays(): PlayEvent[] {
+    if (this.playsFilter === 'scoring') {
+      return this.cachedParsedPlays.filter(p => p.isScoringPlay);
+    }
+    return this.cachedParsedPlays;
+  }
+
+  get scoringPlaysCount(): number {
+    return this.cachedParsedPlays.filter(p => p.isScoringPlay).length;
+  }
+
+
+  /** atBatIndex of the currently expanded play card (null = collapsed). */
+  expandedPlayIdx: number | null = null;
+
+  togglePlay(play: PlayEvent) {
+    const id = play.atBatIndex;
+    if (id == null) return;
+    this.expandedPlayIdx = this.expandedPlayIdx === id ? null : id;
+  }
+
   // Cached data to avoid expensive re-calculations in getters
   cachedParsedPlays: PlayEvent[] = [];
   cachedAwayLineup: LineupSlot[] = [];
@@ -74,12 +118,25 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
   cachedZonePitches: ZonePitch[] = [];
   cachedSzRect = { x: 0, y: 0, w: 0, h: 0 };
 
+  /** Cache of probable pitcher season pitching stats by player id (fetched on demand) */
+  private probablePitcherStats: Record<number, any> = {};
+  private probablePitcherFetching: Record<number, boolean> = {};
+
   constructor(
     public teams: TeamDataService,
     private playerSvc: PlayerService,
     private renderer: Renderer2,
-    @Inject(DOCUMENT) private document: Document
+    @Inject(DOCUMENT) private document: Document,
+    private api: MlbApiService,
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) {}
+
+  goToTeam(teamId?: number) {
+    if (!teamId) return;
+    this.closed.emit();
+    this.router.navigate(['/team-schedule', teamId]);
+  }
 
   ngOnInit() {
     this.renderer.addClass(this.document.body, 'modal-open');
@@ -116,6 +173,52 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
     if (this.state === 'live' && this.playsAvailable && changes['game'] && !changes['game'].previousValue) {
       this.mainTab = 'plays';
     }
+
+    if (changes['game']) {
+      this.fetchProbablePitcherStatsIfNeeded(this.away?.probablePitcher);
+      this.fetchProbablePitcherStatsIfNeeded(this.home?.probablePitcher);
+    }
+  }
+
+  private fetchProbablePitcherStatsIfNeeded(pitcher: any) {
+    const id = pitcher?.id;
+    if (!id) return;
+    if (this.probablePitcherStats[id] || this.probablePitcherFetching[id]) return;
+    // If schedule hydration already provided stats, extract and cache immediately
+    const inline = this.extractSeasonStat(pitcher);
+    if (inline) {
+      this.probablePitcherStats[id] = inline;
+      return;
+    }
+    this.probablePitcherFetching[id] = true;
+    const season = new Date().getFullYear();
+    this.api.getPlayerStatsBySeason(id, season).subscribe({
+      next: (resp: any) => {
+        const stat = resp?.stats?.find((s: any) =>
+          s.group?.displayName?.toLowerCase() === 'pitching' || s.group?.code === 'pitching'
+        )?.splits?.[0]?.stat;
+        if (stat) this.probablePitcherStats[id] = stat;
+        this.probablePitcherFetching[id] = false;
+        this.cdr.markForCheck();
+      },
+      error: () => { this.probablePitcherFetching[id] = false; }
+    });
+  }
+
+  private extractSeasonStat(pitcher: any): any {
+    if (!pitcher) return null;
+    const candidates = [pitcher.stats, pitcher.person?.stats];
+    for (const statsArray of candidates) {
+      if (!Array.isArray(statsArray) || !statsArray.length) continue;
+      const entry = statsArray.find((s: any) =>
+        s.group?.displayName?.toLowerCase() === 'pitching' ||
+        s.group?.code === 'pitching'
+      ) ?? statsArray[0];
+      if (!entry) continue;
+      const stat = entry.splits?.[0]?.stat ?? entry.stats ?? null;
+      if (stat) return stat;
+    }
+    return null;
   }
 
   // ── Game state ──────────────────────────────────────────────
@@ -396,7 +499,11 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
               isStrike: ['C','S','F','T','L','0','M','Q','R'].includes(code),
               isInPlay: code === 'X',
               callClass: this.getPitchCallClass(code),
-              callLabel: this.pitchCallLabel(code)
+              callLabel: this.pitchCallLabel(code),
+              pitchType: details.type?.description || pe.pitchData?.typeConfidence || '',
+              result:    details.description || '',
+              balls:     pe.count?.balls,
+              strikes:   pe.count?.strikes,
             };
           })
         : playEvts.filter((e: any) => e.isPitch || e.type === 'pitch').map((pe: any, pi: number) => {
@@ -411,28 +518,53 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
               isStrike: ['C','S','F','T','L','0','M','Q','R'].includes(code),
               isInPlay: code === 'X',
               callClass: this.getPitchCallClass(code),
-              callLabel: this.pitchCallLabel(code)
+              callLabel: this.pitchCallLabel(code),
+              pitchType: details.type?.description || '',
+              result:    details.description || '',
+              balls:     pe.count?.balls,
+              strikes:   pe.count?.strikes,
             };
           });
 
       const eventType = result.eventType ?? result.event ?? '';
+      const isComplete = about.isComplete === true || !!eventType;
+      const batterName = play.matchup?.batter?.fullName || '';
+      const pitcherName = play.matchup?.pitcher?.fullName || '';
+
       let resultType: PlayEvent['resultType'] = 'other';
-      if      (/strikeout/i.test(eventType))                           resultType = 'strikeout';
-      else if (/home.run/i.test(eventType))                            resultType = 'homerun';
-      else if (/walk|intent/i.test(eventType))                         resultType = 'walk';
-      else if (/single|double|triple/i.test(eventType))                resultType = 'hit';
-      else if (/out|fly|ground|line|pop|force|field/i.test(eventType)) resultType = 'out';
-      else if (/score|run/i.test(eventType))                           resultType = 'run';
+      let resultLabel = result.event ?? '';
+      let descriptionLabel = result.description ?? '';
+
+      if (!isComplete) {
+        resultType = 'inprogress';
+        resultLabel = 'AT BAT';
+        if (batterName) {
+          descriptionLabel = pitcherName
+            ? `${batterName} batting vs. ${pitcherName}`
+            : `${batterName} batting`;
+        } else {
+          descriptionLabel = 'At-bat in progress';
+        }
+      } else if (/strikeout/i.test(eventType))                           resultType = 'strikeout';
+      else if (/home.run/i.test(eventType))                              resultType = 'homerun';
+      else if (/walk|intent/i.test(eventType))                           resultType = 'walk';
+      else if (/single|double|triple/i.test(eventType))                  resultType = 'hit';
+      else if (/out|fly|ground|line|pop|force|field/i.test(eventType))   resultType = 'out';
+      else if (/score|run/i.test(eventType))                             resultType = 'run';
 
       return {
         inning, half: halfStr as 'Top' | 'Bottom',
         inningLabel: `${halfStr === 'Top' ? '▲' : '▼'} ${this.toOrdinal(inning)}`,
-        description: result.description ?? '',
-        result: result.event ?? '',
+        description: descriptionLabel,
+        result: resultLabel,
         resultType, pitches,
         awayScore: about.awayScore,
         homeScore: about.homeScore,
-        atBatIndex: play.atBatIndex
+        atBatIndex: play.atBatIndex,
+        inProgress: !isComplete,
+        batterName,
+        pitcherName,
+        isScoringPlay: about.isScoringPlay === true || (result.rbi ?? 0) > 0
       };
     });
 
@@ -458,10 +590,28 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
 
   pitchCallLabel(code: string): string {
     const labels: Record<string, string> = {
-      'B':'Ball','C':'Called Strike','S':'Swinging Strike',
-      'F':'Foul','T':'Foul Tip','L':'Foul Bunt',
-      'X':'In Play','I':'Int. Ball','P':'Pitchout',
-      'O':'Swinging Strike (Bunt)','M':'Missed Bunt',
+      // Balls
+      'B': 'Ball',
+      'I': 'Intentional Ball',
+      'P': 'Pitchout',
+      'V': 'Automatic Ball',
+      // Strikes
+      'C': 'Called Strike',
+      'S': 'Swinging Strike',
+      'F': 'Foul',
+      'T': 'Foul Tip',
+      'L': 'Foul Bunt',
+      'M': 'Missed Bunt',
+      'O': 'Foul Tip Bunt',
+      'Q': 'Swinging Pitchout',
+      'R': 'Foul Pitchout',
+      'K': 'Automatic Strike',
+      // In play
+      'X': 'In Play (out)',
+      'D': 'In Play (no out)',
+      'E': 'In Play (run)',
+      // Hit by pitch
+      'H': 'Hit by Pitch',
     };
     return labels[code] ?? code;
   }
@@ -485,21 +635,12 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
 
   private getProbablePitcherSeasonStat(pitcher: any): any {
     if (!pitcher) return null;
-    // Try pitcher.stats (direct schedule hydration), then pitcher.person.stats
-    const candidates = [pitcher.stats, pitcher.person?.stats];
-    for (const statsArray of candidates) {
-      if (!Array.isArray(statsArray) || !statsArray.length) continue;
-      // Prefer pitching group; fall back to first entry
-      const entry = statsArray.find((s: any) =>
-        s.group?.displayName?.toLowerCase() === 'pitching' ||
-        s.group?.code === 'pitching'
-      ) ?? statsArray[0];
-      if (!entry) continue;
-      // Data lives in splits[0].stat or directly in .stats
-      const stat = entry.splits?.[0]?.stat ?? entry.stats ?? null;
-      if (stat) return stat;
+    // First, check the fetched cache by id
+    if (pitcher.id && this.probablePitcherStats[pitcher.id]) {
+      return this.probablePitcherStats[pitcher.id];
     }
-    return null;
+    // Then fall back to any inline hydrated stats on the pitcher object
+    return this.extractSeasonStat(pitcher);
   }
 
   getProbablePitcherRecord(pitcher: any): string {
@@ -570,6 +711,54 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
     if (c == 'Peacock') return 'assets/peacock.png';
     return null;
   }
+
+  // ── Final-game info (attendance / duration / first pitch / weather) ──
+  private get gameInfo(): any { return this.liveFeed?.gameData?.gameInfo ?? {}; }
+  private get weatherData(): any { return this.liveFeed?.gameData?.weather ?? {}; }
+  private get datetimeData(): any { return this.liveFeed?.gameData?.datetime ?? {}; }
+  private get venueData(): any { return this.liveFeed?.gameData?.venue ?? this.game?.venue ?? {}; }
+
+  get attendance(): string {
+    const a = this.gameInfo?.attendance;
+    return (typeof a === 'number') ? a.toLocaleString() : '';
+  }
+
+  /** Total elapsed game time formatted like "3:12" */
+  get gameDuration(): string {
+    const mins = this.gameInfo?.gameDurationMinutes;
+    if (typeof mins !== 'number' || mins <= 0) return '';
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${h}:${m.toString().padStart(2, '0')}`;
+  }
+
+  /** First pitch time formatted in the venue's local timezone */
+  get firstPitchLocal(): string {
+    const iso = this.datetimeData?.firstPitch || this.datetimeData?.dateTime || this.game?.gameDate;
+    if (!iso) return '';
+    const tz = this.venueData?.timeZone?.id;
+    try {
+      return new Date(iso).toLocaleTimeString([], {
+        hour: 'numeric', minute: '2-digit',
+        timeZone: tz || undefined,
+        timeZoneName: tz ? 'short' : undefined
+      });
+    } catch {
+      return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    }
+  }
+
+  get weather(): string {
+    const w = this.weatherData;
+    if (!w || (!w.temp && !w.condition)) return '';
+    const parts: string[] = [];
+    if (w.temp) parts.push(`${w.temp}°F`);
+    if (w.condition) parts.push(w.condition);
+    if (w.wind) parts.push(`Wind: ${w.wind}`);
+    return parts.join(' · ');
+  }
+
+  get isFinal(): boolean { return this.state === 'final'; }
 
   // TrackBy functions for better performance
   trackByPlay(index: number, play: PlayEvent) { return play.atBatIndex || index; }

@@ -16,6 +16,9 @@ interface CatGroup { group: string; cats: StatCat[]; }
 export class StatsComponent implements OnInit, OnDestroy {
   season = new Date().getFullYear();
   years: number[] = [];
+  /** Selected team filter (0 = all MLB) */
+  teamId = 0;
+  teamList: Array<{ id: number; name: string; abbr: string }> = [];
   loading = false; // Tracks if 200ms have elapsed
   isFetching = false; // Tracks if a request is in flight
   leaders: any[] = [];
@@ -53,6 +56,7 @@ export class StatsComponent implements OnInit, OnDestroy {
     for (let y = currentYear; y >= 1900; y--) {
       this.years.push(y);
     }
+    this.teamList = this.teams.allTeams();
   }
 
   ngOnInit() { this.loadCat(this.activeCat); }
@@ -73,8 +77,13 @@ export class StatsComponent implements OnInit, OnDestroy {
     this.loadCat(this.activeCat);
   }
 
+  onTeamChange(event: any) {
+    this.teamId = parseInt(event.target.value, 10) || 0;
+    this.loadCat(this.activeCat);
+  }
+
   loadCat(cat: StatCat) {
-    const key = `${cat.key}-${this.season}`;
+    const key = `${cat.key}-${this.season}-${this.teamId}`;
 
     this.cleanup();
     this.loading = false;
@@ -92,7 +101,7 @@ export class StatsComponent implements OnInit, OnDestroy {
       this.loading = true;
     }, 200);
 
-    this.sub = this.api.getStatsLeaders(cat.key, cat.group, this.season).subscribe({
+    this.sub = this.api.getStatsLeaders(cat.key, cat.group, this.season, this.teamId || undefined).subscribe({
       next: (data) => {
         const list = (data.leagueLeaders ?? []).flatMap((l: any) => l.leaders ?? []);
         this.cache[key] = list;

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 const BASE = 'https://statsapi.mlb.com/api/';
 
@@ -19,6 +20,17 @@ export class MlbApiService {
       sportId: 1,
       hydrate: 'linescore,team,broadcasts,decisions(person(stats(group=[pitching],type=[season],gameType=R))),probablePitcher(stats(group=[pitching],type=[season],gameType=R))',
       ...opts
+    });
+  }
+
+  /** Full season schedule for one team (regular + postseason + spring + exhibition + all-star). */
+  getTeamSchedule(teamId: number, season: number) {
+    return this.get<any>('v1/schedule', {
+      sportId: 1,
+      teamId,
+      season,
+      gameType: 'R,F,D,L,W,P,S,E,A',
+      hydrate: 'linescore,team,broadcasts,probablePitcher'
     });
   }
 
@@ -44,10 +56,11 @@ export class MlbApiService {
     });
   }
 
-  getStatsLeaders(key: string, group: string, season: number) {
+  getStatsLeaders(key: string, group: string, season: number, teamId?: number) {
     return this.get<any>('v1/stats/leaders', {
       leaderCategories: key, statGroup: group,
-      season, limit: 50, statType: 'season'
+      season, limit: 50, statType: 'season',
+      teamId: teamId ?? undefined
     });
   }
 
@@ -85,8 +98,69 @@ export class MlbApiService {
   }
 
   getLiveFeed(gamePk: number) {
-    return this.get<any>(`v1/game/${gamePk}/feed/live`, {
+    // Use v1.1 — the v1 feed/live endpoint returns an empty gameData object.
+    return this.get<any>(`v1.1/game/${gamePk}/feed/live`, {
       hydrate: 'pitchData,hitData'
+    });
+  }
+
+  /** Full roster of MLB players for a given season (used by Player search). */
+  getAllPlayers(season: number) {
+    return this.get<any>('v1/sports/1/players', { season });
+  }
+
+  /**
+   * Direct name search via the MLB people search endpoint.
+   * Queries both active and inactive players in parallel so historical/retired
+   * players are also returned, then merges by id and limits the result set.
+   */
+  searchPlayers(query: string, limit = 30) {
+    const active$ = this.get<any>('v1/people/search', {
+      names: query, sportId: 1, active: true, limit
+    }).pipe(catchError(() => of({ people: [] })));
+
+    const inactive$ = this.get<any>('v1/people/search', {
+      names: query, sportId: 1, active: false, limit
+    }).pipe(catchError(() => of({ people: [] })));
+
+    return forkJoin([active$, inactive$]).pipe(
+      map(([a, b]) => {
+        const seen = new Set<number>();
+        const merged: any[] = [];
+        const pushAll = (arr: any[] | undefined) => {
+          for (const p of arr ?? []) {
+            if (!p?.id || seen.has(p.id)) continue;
+            seen.add(p.id);
+            merged.push(p);
+          }
+        };
+        // Active players first so currently-playing matches rank higher.
+        pushAll(a?.people);
+        pushAll(b?.people);
+        return { people: merged.slice(0, limit) };
+      })
+    );
+  }
+
+  /**
+   * Team roster for a season hydrated with each player's season fielding splits
+   * (one split per position they appeared at, including gamesStarted / games).
+   * This drives the team Depth Chart.
+   */
+  getTeamRosterWithFielding(teamId: number, season: number) {
+    return this.get<any>(`v1/teams/${teamId}/roster`, {
+      rosterType: 'fullSeason',
+      season,
+      hydrate: `person(stats(group=[fielding],type=[season],season=${season}))`
+    });
+  }
+
+  /** Plain active roster as a fallback when the fullSeason roster is empty (pre-season). */
+  getTeamActiveRoster(teamId: number, season: number) {
+    return this.get<any>(`v1/teams/${teamId}/roster`, {
+      rosterType: 'active',
+      season,
+      hydrate: `person(stats(group=[fielding],type=[season],season=${season}))`
     });
   }
 }

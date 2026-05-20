@@ -1,0 +1,78 @@
+<div class="depth-page page-enter">
+  <header class="page-header">
+    <h1 class="page-title">DEPTH CHART</h1>
+    <p class="page-sub">Games started by position for the {{ currentSeason }} season</p>
+  </header>
+
+  <!-- Team selector -->
+  <div class="team-bar">
+    <button *ngFor="let t of sortedTeams; trackBy: trackByTeam"
+            class="team-chip"
+            [class.active]="t.id === teamId"
+            [class.is-fav]="favorites.isFavorite(t.id)"
+            (click)="selectTeam(t.id)"
+            [title]="t.name">
+      <img class="team-chip-logo" [src]="teams.logo(t.id)" [alt]="t.name"/>
+      <span class="team-chip-abbr">{{ t.abbr }}</span>
+      <span class="team-chip-fav" *ngIf="favorites.isFavorite(t.id)" aria-hidden="true">★</span>
+    </button>
+  </div>
+
+  <ng-container *ngIf="teamId">
+    <div class="team-heading">
+      <img class="team-heading-logo" [src]="teams.logo(teamId)" [alt]="teams.name(teamId)"/>
+      <h2 class="team-heading-name">{{ teams.name(teamId) }}</h2>
+      <button class="fav-btn-lg"
+              [class.is-fav]="favorites.isFavorite(teamId)"
+              (click)="toggleFavorite($event, teamId)"
+              [title]="favorites.isFavorite(teamId) ? 'Unfavorite team' : 'Favorite team'">
+        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+      </button>
+    </div>
+  </ng-container>
+
+  <div *ngIf="loading" class="spinner-wrap"><div class="spinner"></div><span>Loading depth chart…</span></div>
+
+  <div *ngIf="!loading && error" class="empty-state"><p>{{ error }}</p></div>
+
+  <div *ngIf="!loading && !error && positions.length === 0 && teamId" class="empty-state">
+    <p>No fielding data available for this team yet.</p>
+  </div>
+
+  <div *ngIf="!loading && positions.length > 0" class="depth-grid">
+    <div class="depth-pos-card" *ngFor="let pos of positions; trackBy: trackByPos">
+      <div class="depth-pos-header">
+        <span class="depth-pos-abbr">{{ pos.abbr }}</span>
+        <span class="depth-pos-name">{{ pos.name }}</span>
+        <span class="depth-pos-total">{{ pos.totalStarts }} GS</span>
+      </div>
+      <div class="depth-player-list">
+        <div class="depth-player-row" *ngFor="let pl of (expanded[pos.abbr] ? pos.players : pos.players.slice(0, MAX_VISIBLE)); trackBy: trackByPlayer; let idx = index"
+             [class.depth-player-row--starter]="idx === 0"
+             (click)="openPlayer(pl)">
+          <span class="depth-rank">{{ idx + 1 }}</span>
+          <img class="depth-player-photo"
+               [src]="teams.photo(pl.playerId)"
+               [alt]="pl.name"
+               loading="lazy"
+               (error)="photoError($event)"/>
+          <span class="depth-player-name">{{ pl.name }}</span>
+          <span class="depth-gs" title="Games Started">{{ pl.gamesStarted }} GS</span>
+          <span class="depth-g" title="Games Played at this position">{{ pl.games }} G</span>
+          <span class="depth-bar-wrap" *ngIf="pos.totalStarts > 0">
+            <span class="depth-bar" [style.width.%]="(pl.gamesStarted / pos.totalStarts) * 100"></span>
+          </span>
+        </div>
+        <button class="depth-show-more"
+                *ngIf="pos.players.length > MAX_VISIBLE"
+                (click)="toggleExpanded(pos.abbr); $event.stopPropagation()">
+          <span *ngIf="!expanded[pos.abbr]">Show {{ pos.players.length - MAX_VISIBLE }} more ▾</span>
+          <span *ngIf="expanded[pos.abbr]">Show less ▴</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

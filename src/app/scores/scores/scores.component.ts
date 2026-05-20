@@ -1,5 +1,7 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, HostListener } from '@angular/core';
+import {AfterViewInit, Component, HostListener, OnDestroy, OnInit} from "@angular/core";
+import { ActivatedRoute } from '@angular/router';
 import { MlbApiService } from '../../shared/mlb-api.service';
+import { FavoriteTeamsService } from '../../shared/favorite-teams.service';
 import { Subscription, timer, of } from 'rxjs';
 import { switchMap, catchError } from 'rxjs/operators';
 
@@ -141,14 +143,34 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private pollSub?: Subscription;
   private detailPollSub?: Subscription;
+  private favSub?: Subscription;
   private days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   private months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-  constructor(private api: MlbApiService) {}
+  constructor(private api: MlbApiService, private route: ActivatedRoute, public favorites: FavoriteTeamsService) {}
+
+  /** Game pk to auto-open once games for the requested date are loaded (deep-link). */
+  private pendingGamePk?: number;
 
   ngOnInit() {
-    this.buildDateTabs();
+    // Allow deep-linking to a specific game via /scores?date=YYYY-MM-DD&gamePk=N
+    const qp = this.route.snapshot.queryParamMap;
+    const dateStr = qp.get('date');
+    const gp = qp.get('gamePk');
+    if (gp) this.pendingGamePk = Number(gp);
+
+    if (dateStr) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      this.buildDateTabs(new Date(y, m - 1, d));
+    } else {
+      this.buildDateTabs();
+    }
     this.startPolling(true);
+
+    // Re-sort the games whenever the user toggles a favorite team.
+    this.favSub = this.favorites.favorites$.subscribe(() => {
+      if (this.games?.length) this.games = this.sortGamesByFavorite(this.games);
+    });
   }
 
   ngAfterViewInit() {
@@ -158,6 +180,7 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy() {
     this.stopPolling();
     this.stopDetailPolling();
+    this.favSub?.unsubscribe();
   }
 
   buildDateTabs(baseDate: Date = new Date()) {
@@ -271,11 +294,23 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private updateGames(newGames: any[]) {
-    this.games = newGames;
+    this.games = this.sortGamesByFavorite(newGames);
     if (this.selectedGame) {
       const updated = newGames.find(g => g.gamePk === this.selectedGame.gamePk);
       if (updated) {
         this.selectedGame = updated;
+      }
+    }
+    // If we arrived here via a deep-link (?gamePk=...), open it now.
+    if (this.pendingGamePk && !this.selectedGame) {
+      const match = newGames.find(g => g.gamePk === this.pendingGamePk);
+      if (match) {
+        const pk = this.pendingGamePk;
+        this.pendingGamePk = undefined;
+        this.openGame(match);
+        // Clear the query params so a manual close doesn't reopen on refresh.
+        history.replaceState(null, '', '/scores');
+        void pk;
       }
     }
   }
@@ -318,7 +353,8 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
     this.api.getPlayByPlay(this.selectedGame.gamePk).pipe(catchError(() => of(null)))
       .subscribe({ next: (p) => { if (p) this.plays = p; } });
 
-    if (this.selectedGame.status?.abstractGameState === 'Live') {
+    if (this.selectedGame.status?.abstractGameState === 'Live' ||
+        this.selectedGame.status?.abstractGameState === 'Final') {
       this.api.getLiveFeed(this.selectedGame.gamePk).pipe(catchError(() => of(null)))
         .subscribe({ next: (lf) => { if (lf) this.liveFeed = lf; } });
     }
@@ -329,6 +365,40 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   trackByGamePk(_index: number, game: any) { return game.gamePk; }
+
+  /**
+   * Stable sort priority (top → bottom):
+   *   1. Live games involving a favorited team
+   *   2. All other live games
+   *   3. Non-live games involving a favorited team
+   *   4. Everything else (original MLB ordering preserved)
+   */
+  private sortGamesByFavorite(games: any[]): any[] {
+    if (!games?.length) return games;
+    const favSet = this.favorites.favorites;
+    const hasFavs = favSet.size > 0;
+
+    const isLive = (g: any) => g?.status?.abstractGameState === 'Live';
+
+    return games
+      .map((g, i) => ({
+        g, i,
+        live: isLive(g),
+        fav: hasFavs && this.favorites.gameInvolvesFavorite(g)
+      }))
+      .sort((a, b) => {
+        // Live games always come before non-live games.
+        if (a.live !== b.live) return a.live ? -1 : 1;
+        // Within the same live/non-live group, favorites come first.
+        if (a.fav !== b.fav)   return a.fav  ? -1 : 1;
+        // Otherwise preserve MLB-provided order.
+        return a.i - b.i;
+      })
+      .map(x => x.g);
+  }
+
+  /** Whether a game involves any favorited team (used for visual highlighting). */
+  isFavoriteGame(game: any): boolean { return this.favorites.gameInvolvesFavorite(game); }
 
   get hasLiveGames(): boolean {
     return this.games.some(g => g.status?.abstractGameState === 'Live');

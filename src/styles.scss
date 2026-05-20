@@ -1,42 +1,58 @@
 :root {
-  --bg:         #090c12;
-  --bg2:        #0f1420;
-  --bg3:        #161c2a;
-  --surface:    #1a2030;
-  --surface2:   #202840;
-  --border:     rgba(255,255,255,0.06);
-  --border2:    rgba(255,255,255,0.12);
-  --red:        #C8102E;
-  --red-dim:    rgba(200,16,46,0.15);
+  --bg:         #0a0e16;
+  --bg2:        #11172a;        /* slightly more navy-tinted for depth */
+  --bg3:        #181f33;
+  --surface:    #1d243a;
+  --surface2:   #262e48;
+  --border:     rgba(255,255,255,0.07);
+  --border2:    rgba(255,255,255,0.14);
+  --red:        #DC2626;        /* punchier crimson */
+  --red-2:      #B91C1C;        /* deeper red for gradient stop */
+  --red-dim:    rgba(220,38,38,0.16);
   --navy:       #002D72;
   --green:      #22C55E;
   --gold:       #F59E0B;
-  --text:       #eef0f8;
-  --text2:      #8a94b0;
-  --text3:      #4a5270;
+  --text:       #f1f3fb;
+  --text2:      #9aa3c0;
+  --text3:      #5b6485;
   --font-head:  'Bebas Neue', sans-serif;
   --font-body:  'DM Sans', sans-serif;
   --font-mono:  'DM Mono', monospace;
-  --sidebar-w: 220px;
-  --sidebar-collapsed: 64px;
-  --mobile-nav-h: 60px;
-  --radius:    10px;
-  --radius-sm: 6px;
-  --transition: 0.18s ease;
+  --sidebar-w: 232px;
+  --sidebar-collapsed: 68px;
+  --mobile-nav-h: 62px;
+  --radius:    12px;
+  --radius-sm: 8px;
+  --radius-lg: 18px;
+  --transition: 180ms cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* Elevation tokens for layered surfaces */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.30);
+  --shadow:    0 6px 18px rgba(0,0,0,0.35);
+  --shadow-lg: 0 24px 60px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.35);
+
+  /* Focus ring */
+  --ring:      0 0 0 3px rgba(220, 38, 38, 0.35);
 }
 
 body.light-mode {
-  --bg:         #f3f4f6;
+  --bg:         #f4f6fb;
   --bg2:        #ffffff;
-  --bg3:        #f9fafb;
-  --surface:    #e5e7eb;
-  --surface2:   #d1d5db;
-  --border:     rgba(0,0,0,0.08);
-  --border2:    rgba(0,0,0,0.15);
-  --text:       #111827;
-  --text2:      #4b5563;
-  --text3:      #9ca3af;
-  --red-dim:    rgba(200,16,46,0.1);
+  --bg3:        #eef1f6;
+  --bg2-rgb:    255, 255, 255;          /* used by the mobile sidebar frosted glass */
+  --surface:    #eef1f6;
+  --surface2:   #e2e6ee;
+  --border:     rgba(15, 23, 42, 0.08);
+  --border2:    rgba(15, 23, 42, 0.16);
+  --text:       #0f172a;                /* near-black for max contrast */
+  --text2:      #374151;                /* secondary copy */
+  --text3:      #6b7280;                /* tertiary / labels */
+  --red-dim:    rgba(220,38,38,0.12);
+
+  --shadow-sm: 0 1px 2px rgba(15,23,42,0.06);
+  --shadow:    0 8px 24px rgba(15,23,42,0.08);
+  --shadow-lg: 0 24px 56px rgba(15,23,42,0.14), 0 2px 6px rgba(15,23,42,0.06);
+  --ring:      0 0 0 3px rgba(220, 38, 38, 0.20);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -48,9 +64,16 @@ html {
 html, body { height: 100%; }
 
 body {
-  background: var(--bg);
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(220, 38, 38, 0.06), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(0, 45, 114, 0.10), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   overflow-x: hidden;
   transition: background-color var(--transition), color var(--transition);
 
@@ -59,10 +82,28 @@ body {
   }
 }
 
-::-webkit-scrollbar { width: 4px; height: 4px; }
+/* Accessible, branded focus ring everywhere */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+  border-radius: var(--radius-sm);
+}
+
+/* Selection color */
+::selection {
+  background: var(--red-dim);
+  color: var(--text);
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+::-webkit-scrollbar-thumb {
+  background: var(--surface2);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background-color: var(--text3); }
 
 a { text-decoration: none; color: inherit; }
 button { font-family: var(--font-body); cursor: pointer; }
@@ -76,25 +117,30 @@ img { max-width: 100%; }
   color: var(--text3); font-size: 0.88rem;
 }
 .spinner {
-  width: 36px; height: 36px;
-  border: 3px solid var(--surface2);
-  border-top-color: var(--red);
+  width: 40px; height: 40px;
   border-radius: 50%;
-  animation: spin 0.75s linear infinite;
+  background:
+    conic-gradient(from 0deg, transparent 0 70%, var(--red) 70% 100%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  animation: spin 0.85s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── Live dot ── */
 .live-dot {
-  width: 7px; height: 7px;
+  position: relative;
+  width: 8px; height: 8px;
   background: var(--red);
   border-radius: 50%;
-  animation: pulse 1.4s ease infinite;
   flex-shrink: 0;
+  box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.55);
+  animation: pulse 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 @keyframes pulse {
-  0%,100% { opacity:1; transform:scale(1); }
-  50%      { opacity:0.4; transform:scale(1.6); }
+  0%   { box-shadow: 0 0 0 0   rgba(220, 38, 38, 0.55); }
+  70%  { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+  100% { box-shadow: 0 0 0 0   rgba(220, 38, 38, 0); }
 }
 
 /* ── Page fade-in ── */
@@ -106,24 +152,30 @@ img { max-width: 100%; }
 
 /* ── Tabs ── */
 .tabs {
-  display: flex; gap: 4px;
+  display: inline-flex; gap: 4px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 999px;
   padding: 4px;
 }
 .tab-btn {
   background: none; border: none;
   padding: 8px 18px;
-  border-radius: var(--radius-sm);
+  border-radius: 999px;
   color: var(--text2);
   font-family: var(--font-body);
   font-size: 0.82rem;
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: 0.2px;
   white-space: nowrap;
-  transition: var(--transition);
+  transition: color var(--transition), background var(--transition), transform var(--transition), box-shadow var(--transition);
   &:hover { color: var(--text); background: var(--surface2); }
-  &.active { background: var(--red); color: #fff; }
+  &.active {
+    background: linear-gradient(135deg, var(--red), var(--red-2));
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.30);
+  }
+  &:active { transform: translateY(1px); }
 }
 
 /* ── Empty state ── */
@@ -137,7 +189,9 @@ img { max-width: 100%; }
 /* ── Modal overlay ── */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 300;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex; align-items: center; justify-content: center;
   padding: 20px;
   animation: fadeIn 0.18s ease;
@@ -147,23 +201,50 @@ img { max-width: 100%; }
 .modal-box {
   background: var(--bg2);
   border: 1px solid var(--border2);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   width: 100%; max-width: 720px;
   max-height: 88vh;
   overflow-y: auto;
   position: relative;
-  animation: scaleIn 0.2s ease;
+  animation: scaleIn 0.22s cubic-bezier(0.22, 0.61, 0.36, 1);
+  box-shadow: var(--shadow-lg);
+  /* Reserve a stable gutter so content doesn't shift when the scrollbar
+     appears, and so the scrollbar never paints over the rounded corners. */
+  scrollbar-gutter: stable;
+
+  /* WebKit/Blink: inset the track inside the rounded corners. */
+  &::-webkit-scrollbar { width: 10px; }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+    margin-top: 18px;
+    margin-bottom: 18px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--surface2);
+    border-radius: 6px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  &::-webkit-scrollbar-thumb:hover { background-color: var(--text3); }
+
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface2) transparent;
 }
-@keyframes scaleIn { from { transform:scale(0.95);opacity:0; } to { transform:scale(1);opacity:1; } }
+@keyframes scaleIn {
+  from { transform: translateY(8px) scale(0.97); opacity: 0; }
+  to   { transform: translateY(0)    scale(1);    opacity: 1; }
+}
 
 .modal-close {
   position: absolute; top: 14px; right: 14px;
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: 50%; width: 32px; height: 32px;
+  border-radius: 50%; width: 34px; height: 34px;
   display: flex; align-items: center; justify-content: center;
   color: var(--text2); font-size: 20px; line-height:1;
   transition: var(--transition); z-index: 2;
-  &:hover { color: var(--text); background: var(--surface2); }
+  backdrop-filter: blur(8px);
+  &:hover { color: var(--text); background: var(--surface2); transform: rotate(90deg); }
 }
 
 /* ── Shared team logo ── */
@@ -186,3 +267,78 @@ img { max-width: 100%; }
     max-width: 100%;
   }
 }
+
+/* ──────────────────────────────────────────────────────────
+   Light-mode targeted overrides — improve readability on
+   surfaces and components that were tuned for dark mode.
+   ────────────────────────────────────────────────────────── */
+body.light-mode {
+
+  /* Softer modal scrim — full black is jarring on light pages */
+  .modal-overlay { background: rgba(15, 23, 42, 0.45); }
+
+  /* Modal & card surfaces get a subtle elevation shadow */
+  .modal-box {
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+  }
+
+  /* The page-title 'STANDINGS / SCORES / STATS' headers were
+     designed against a dark bg — keep them strong & inky */
+  .page-title { color: var(--text); }
+
+  /* Spinner ring needs a darker contrast against light bg */
+  .spinner { border-color: rgba(15,23,42,0.12); border-top-color: var(--red); }
+
+  /* Pill badges in the player modal play feed use pastel
+     foreground colors that vanish on white. Bump saturation. */
+  .gl-pa-result {
+    &.badge-homerun  { background: rgba(168,85,247,0.18); color: #6d28d9; }
+    &.badge-hit      { background: rgba(16,185,129,0.18); color: #047857; }
+    &.badge-walk     { background: rgba(59,130,246,0.18); color: #1d4ed8; }
+    &.badge-strikeout{ background: rgba(220,38,38,0.16);  color: #b91c1c; }
+    &.badge-out      { background: rgba(15,23,42,0.06);   color: var(--text2); }
+  }
+
+  /* Play-by-play badges share the same idea */
+  .play-result-badge {
+    &.badge-homerun  { color: #6d28d9; }
+    &.badge-hit      { color: #047857; }
+    &.badge-walk     { color: #1d4ed8; }
+    &.badge-strikeout, &.badge-out { color: #b91c1c; }
+  }
+
+  /* Win/Loss indicators — soften neon greens/reds for white bg */
+  .gl-wl--win,  .ts-wl--win  { color: #047857; }
+  .gl-wl--loss, .ts-wl--loss { color: #b91c1c; }
+
+  tbody tr.gl-win td  { border-left-color: #34d399; }
+  tbody tr.gl-loss td { border-left-color: #f87171; }
+
+  /* Team-schedule W/L row stripes */
+  .ts-row--win  { border-left-color: #047857; }
+  .ts-row--loss { border-left-color: #b91c1c; }
+
+  /* Score-card hover ring was a dark drop-shadow — tone it down */
+  .game-card:hover,
+  .score-card:hover {
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.10) !important;
+  }
+
+  /* Frosted glass mobile bottom-nav already uses --bg2-rgb;
+     just make sure the top border is visible on light bg */
+  .sidebar { border-color: var(--border); }
+
+  /* Box-score / play-by-play subtle row overlays use white-on-white
+     in light mode — switch them to dark overlays so striping is visible */
+  .bs-table tbody tr:hover td,
+  .gamelog-table tbody tr:hover td,
+  .ts-table tbody tr:hover td,
+  .st-table tbody tr:hover td,
+  .leaders-table tbody tr.leader-row:hover td {
+    background: rgba(15, 23, 42, 0.04);
+  }
+  .sub-row td { background: rgba(15, 23, 42, 0.02) !important; }
+  .leader-row td,
+  .div-leader-row td { background: rgba(15, 23, 42, 0.03); }
+}
+

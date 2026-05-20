@@ -1,0 +1,59 @@
+<div class="players-page page-enter">
+  <header class="page-header">
+    <h1 class="page-title">PLAYERS</h1>
+    <p class="page-sub">Search for any current or historical MLB player to view their full profile, stats, and game log.</p>
+  </header>
+
+  <div class="search-wrap">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="7"/>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Search players by name…"
+      [value]="query"
+      (input)="onInput($any($event.target).value)"
+      autocomplete="off"
+      autofocus />
+    <button *ngIf="query" class="search-clear" type="button" (click)="clear()" aria-label="Clear">×</button>
+  </div>
+
+  <div *ngIf="loading" class="spinner-wrap"><div class="spinner"></div><span>Searching…</span></div>
+
+  <div *ngIf="!loading && hasSearched && results.length === 0" class="empty-state">
+    <p>No players found matching “{{ query }}”.</p>
+  </div>
+
+  <div *ngIf="!loading && !hasSearched" class="empty-state players-hint">
+    <p>Start typing to find a player.</p>
+  </div>
+
+  <ul *ngIf="!loading && results.length > 0" class="player-list">
+    <li *ngFor="let p of results; trackBy: trackById"
+        class="player-item"
+        (click)="openPlayer(p.id)"
+        tabindex="0"
+        (keyup.enter)="openPlayer(p.id)">
+      <img class="player-photo" [src]="teams.photo(p.id)" [alt]="p.fullName" (error)="photoError($event)"/>
+      <div class="player-meta">
+        <div class="player-name">
+          {{ p.fullName }}
+          <span class="player-historical-tag" *ngIf="!p.isActive" title="Historical / inactive player">Historical</span>
+        </div>
+        <div class="player-sub">
+          <span class="player-pos" *ngIf="p.posAbbr">{{ p.posAbbr }}</span>
+          <img *ngIf="p.teamId" class="player-team-logo" [src]="teams.logo(p.teamId)" alt="" (error)="logoError($event)"/>
+          <span class="player-team">{{ p.teamName || (p.isActive ? '—' : 'Inactive') }}</span>
+        </div>
+      </div>
+      <svg class="player-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </li>
+  </ul>
+</div>
+

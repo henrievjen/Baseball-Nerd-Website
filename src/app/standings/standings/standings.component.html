@@ -1,15 +1,26 @@
-<div class="standings-page page-enter">
+﻿<div class="standings-page page-enter">
   <header class="page-header">
     <h1 class="page-title">STANDINGS</h1>
-    <div class="tabs">
-      <button class="tab-btn" [class.active]="activeTab === 'DIV'" (click)="activeTab = 'DIV'">Division</button>
-      <button class="tab-btn" [class.active]="activeTab === 'WC'" (click)="activeTab = 'WC'">Wild Card</button>
+    <div class="standings-controls">
+      <div class="season-picker-wrap">
+        <label for="season-select" class="season-label">Season</label>
+        <select id="season-select"
+                class="season-select"
+                [value]="season"
+                (change)="selectSeason(+$any($event.target).value)">
+          <option *ngFor="let y of years; trackBy: trackByYear" [value]="y" [selected]="y === season">{{ y }}</option>
+        </select>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn" [class.active]="activeTab === 'DIV'" (click)="activeTab = 'DIV'">Division</button>
+        <button class="tab-btn" [class.active]="activeTab === 'WC'" (click)="activeTab = 'WC'">Wild Card</button>
+      </div>
     </div>
   </header>
 
   <div *ngIf="loading" class="spinner-wrap">
     <div class="spinner"></div>
-    <span>Loading standings…</span>
+    <span>Loading {{ season }} standings…</span>
   </div>
 
   <!-- Division Tab -->
@@ -28,7 +39,7 @@
             </thead>
             <tbody>
             <tr *ngFor="let t of div.teams; let i = index" [class.leader-row]="i === 0">
-              <td class="td-team">
+              <td class="td-team td-team--link" (click)="goToTeam(t.teamId)">
                 <span class="rank-num">{{ t.rank }}</span>
                 <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
                 <span class="team-name-text">{{ t.teamName }}</span>
@@ -60,7 +71,7 @@
             </thead>
             <tbody>
             <tr *ngFor="let t of div.teams; let i = index" [class.leader-row]="i === 0">
-              <td class="td-team">
+              <td class="td-team td-team--link" (click)="goToTeam(t.teamId)">
                 <span class="rank-num">{{ t.rank }}</span>
                 <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
                 <span class="team-name-text">{{ t.teamName }}</span>
@@ -94,7 +105,7 @@
             <thead><tr><th class="th-team">Team</th><th>W</th><th>L</th><th>PCT</th><th>GB</th></tr></thead>
             <tbody>
             <tr *ngFor="let t of alDivisionLeaders" class="leader-row div-leader-row">
-              <td class="td-team">
+              <td class="td-team td-team--link" (click)="goToTeam(t.teamId)">
                 <span class="div-crown">👑</span>
                 <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
                 <div class="team-name-stack">
@@ -118,7 +129,7 @@
             <thead><tr><th class="th-team">Team</th><th>W</th><th>L</th><th>PCT</th><th>WCGB</th></tr></thead>
             <tbody>
             <tr *ngFor="let t of alWildCard" [class.wc-spot-row]="(t.wcRank ?? 99) <= 3" [class.wc-bubble-row]="(t.wcRank ?? 99) > 3">
-              <td class="td-team">
+              <td class="td-team td-team--link" (click)="goToTeam(t.teamId)">
                 <span class="rank-num">{{ t.wcRank }}</span>
                 <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
                 <span class="team-name-text">{{ t.teamName }}</span>
@@ -147,7 +158,7 @@
             <thead><tr><th class="th-team">Team</th><th>W</th><th>L</th><th>PCT</th><th>GB</th></tr></thead>
             <tbody>
             <tr *ngFor="let t of nlDivisionLeaders" class="leader-row div-leader-row">
-              <td class="td-team">
+              <td class="td-team td-team--link" (click)="goToTeam(t.teamId)">
                 <span class="div-crown">👑</span>
                 <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
                 <div class="team-name-stack">
@@ -171,7 +182,7 @@
             <thead><tr><th class="th-team">Team</th><th>W</th><th>L</th><th>PCT</th><th>WCGB</th></tr></thead>
             <tbody>
             <tr *ngFor="let t of nlWildCard" [class.wc-spot-row]="(t.wcRank ?? 99) <= 3" [class.wc-bubble-row]="(t.wcRank ?? 99) > 3">
-              <td class="td-team">
+              <td class="td-team td-team--link" (click)="goToTeam(t.teamId)">
                 <span class="rank-num">{{ t.wcRank }}</span>
                 <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
                 <span class="team-name-text">{{ t.teamName }}</span>
@@ -190,3 +201,4 @@
 
   </div>
 </div>
+

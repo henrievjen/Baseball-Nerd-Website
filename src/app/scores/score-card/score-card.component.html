@@ -1,8 +1,21 @@
-<div class="card" [class.card-live]="state === 'live'" (click)="gameSelected.emit(game)">
+<div class="card"
+     [class.card-live]="state === 'live'"
+     [class.card-favorite]="isFavoriteGame"
+     [class.card-nohitter]="hasNoHitter && !hasPerfectGame"
+     [class.card-perfect]="hasPerfectGame"
+     (click)="gameSelected.emit(game)">
 
   <!-- Card Header -->
   <div class="card-header">
     <span class="series-label">{{ game?.seriesDescription || '' }}</span>
+
+    <span *ngIf="hasNoHitter" class="nohit-badge"
+          [class.nohit-badge--perfect]="hasPerfectGame"
+          [class.nohit-badge--live]="noHitterInProgress"
+          [title]="(hasPerfectGame ? 'Perfect game' : 'No hitter') + (noHitterInProgress ? ' in progress' : '')">
+      <span class="nohit-dot" *ngIf="noHitterInProgress"></span>
+      {{ noHitterLabel }}{{ noHitterInProgress ? ' ALERT' : '' }}
+    </span>
 
     <div *ngIf="state === 'live'" class="status-live">
       <div class="live-dot"></div>
@@ -21,6 +34,15 @@
     <!-- Away -->
     <div class="team-row">
       <div class="team-left">
+        <button class="fav-btn"
+                [class.is-fav]="isFavorite(awayId)"
+                (click)="toggleFavorite($event, awayId)"
+                [attr.aria-label]="(isFavorite(awayId) ? 'Unfavorite ' : 'Favorite ') + (away?.team?.name || '')"
+                [attr.title]="(isFavorite(awayId) ? 'Unfavorite ' : 'Favorite ') + (away?.team?.name || '')">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </button>
         <div class="team-logo-wrap">
           <img class="team-logo team-logo--card"
                [src]="teams.logo(awayId)"
@@ -45,6 +67,15 @@
     <!-- Home -->
     <div class="team-row">
       <div class="team-left">
+        <button class="fav-btn"
+                [class.is-fav]="isFavorite(homeId)"
+                (click)="toggleFavorite($event, homeId)"
+                [attr.aria-label]="(isFavorite(homeId) ? 'Unfavorite ' : 'Favorite ') + (home?.team?.name || '')"
+                [attr.title]="(isFavorite(homeId) ? 'Unfavorite ' : 'Favorite ') + (home?.team?.name || '')">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </button>
         <div class="team-logo-wrap">
           <img class="team-logo team-logo--card"
                [src]="teams.logo(homeId)"

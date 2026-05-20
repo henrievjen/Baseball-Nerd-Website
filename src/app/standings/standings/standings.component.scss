@@ -10,6 +10,53 @@
   letter-spacing: 2px; line-height: 1;
 }
 
+.standings-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.season-picker-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.season-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text3);
+}
+
+.season-select {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+  min-width: 90px;
+
+  &:hover { border-color: var(--red); }
+  &:focus {
+    outline: none;
+    border-color: var(--red);
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.18);
+  }
+
+  option {
+    background: var(--bg2);
+    color: var(--text);
+  }
+}
+
 .league-section {
   margin-bottom: 40px;
   &:last-child { margin-bottom: 0; }
@@ -48,18 +95,23 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 
   th {
     padding: 10px 12px;
-    font-size: 0.68rem; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.8px;
+    font-size: 0.68rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.9px;
     color: var(--text3); background: var(--bg3);
     border-bottom: 1px solid var(--border);
     text-align: right;
     &.th-team { text-align: left; }
   }
 
-  td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    transition: background var(--transition);
+  }
   tbody tr:last-child td { border-bottom: none; }
   tbody tr:hover td { background: var(--surface2); }
 
@@ -68,6 +120,12 @@
 
 .td-team {
   display: flex; align-items: center; gap: 8px; text-align: left;
+}
+
+.td-team--link {
+  cursor: pointer;
+  transition: color var(--transition);
+  &:hover .team-name-text { color: var(--red); }
 }
 
 .rank-num {

@@ -15,6 +15,18 @@ const routes: Routes = [
     path: 'stats',
     loadChildren: () => import('./stats/stats.module').then(m => m.StatsModule)
   },
+  {
+    path: 'players',
+    loadChildren: () => import('./players/players.module').then(m => m.PlayersModule)
+  },
+  {
+    path: 'team-schedule',
+    loadChildren: () => import('./team-schedule/team-schedule.module').then(m => m.TeamScheduleModule)
+  },
+  {
+    path: 'depth-chart',
+    loadChildren: () => import('./depth-chart/depth-chart.module').then(m => m.DepthChartModule)
+  },
 ];
 
 @NgModule({

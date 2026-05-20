@@ -106,6 +106,12 @@ export class PlayerModalComponent implements OnInit, OnDestroy {
   gameLogs: any[] = [];
   loadingGameLog = false;
 
+  // Expanded game log: details of plate appearances / batters faced for a specific game
+  expandedGamePk: number | null = null;
+  expandedPlays: any[] = [];
+  loadingExpandedPlays = false;
+  private playsCache: Record<number, any[]> = {};
+
   // Exposed stat definitions for template
   readonly hitStandard = HIT_STANDARD;
   readonly hitRate     = HIT_RATE;
@@ -192,11 +198,27 @@ export class PlayerModalComponent implements OnInit, OnDestroy {
     }
 
     this.availableYears = Array.from(years).sort((a, b) => b - a);
-    if (!this.availableYears.includes(this.currentYear)) {
-      this.availableYears.unshift(this.currentYear);
-    }
+
+    // Only show the current season in the picker if the player actually
+    // appeared in it. Historical / retired players have no current-year split
+    // and should default to their most recent played season instead.
+    const playedThisYear = this.availableYears.includes(this.currentYear);
     if (this.availableYears.length === 0) {
       this.availableYears = [this.currentYear];
+    }
+
+    // Pick the default selected year:
+    //   - active players (played current season) → current year
+    //   - everyone else → most recent year they actually played
+    this.selectedYear = playedThisYear
+      ? this.currentYear
+      : this.availableYears[0];
+
+    // For historical players, pre-load their most-recent-season stats so the
+    // tiles aren't empty (current-season stats are otherwise pulled from
+    // `player.stats[type=season]`, which doesn't exist for retired players).
+    if (!playedThisYear && this.playerId) {
+      this.loadYearStats(this.selectedYear);
     }
   }
 
@@ -211,6 +233,8 @@ export class PlayerModalComponent implements OnInit, OnDestroy {
     this.selectedYear = year;
     this.yearStats = null;
     this.gameLogs = [];
+    this.expandedGamePk = null;
+    this.expandedPlays = [];
 
     if (year !== this.currentYear) {
       this.loadYearStats(year);
@@ -248,8 +272,14 @@ export class PlayerModalComponent implements OnInit, OnDestroy {
       .pipe(catchError(() => of(null)))
       .subscribe(data => {
         const splits = data?.stats?.[0]?.splits ?? [];
+        // The MLB API only returns `isWin` on game-log splits (no `isLoss`).
+        // Derive `isLoss` so losses show up in the W/L column.
+        const enriched = splits.map((s: any) => ({
+          ...s,
+          isLoss: s.isWin === false
+        }));
         // Reverse so most recent game is first
-        this.gameLogs = [...splits].reverse();
+        this.gameLogs = enriched.reverse();
         this.loadingGameLog = false;
         this.cdr.markForCheck();
       });
@@ -306,6 +336,23 @@ export class PlayerModalComponent implements OnInit, OnDestroy {
     });
   }
 
+  /** "City, ST" for USA players (when state known); "City, Country" otherwise. */
+  get hometown(): string {
+    const p = this.player;
+    if (!p?.birthCity) return '';
+    const city = p.birthCity;
+    const state = p.birthStateProvince;
+    const country = p.birthCountry;
+    if (country === 'USA') {
+      return state ? `${city}, ${state}` : city;
+    }
+    // Non-US: include state/province if available, plus country
+    const parts = [city];
+    if (state) parts.push(state);
+    if (country) parts.push(country);
+    return parts.join(', ');
+  }
+
   formatGameDate(dateStr: string): string {
     if (!dateStr) return '';
     const d = new Date(dateStr);
@@ -315,6 +362,113 @@ export class PlayerModalComponent implements OnInit, OnDestroy {
   trackByYear(_: number, y: number) { return y; }
   trackByLog(_: number, log: any) { return log.game?.gamePk ?? _; }
   trackByStat(_: number, s: StatDef) { return s.key; }
+  trackByPlay(_: number, p: any) { return p.atBatIndex ?? _; }
+  trackByPitch(_: number, p: any) { return p.num ?? _; }
+
+  /** Toggle expansion of a game log row to show plate appearances / batters faced */
+  toggleGameDetail(log: any) {
+    const gamePk: number | undefined = log?.game?.gamePk;
+    if (!gamePk) return;
+    if (this.expandedGamePk === gamePk) {
+      this.expandedGamePk = null;
+      this.expandedPlays = [];
+      return;
+    }
+    this.expandedGamePk = gamePk;
+    this.expandedPlays = [];
+
+    if (this.playsCache[gamePk]) {
+      this.expandedPlays = this.filterPlaysForPlayer(this.playsCache[gamePk]);
+      return;
+    }
+
+    this.loadingExpandedPlays = true;
+    this.api.getPlayByPlay(gamePk).pipe(catchError(() => of(null))).subscribe((data: any) => {
+      const all = data?.allPlays ?? [];
+      this.playsCache[gamePk] = all;
+      this.expandedPlays = this.filterPlaysForPlayer(all);
+      this.loadingExpandedPlays = false;
+      this.cdr.markForCheck();
+    });
+  }
+
+  /** Filter the game's allPlays to those involving the current player as batter (hitters) or pitcher (pitchers) */
+  private filterPlaysForPlayer(allPlays: any[]): any[] {
+    if (!this.playerId) return [];
+    const pid = this.playerId;
+    const wantPitcher = this.activeGroup === 'pitching';
+    return allPlays
+      .filter((p: any) => {
+        const matchup = p.matchup ?? {};
+        return wantPitcher
+          ? matchup.pitcher?.id === pid
+          : matchup.batter?.id === pid;
+      })
+      .map((p: any) => this.normalizePlay(p));
+  }
+
+  private normalizePlay(play: any): any {
+    const about = play.about ?? {};
+    const result = play.result ?? {};
+    const matchup = play.matchup ?? {};
+    const half = about.halfInning === 'top' ? 'Top' : 'Bottom';
+    const playEvts: any[] = play.playEvents ?? [];
+    const pitchIdx: number[] = Array.isArray(play.pitchIndex) ? play.pitchIndex : [];
+    const rawPitches = pitchIdx.length
+      ? pitchIdx.map(i => playEvts[i]).filter(Boolean)
+      : playEvts.filter(e => e?.isPitch || e?.type === 'pitch');
+    const pitches = rawPitches.map((pe: any, idx: number) => {
+      const details = pe.details ?? {};
+      const code = details.code ?? '';
+      return {
+        num: pe.pitchNumber ?? idx + 1,
+        callCode: code,
+        callLabel: details.description ?? code,
+        callClass: this.pitchCallClass(code),
+        pitchType: details.type?.description ?? '',
+        speed: pe.pitchData?.startSpeed,
+      };
+    });
+    return {
+      atBatIndex: play.atBatIndex,
+      inning: about.inning,
+      half,
+      inningLabel: `${half === 'Top' ? '▲' : '▼'} ${this.toOrdinal(about.inning ?? 0)}`,
+      result: result.event ?? '',
+      description: result.description ?? '',
+      resultType: this.classifyResult(result.eventType ?? result.event ?? ''),
+      opponentName: this.activeGroup === 'pitching'
+        ? matchup.batter?.fullName
+        : matchup.pitcher?.fullName,
+      pitches,
+    };
+  }
+
+  private classifyResult(eventType: string): string {
+    if (/strikeout/i.test(eventType))     return 'strikeout';
+    if (/home.?run/i.test(eventType))     return 'homerun';
+    if (/walk|intent/i.test(eventType))   return 'walk';
+    if (/single|double|triple/i.test(eventType)) return 'hit';
+    if (/out|fly|ground|line|pop|force|field/i.test(eventType)) return 'out';
+    return 'other';
+  }
+
+  private pitchCallClass(code: string): string {
+    if (['B','I','P','V'].includes(code)) return 'pitch-ball';
+    if (code === 'X')                     return 'pitch-inplay';
+    if (['C','S','F','T','L','O','M','Q','R'].includes(code)) return 'pitch-strike';
+    return 'pitch-other';
+  }
+
+  private toOrdinal(n: number): string {
+    const s = ['th','st','nd','rd'];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  }
+
+  formatPitchSpeed(speed?: number): string {
+    return speed != null ? `${speed.toFixed(1)} mph` : '';
+  }
 
   photoError(ev: Event) { (ev.target as HTMLImageElement).style.opacity = '0'; }
   logoError(ev: Event)  { (ev.target as HTMLImageElement).style.display = 'none'; }

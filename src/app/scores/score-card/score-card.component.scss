@@ -13,28 +13,130 @@
   overflow: hidden;
   cursor: pointer;
   transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+  box-shadow: var(--shadow-sm);
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
     border-color: var(--border2);
   }
 
   &.card-live {
-    border-color: rgba(200,16,46,0.3);
-    box-shadow: 0 0 0 1px rgba(200,16,46,0.12);
+    border-color: rgba(220,38,38,0.35);
+    box-shadow: 0 0 0 1px rgba(220,38,38,0.18), 0 0 24px rgba(220,38,38,0.08);
+  }
+
+  &.card-favorite {
+    border-color: rgba(245,158,11,0.45);
+    box-shadow: 0 0 0 1px rgba(245,158,11,0.22), 0 0 22px rgba(245,158,11,0.10);
+
+    &.card-live {
+      /* Favorite + live → keep red glow but add a subtle gold ring */
+      box-shadow: 0 0 0 1px rgba(245,158,11,0.30), 0 0 24px rgba(220,38,38,0.10);
+    }
+  }
+
+  &.card-nohitter {
+    border-color: rgba(96,165,250,0.55);
+    box-shadow: 0 0 0 1px rgba(96,165,250,0.30), 0 0 26px rgba(96,165,250,0.18);
+  }
+
+  &.card-perfect {
+    border-color: rgba(168,85,247,0.6);
+    box-shadow: 0 0 0 1px rgba(168,85,247,0.35), 0 0 28px rgba(168,85,247,0.22);
+  }
+}
+
+/* No-hitter / Perfect game badge */
+.nohit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #93c5fd;
+  background: rgba(96,165,250,0.14);
+  border: 1px solid rgba(96,165,250,0.45);
+  white-space: nowrap;
+
+  &.nohit-badge--perfect {
+    color: #d8b4fe;
+    background: rgba(168,85,247,0.16);
+    border-color: rgba(168,85,247,0.55);
+  }
+
+  &.nohit-badge--live {
+    animation: nohit-pulse 1.6s ease-in-out infinite;
+  }
+
+  .nohit-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 6px currentColor;
+  }
+}
+
+@keyframes nohit-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
+/* Favorite star button */
+.fav-btn {
+  background: transparent;
+  border: none;
+  padding: 2px;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text3);
+  border-radius: 4px;
+  transition: color 0.15s, transform 0.15s, background 0.15s;
+  flex-shrink: 0;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    transition: fill 0.15s, stroke 0.15s;
+  }
+
+  &:hover {
+    color: #f59e0b;
+    transform: scale(1.12);
+    background: rgba(245, 158, 11, 0.08);
+  }
+
+  &.is-fav {
+    color: #f59e0b;
+    svg { fill: #f59e0b; stroke: #f59e0b; }
+  }
+
+  &:focus-visible {
+    outline: 2px solid #f59e0b;
+    outline-offset: 2px;
   }
 }
 
 /* Header */
 .card-header {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; gap: 6px; justify-content: space-between;
   padding: 10px 14px 0;
   font-size: 0.7rem; font-weight: 500;
   letter-spacing: 0.4px; text-transform: uppercase;
 }
 
 .series-label { color: var(--text3); }
+
+.nohit-badge { margin-left: auto; }
 
 .status-live {
   display: flex; align-items: center; gap: 5px;
