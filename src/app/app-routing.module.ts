@@ -27,6 +27,10 @@ const routes: Routes = [
     path: 'depth-chart',
     loadChildren: () => import('./depth-chart/depth-chart.module').then(m => m.DepthChartModule)
   },
+  {
+    path: 'about',
+    loadChildren: () => import('./about/about.module').then(m => m.AboutModule)
+  },
 ];
 
 @NgModule({

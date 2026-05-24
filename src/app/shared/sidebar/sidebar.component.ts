@@ -25,6 +25,7 @@ export class SidebarComponent implements AfterViewInit {
     { label: 'Players',        route: '/players',        icon: 'players' },
     { label: 'Team Schedule',  route: '/team-schedule',  icon: 'schedule' },
     { label: 'Depth Chart',    route: '/depth-chart',    icon: 'depth' },
+    { label: 'About',          route: '/about',          icon: 'about' },
   ];
 
   constructor(private router: Router) {
