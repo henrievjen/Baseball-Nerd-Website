@@ -256,13 +256,13 @@ img { max-width: 100%; }
   .tabs { overflow-x: auto; }
 
   .modal-overlay {
-    padding: 0;
-    align-items: flex-end;
+    padding: 12px;
+    align-items: center;
   }
 
   .modal-box {
-    border-radius: 20px 20px 0 0;
-    max-height: 92vh;
+    border-radius: var(--radius-lg);
+    max-height: 90vh;
     width: 100%;
     max-width: 100%;
   }
@@ -341,4 +341,3 @@ body.light-mode {
   .leader-row td,
   .div-leader-row td { background: rgba(15, 23, 42, 0.03); }
 }
-

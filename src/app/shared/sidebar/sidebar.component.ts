@@ -1,4 +1,4 @@
-import { Component, AfterViewInit } from '@angular/core';
+import { Component, AfterViewInit, HostListener } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
@@ -17,6 +17,7 @@ interface NavItem {
 export class SidebarComponent implements AfterViewInit {
   collapsed = false;
   currentRoute = '';
+  isMoreOpen = false;
 
   navItems: NavItem[] = [
     { label: 'Scores',         route: '/scores',         icon: 'scores' },
@@ -30,20 +31,38 @@ export class SidebarComponent implements AfterViewInit {
 
   constructor(private router: Router) {
     this.router.events.pipe(filter(e => e instanceof NavigationEnd))
-      .subscribe((e: any) => this.currentRoute = e.urlAfterRedirects);
+      .subscribe((e: any) => {
+        this.currentRoute = e.urlAfterRedirects;
+        this.isMoreOpen = false; // Close menu on navigation
+      });
   }
 
   ngAfterViewInit() {
-    // Push once — the <ins> element is always in the DOM (uses [hidden], not *ngIf)
-    // so this single call is sufficient for the lifetime of the sidebar.
     try {
       ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
-    } catch (e) {
-      // Fail silently if AdSense script is blocked or not yet loaded.
-    }
+    } catch (e) {}
   }
 
   isActive(route: string) { return this.currentRoute.startsWith(route); }
-  navigate(route: string) { this.router.navigate([route]); }
-  toggleCollapsed()       { this.collapsed = !this.collapsed; }
+
+  isSecondaryActive() {
+    return this.navItems.slice(3).some(item => this.isActive(item.route));
+  }
+
+  navigate(route: string) {
+    this.router.navigate([route]);
+    this.isMoreOpen = false;
+  }
+
+  toggleCollapsed() { this.collapsed = !this.collapsed; }
+
+  toggleMore(event: Event) {
+    event.stopPropagation();
+    this.isMoreOpen = !this.isMoreOpen;
+  }
+
+  @HostListener('document:click')
+  closeMore() {
+    this.isMoreOpen = false;
+  }
 }

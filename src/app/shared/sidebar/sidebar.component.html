@@ -11,64 +11,46 @@
 
   <!-- Nav -->
   <nav class="nav">
-    <a class="nav-item" *ngFor="let item of navItems"
+    <!-- Desktop: all items; Mobile: first 3 only via CSS -->
+    <a class="nav-item" *ngFor="let item of navItems; let i = index"
        [class.active]="isActive(item.route)"
+       [class.secondary-nav-item]="i > 2"
        (click)="navigate(item.route)">
 
-      <!-- Scores icon -->
-      <svg *ngIf="item.icon === 'scores'" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <circle cx="12" cy="12" r="10"/>
-        <polyline points="12 6 12 12 16 14"/>
-      </svg>
-
-      <!-- Standings icon -->
-      <svg *ngIf="item.icon === 'standings'" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <rect x="18" y="3" width="4" height="18" rx="1"/>
-        <rect x="10" y="8" width="4" height="13" rx="1"/>
-        <rect x="2"  y="13" width="4" height="8" rx="1"/>
-      </svg>
-
-      <!-- Stats icon -->
-      <svg *ngIf="item.icon === 'stats'" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-      </svg>
-
-      <!-- Team Schedule icon (calendar) -->
-      <svg *ngIf="item.icon === 'schedule'" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="4" width="18" height="18" rx="2"/>
-        <line x1="16" y1="2" x2="16" y2="6"/>
-        <line x1="8" y1="2" x2="8" y2="6"/>
-        <line x1="3" y1="10" x2="21" y2="10"/>
-      </svg>
-
-      <!-- Players icon (user/person) -->
-      <svg *ngIf="item.icon === 'players'" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
-      </svg>
-
-      <!-- Depth Chart icon (stacked layers / grid) -->
-      <svg *ngIf="item.icon === 'depth'" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="4" width="7" height="7" rx="1"/>
-        <rect x="14" y="4" width="7" height="7" rx="1"/>
-        <rect x="3" y="13" width="7" height="7" rx="1"/>
-        <rect x="14" y="13" width="7" height="7" rx="1"/>
-      </svg>
-
-      <!-- About icon (info) -->
-      <svg *ngIf="item.icon === 'about'" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="16" x2="12" y2="12"/>
-        <line x1="12" y1="8" x2="12.01" y2="8"/>
-      </svg>
+      <ng-container [ngTemplateOutlet]="iconTmpl" [ngTemplateOutletContext]="{ icon: item.icon }"></ng-container>
 
       <span class="nav-label" [class.hidden-desktop]="collapsed">{{ item.label }}</span>
-
       <span class="active-indicator" *ngIf="isActive(item.route)"></span>
+    </a>
+
+    <!-- Mobile-only "More" button -->
+    <a class="nav-item mobile-more-btn"
+       [class.active]="isMoreOpen || (isSecondaryActive() && !isMoreOpen)"
+       (click)="toggleMore($event)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+      </svg>
+      <span class="nav-label">More</span>
+      <span class="active-indicator" *ngIf="isSecondaryActive() && !isMoreOpen"></span>
     </a>
   </nav>
 
-  <!-- AdSense unit — hidden via CSS when sidebar is collapsed, never destroyed -->
+  <!-- Mobile "More" Menu Popup -->
+  <div class="more-menu-popup" *ngIf="isMoreOpen" (click)="$event.stopPropagation()">
+    <div class="more-menu-header">More</div>
+    <div class="more-menu-grid">
+      <a class="more-menu-item" *ngFor="let item of navItems.slice(3)"
+         [class.active]="isActive(item.route)"
+         (click)="navigate(item.route)">
+        <div class="more-menu-icon">
+          <ng-container [ngTemplateOutlet]="iconTmpl" [ngTemplateOutletContext]="{ icon: item.icon }"></ng-container>
+        </div>
+        <span class="more-menu-label">{{ item.label }}</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- AdSense unit -->
   <div class="sidebar-ad" [hidden]="collapsed">
     <ins class="adsbygoogle"
          data-ad-client="ca-pub-8890032903923645"
@@ -85,3 +67,53 @@
     </svg>
   </button>
 </aside>
+
+<!-- Icon Template for reuse -->
+<ng-template #iconTmpl let-icon="icon">
+  <!-- Scores icon -->
+  <svg *ngIf="icon === 'scores'" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <circle cx="12" cy="12" r="10"/>
+    <polyline points="12 6 12 12 16 14"/>
+  </svg>
+
+  <!-- Standings icon -->
+  <svg *ngIf="icon === 'standings'" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <rect x="18" y="3" width="4" height="18" rx="1"/>
+    <rect x="10" y="8" width="4" height="13" rx="1"/>
+    <rect x="2"  y="13" width="4" height="8" rx="1"/>
+  </svg>
+
+  <!-- Stats icon -->
+  <svg *ngIf="icon === 'stats'" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+  </svg>
+
+  <!-- Team Schedule icon (calendar) -->
+  <svg *ngIf="icon === 'schedule'" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2"/>
+    <line x1="16" y1="2" x2="16" y2="6"/>
+    <line x1="8" y1="2" x2="8" y2="6"/>
+    <line x1="3" y1="10" x2="21" y2="10"/>
+  </svg>
+
+  <!-- Players icon (user/person) -->
+  <svg *ngIf="icon === 'players'" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+    <circle cx="12" cy="7" r="4"/>
+  </svg>
+
+  <!-- Depth Chart icon (stacked layers / grid) -->
+  <svg *ngIf="icon === 'depth'" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="4" width="7" height="7" rx="1"/>
+    <rect x="14" y="4" width="7" height="7" rx="1"/>
+    <rect x="3" y="13" width="7" height="7" rx="1"/>
+    <rect x="14" y="13" width="7" height="7" rx="1"/>
+  </svg>
+
+  <!-- About icon (info) -->
+  <svg *ngIf="icon === 'about'" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="12" y1="16" x2="12" y2="12"/>
+    <line x1="12" y1="8" x2="12.01" y2="8"/>
+  </svg>
+</ng-template>

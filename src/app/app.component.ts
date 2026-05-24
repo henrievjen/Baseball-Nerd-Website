@@ -1,4 +1,6 @@
 import { Component, OnInit, Renderer2 } from '@angular/core';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -9,7 +11,17 @@ import { Component, OnInit, Renderer2 } from '@angular/core';
 export class AppComponent implements OnInit {
   isLightMode = false;
 
-  constructor(private renderer: Renderer2) {}
+  constructor(
+    private renderer: Renderer2,
+    private router: Router
+  ) {
+    // Failsafe to ensure scroll to top on every navigation
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      window.scrollTo(0, 0);
+    });
+  }
 
   ngOnInit() {
     const saved = localStorage.getItem('theme');

@@ -33,8 +33,17 @@ export class DepthChartComponent implements OnInit {
   error = '';
   positions: DcPosition[] = [];
 
-  /** Cache so re-selecting the same team doesn't re-fetch. */
-  private cache: Record<number, DcPosition[]> = {};
+  /** Currently selected season. */
+  season: number = new Date().getFullYear();
+
+  /** Available years for the picker. */
+  years: number[] = [];
+
+  /** Mobile: whether the team selection bar is expanded or collapsed. */
+  isTeamBarExpanded = false;
+
+  /** Cache so re-selecting the same team/season doesn't re-fetch. Key format: "teamId|season" */
+  private cache: Record<string, DcPosition[]> = {};
 
   private readonly POS_ORDER = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'DH'];
   private readonly POS_NAMES: Record<string, string> = {
@@ -50,7 +59,9 @@ export class DepthChartComponent implements OnInit {
     public favorites: FavoriteTeamsService,
     private route: ActivatedRoute,
     private router: Router
-  ) {}
+  ) {
+    this.generateYears();
+  }
 
   ngOnInit() {
     this.route.paramMap.subscribe(pm => {
@@ -66,6 +77,14 @@ export class DepthChartComponent implements OnInit {
     });
   }
 
+  private generateYears() {
+    const end = new Date().getFullYear();
+    const start = 2000;
+    for (let y = end; y >= start; y--) {
+      this.years.push(y);
+    }
+  }
+
   get allTeams() { return this.teams.allTeams(); }
 
   get currentSeason(): number { return new Date().getFullYear(); }
@@ -73,20 +92,32 @@ export class DepthChartComponent implements OnInit {
   selectTeam(id: number, replaceUrl = false) {
     this.teamId = id;
     this.expanded = {};
+    // On mobile, collapse the bar after selection
+    this.isTeamBarExpanded = false;
+
     // Update URL so the team is bookmarkable / refresh-stable
     this.router.navigate(['/depth-chart', id], { replaceUrl });
 
-    if (this.cache[id]) {
-      this.positions = this.cache[id];
+    this.loadData();
+  }
+
+  selectSeason(year: number) {
+    this.season = year;
+    this.loadData();
+  }
+
+  private loadData() {
+    if (!this.teamId) return;
+
+    const cacheKey = `${this.teamId}|${this.season}`;
+    if (this.cache[cacheKey]) {
+      this.positions = this.cache[cacheKey];
       this.error = '';
       this.loading = false;
       return;
     }
-    this.fetchDepthChart(id);
+    this.fetchDepthChart(this.teamId, this.season);
   }
-
-  /** Season actually displayed (may differ from current year if data not yet available). */
-  displayedSeason: number = new Date().getFullYear();
 
   /** Max players to show per position before requiring user to expand. */
   readonly MAX_VISIBLE = 6;
@@ -98,19 +129,22 @@ export class DepthChartComponent implements OnInit {
     this.expanded[abbr] = !this.expanded[abbr];
   }
 
-  private fetchDepthChart(teamId: number) {
+  toggleTeamBar() {
+    this.isTeamBarExpanded = !this.isTeamBarExpanded;
+  }
+
+  private fetchDepthChart(teamId: number, season: number) {
     this.loading = true;
     this.error = '';
     this.positions = [];
 
-    const currentSeason = new Date().getFullYear();
-    this.tryFetchSeason(teamId, currentSeason, /*allowFallback*/ true);
+    // Fallback is only allowed for the current year (initial load)
+    const allowFallback = season === new Date().getFullYear();
+    this.tryFetchSeason(teamId, season, allowFallback);
   }
 
   /**
    * Fetches the team roster with hydrated fielding splits for a season.
-   * If the response has no usable data and `allowFallback` is true, retries
-   * with the previous season (handles preseason/offseason).
    */
   private tryFetchSeason(teamId: number, season: number, allowFallback: boolean) {
     this.api.getTeamRosterWithFielding(teamId, season)
@@ -120,28 +154,25 @@ export class DepthChartComponent implements OnInit {
 
         if (positions.length === 0 && allowFallback) {
           // No data for this season yet — try the previous one.
-          this.tryFetchSeason(teamId, season - 1, false);
+          this.season = season - 1;
+          this.tryFetchSeason(teamId, this.season, false);
           return;
         }
 
         this.loading = false;
         if (!resp && positions.length === 0) {
-          this.error = 'Unable to load depth chart.';
+          this.error = `Unable to load depth chart for ${season}.`;
           return;
         }
 
-        this.displayedSeason = season;
-        this.cache[teamId] = positions;
+        const cacheKey = `${teamId}|${season}`;
+        this.cache[cacheKey] = positions;
         this.positions = positions;
       });
   }
 
   /**
    * Parse a /teams/{id}/roster response hydrated with fielding splits.
-   * Each roster entry contains a person with stats[].splits[] — one split per
-   * position the player appeared at, with stat.gamesStarted / stat.games.
-   * Players with no fielding splits are still slotted under their primary
-   * position with 0/0 so the depth chart isn't blank in the preseason.
    */
   private parseRosterResponse(resp: any): DcPosition[] {
     if (!resp) return [];
@@ -191,10 +222,6 @@ export class DepthChartComponent implements OnInit {
         anyWithStats = true;
       }
 
-      // Preseason / no stats yet → slot under primary roster position so the
-      // chart isn't empty. We still skip pitchers here because every pitcher
-      // would collapse under "P" and make the list huge with 0/0 rows; instead
-      // pitchers without splits are added below only when no one has stats.
       if (!added) {
         const abbr = entry.position?.abbreviation;
         if (abbr && abbr !== 'P') {
@@ -208,8 +235,6 @@ export class DepthChartComponent implements OnInit {
       }
     }
 
-    // If literally nobody has fielding stats yet (true preseason), also add
-    // pitchers under "P" so the chart still has all positions populated.
     if (!anyWithStats) {
       for (const entry of roster) {
         const abbr = entry.position?.abbreviation;
@@ -274,6 +299,7 @@ export class DepthChartComponent implements OnInit {
   trackByPos(_i: number, p: DcPosition) { return p.abbr; }
   trackByPlayer(_i: number, p: DcPlayer) { return p.playerId; }
   trackByTeam(_i: number, t: { id: number }) { return t.id; }
+  trackByYear(_i: number, y: number) { return y; }
 
   photoError(ev: Event) {
     (ev.target as HTMLImageElement).style.visibility = 'hidden';
@@ -290,4 +316,3 @@ export class DepthChartComponent implements OnInit {
     });
   }
 }
-

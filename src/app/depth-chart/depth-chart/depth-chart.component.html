@@ -1,21 +1,49 @@
 <div class="depth-page page-enter">
   <header class="page-header">
-    <h1 class="page-title">DEPTH CHART</h1>
-    <p class="page-sub">Games started by position for the {{ currentSeason }} season</p>
+    <div class="header-main">
+      <h1 class="page-title">DEPTH CHART</h1>
+
+      <div class="season-picker-wrap">
+        <label for="season-select" class="season-label">Season</label>
+        <select id="season-select"
+                class="season-select"
+                [value]="season"
+                (change)="selectSeason(+$any($event.target).value)">
+          <option *ngFor="let y of years; trackBy: trackByYear" [value]="y" [selected]="y === season">{{ y }}</option>
+        </select>
+      </div>
+    </div>
+    <p class="page-sub">Games started by position for the {{ season }} season</p>
   </header>
 
   <!-- Team selector -->
-  <div class="team-bar">
-    <button *ngFor="let t of sortedTeams; trackBy: trackByTeam"
-            class="team-chip"
-            [class.active]="t.id === teamId"
-            [class.is-fav]="favorites.isFavorite(t.id)"
-            (click)="selectTeam(t.id)"
-            [title]="t.name">
-      <img class="team-chip-logo" [src]="teams.logo(t.id)" [alt]="t.name"/>
-      <span class="team-chip-abbr">{{ t.abbr }}</span>
-      <span class="team-chip-fav" *ngIf="favorites.isFavorite(t.id)" aria-hidden="true">★</span>
-    </button>
+  <div class="team-selector-wrap" [class.is-expanded]="isTeamBarExpanded">
+    <div class="team-selector-header" (click)="toggleTeamBar()">
+      <span class="selector-label">Select Team</span>
+      <div class="active-team-preview" *ngIf="!isTeamBarExpanded && teamId">
+        <img [src]="teams.logo(teamId)" class="preview-logo" alt=""/>
+        <span class="preview-name">{{ teams.name(teamId) }}</span>
+      </div>
+      <button class="selector-toggle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9" *ngIf="!isTeamBarExpanded"></polyline>
+          <polyline points="18 15 12 9 6 15" *ngIf="isTeamBarExpanded"></polyline>
+        </svg>
+      </button>
+    </div>
+
+    <div class="team-bar">
+      <button *ngFor="let t of sortedTeams; trackBy: trackByTeam"
+              class="team-chip"
+              [class.active]="t.id === teamId"
+              [class.is-fav]="favorites.isFavorite(t.id)"
+              (click)="selectTeam(t.id)"
+              [title]="t.name">
+        <img class="team-chip-logo" [src]="teams.logo(t.id)" [alt]="t.name"/>
+        <span class="team-chip-abbr">{{ t.abbr }}</span>
+        <span class="team-chip-fav" *ngIf="favorites.isFavorite(t.id)" aria-hidden="true">★</span>
+      </button>
+    </div>
   </div>
 
   <ng-container *ngIf="teamId">
@@ -38,7 +66,7 @@
   <div *ngIf="!loading && error" class="empty-state"><p>{{ error }}</p></div>
 
   <div *ngIf="!loading && !error && positions.length === 0 && teamId" class="empty-state">
-    <p>No fielding data available for this team yet.</p>
+    <p>No fielding data available for this team in {{ season }}.</p>
   </div>
 
   <div *ngIf="!loading && positions.length > 0" class="depth-grid">
@@ -75,4 +103,3 @@
     </div>
   </div>
 </div>
-
