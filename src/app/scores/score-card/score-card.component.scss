@@ -384,3 +384,47 @@
   display: block;
   margin-left: 2px;
 }
+
+
+/* ── Postponed status badge (card header) ── */
+.status-postponed {
+  font-family: var(--font-head);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #fff;
+  background: var(--warn, #e07b00);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* ── Postponed info block (card content) ── */
+.postponed-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  color: var(--text3);
+  font-size: 0.78rem;
+  line-height: 1.4;
+
+  svg {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+    color: var(--warn, #e07b00);
+    opacity: 0.85;
+  }
+}
+
+.postponed-notice-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.makeup-date {
+  font-weight: 600;
+  color: var(--text2);
+}

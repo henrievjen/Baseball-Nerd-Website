@@ -38,6 +38,7 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
   plays: any = null;
   loadingPlays = false;
   liveFeed: any = null;
+  makeupGame: any = null;
 
   // ── Custom calendar ──────────────────────────────────
   calendarOpen = false;
@@ -61,7 +62,6 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.calendarOpen) this.syncCalendarToActive();
   }
 
-  /** Sync the calendar view to the currently selected date strip tab. */
   private syncCalendarToActive() {
     const active = this.dateTabs[this.activeDateIdx]?.date ?? new Date();
     this.calendarYear  = active.getFullYear();
@@ -132,28 +132,24 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  /** Close calendar when clicking outside it. */
   @HostListener('document:click', ['$event'])
   onDocumentClick(e: MouseEvent) {
     if (!this.calendarOpen) return;
     const target = e.target as HTMLElement;
     if (!target.closest('.calendar-picker')) this.calendarOpen = false;
   }
-  // ─────────────────────────────────────────────────────
 
   private pollSub?: Subscription;
   private detailPollSub?: Subscription;
   private favSub?: Subscription;
-  private days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  private months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  private daysNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  private monthsNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
   constructor(private api: MlbApiService, private route: ActivatedRoute, public favorites: FavoriteTeamsService) {}
 
-  /** Game pk to auto-open once games for the requested date are loaded (deep-link). */
   private pendingGamePk?: number;
 
   ngOnInit() {
-    // Allow deep-linking to a specific game via /scores?date=YYYY-MM-DD&gamePk=N
     const qp = this.route.snapshot.queryParamMap;
     const dateStr = qp.get('date');
     const gp = qp.get('gamePk');
@@ -167,7 +163,6 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     this.startPolling(true);
 
-    // Re-sort the games whenever the user toggles a favorite team.
     this.favSub = this.favorites.favorites$.subscribe(() => {
       if (this.games?.length) this.games = this.sortGamesByFavorite(this.games);
     });
@@ -201,8 +196,8 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
       return {
         date: d,
         dateStr: this.toDateStr(d),
-        label: isToday ? 'Today' : this.days[d.getDay()],
-        shortDate: `${this.months[d.getMonth()]} ${d.getDate()}`
+        label: isToday ? 'Today' : this.daysNames[d.getDay()],
+        shortDate: `${this.monthsNames[d.getMonth()]} ${d.getDate()}`
       };
     });
 
@@ -227,11 +222,9 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
     this.activeDateIdx = idx;
     this.startPolling(true);
     this.centerActiveTab('smooth');
-    // Keep calendar grid in sync if open
     if (this.calendarOpen) this.buildCalendarGrid();
   }
 
-  /** True when the currently selected tab is today. */
   get isOnToday(): boolean {
     const sel = this.dateTabs[this.activeDateIdx]?.date;
     if (!sel) return false;
@@ -240,7 +233,6 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
     return s.getTime() === today.getTime();
   }
 
-  /** Navigate the date strip back to today and reload games. */
   goToToday() {
     if (this.isOnToday) return;
     const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -257,7 +249,6 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  /** @deprecated native picker — kept so nothing breaks if referenced elsewhere */
   onCalendarDateChange(event: any) {
     const val = event.target?.value;
     if (!val) return;
@@ -294,34 +285,82 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private updateGames(newGames: any[]) {
-    this.games = this.sortGamesByFavorite(newGames);
+    // Deduplicate: the MLB API includes the original postponed game entry on its
+    // rescheduled date alongside the real makeup game. Drop the postponed ghost.
+    // Use codedGameState 'D' to identify the original postponed entry — this is
+    // the only reliable signal. Do NOT filter on detailedState 'Rescheduled'
+    // because the MLB API also sets that on the makeup game itself.
+    const isOriginalPostponed = (g: any) => g.status?.codedGameState === 'D';
+
+    const activePairs = new Set<string>();
+    for (const g of newGames) {
+      if (isOriginalPostponed(g)) continue;
+      activePairs.add(`${g.teams.away.team.id}-${g.teams.home.team.id}`);
+    }
+
+    const filteredGames = newGames.filter(g => {
+      if (!isOriginalPostponed(g)) return true;
+      const key = `${g.teams.away.team.id}-${g.teams.home.team.id}`;
+      return !activePairs.has(key);
+    });
+
+    this.games = this.sortGamesByFavorite(filteredGames);
+
     if (this.selectedGame) {
-      const updated = newGames.find(g => g.gamePk === this.selectedGame.gamePk);
+      const updated = this.findBestGameMatch(this.selectedGame, newGames);
       if (updated) {
         this.selectedGame = updated;
       }
     }
-    // If we arrived here via a deep-link (?gamePk=...), open it now.
+
     if (this.pendingGamePk && !this.selectedGame) {
       const match = newGames.find(g => g.gamePk === this.pendingGamePk);
       if (match) {
-        const pk = this.pendingGamePk;
         this.pendingGamePk = undefined;
         this.openGame(match);
-        // Clear the query params so a manual close doesn't reopen on refresh.
         history.replaceState(null, '', '/scores');
-        void pk;
       }
     }
+  }
+
+  private findBestGameMatch(current: any, list: any[]): any {
+    const isPostponed = (g: any) => g.status?.codedGameState === 'D';
+
+    // 1. Try exact PK match first
+    const matches = list.filter(g => g.gamePk === current.gamePk);
+    if (matches.length > 0) {
+      // Prefer a non-postponed version if one exists
+      const activeMatch = matches.find(m =>
+        m.status?.abstractGameState !== 'Preview' && !isPostponed(m)
+      );
+      if (activeMatch) return activeMatch;
+      return matches[0];
+    }
+
+    // 2. If PK not found, search by teams — prefer non-postponed Live/Final game.
+    const nonPostponed = list.find(g =>
+      g.teams.away.team.id === current.teams.away.team.id &&
+      g.teams.home.team.id === current.teams.home.team.id &&
+      g.status?.abstractGameState !== 'Preview' &&
+      !isPostponed(g)
+    );
+    if (nonPostponed) return nonPostponed;
+
+    const matchupMatch = list.find(g =>
+      g.teams.away.team.id === current.teams.away.team.id &&
+      g.teams.home.team.id === current.teams.home.team.id &&
+      g.status?.abstractGameState !== 'Preview'
+    );
+
+    return matchupMatch || null;
   }
 
   private startDetailPolling() {
     this.stopDetailPolling();
     if (!this.selectedGame) return;
 
-    // Aggressive polling for active games
     const isLive = this.selectedGame.status?.abstractGameState === 'Live';
-    const interval = isLive ? 8000 : 30000; // 8s for live, 30s otherwise
+    const interval = isLive ? 8000 : 30000;
 
     this.detailPollSub = timer(0, interval).subscribe(() => {
       this.refreshSelectedGame();
@@ -338,13 +377,17 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
   private refreshSelectedGame() {
     if (!this.selectedGame) return;
 
-    // Refresh the basic game object from schedule if possible to keep status/score synced
     const tab = this.dateTabs[this.activeDateIdx];
-    this.api.getSchedule({ date: tab.dateStr, gamePks: this.selectedGame.gamePk.toString() })
+    // Fetch the full day's schedule rather than by gamePk alone — querying by
+    // gamePk can return the original postponed entry instead of the makeup game.
+    this.api.getSchedule({ date: tab.dateStr })
       .pipe(catchError(() => of(null)))
       .subscribe(data => {
-        if (data?.dates?.[0]?.games?.[0]) {
-          this.selectedGame = data.dates[0].games[0];
+        const allGames = (data?.dates?.[0]?.games ?? []);
+        // First try exact PK match among non-postponed games
+        const updated = this.findBestGameMatch(this.selectedGame, allGames);
+        if (updated) {
+          this.selectedGame = updated;
         }
       });
 
@@ -366,13 +409,6 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
 
   trackByGamePk(_index: number, game: any) { return game.gamePk; }
 
-  /**
-   * Stable sort priority (top → bottom):
-   *   1. Live games involving a favorited team
-   *   2. All other live games
-   *   3. Non-live games involving a favorited team
-   *   4. Everything else (original MLB ordering preserved)
-   */
   private sortGamesByFavorite(games: any[]): any[] {
     if (!games?.length) return games;
     const favSet = this.favorites.favorites;
@@ -387,17 +423,13 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
         fav: hasFavs && this.favorites.gameInvolvesFavorite(g)
       }))
       .sort((a, b) => {
-        // Live games always come before non-live games.
         if (a.live !== b.live) return a.live ? -1 : 1;
-        // Within the same live/non-live group, favorites come first.
         if (a.fav !== b.fav)   return a.fav  ? -1 : 1;
-        // Otherwise preserve MLB-provided order.
         return a.i - b.i;
       })
       .map(x => x.g);
   }
 
-  /** Whether a game involves any favorited team (used for visual highlighting). */
   isFavoriteGame(game: any): boolean { return this.favorites.gameInvolvesFavorite(game); }
 
   get hasLiveGames(): boolean {
@@ -405,7 +437,22 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   openGame(game: any) {
-    this.selectedGame = game;
+    // If user clicked a postponed card and we're on the rescheduled date,
+    // prefer the real makeup game entry for the same matchup if present.
+    let target = game;
+    if ((game?.status?.codedGameState === 'D' || game?.status?.detailedState === 'Postponed') && !game?.rescheduledFrom) {
+      const awayId = game?.teams?.away?.team?.id;
+      const homeId = game?.teams?.home?.team?.id;
+      const makeup = this.games.find(g =>
+        g.gamePk !== game.gamePk &&
+        g?.teams?.away?.team?.id === awayId &&
+        g?.teams?.home?.team?.id === homeId &&
+        g?.status?.detailedState !== 'Postponed'
+      );
+      if (makeup) target = makeup;
+    }
+
+    this.selectedGame = target;
     this.boxscore = null;
     this.plays = null;
     this.liveFeed = null;
@@ -413,8 +460,10 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loadingPlays = true;
 
     this.refreshSelectedGame();
-    this.loadingDetail = false;
-    this.loadingPlays = false;
+    setTimeout(() => {
+      this.loadingDetail = false;
+      this.loadingPlays = false;
+    }, 200);
 
     this.startDetailPolling();
   }

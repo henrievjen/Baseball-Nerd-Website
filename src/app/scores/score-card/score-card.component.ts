@@ -42,6 +42,30 @@ export class ScoreCardComponent {
     return 'upcoming';
   }
 
+  get isPostponed(): boolean {
+    const status = this.game?.status;
+    if (!status) return false;
+    // codedGameState 'D' is the MLB API's definitive code for the original postponed entry.
+    // detailedState 'Postponed' is a safety fallback.
+    // We deliberately exclude 'Rescheduled' — the MLB API also sets that on the makeup game.
+    const postponedStatus =
+      status.codedGameState === 'D' ||
+      status.detailedState === 'Postponed';
+    if (!postponedStatus) return false;
+    // The makeup game has rescheduledFrom set — never treat it as postponed.
+    if (this.game?.rescheduledFrom) return false;
+    return true;
+  }
+
+  get makeupDateLabel(): string | null {
+    const raw = this.game?.rescheduleGameDate || this.game?.rescheduleDate;
+    if (!raw) return null;
+    const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(raw.trim());
+    const d = new Date(isDateOnly ? raw + 'T12:00:00Z' : raw);
+    if (isNaN(d.getTime())) return null;
+    return d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+
   get inningLabel(): string {
     const d = this.game?.status?.detailedState || '';
     if (d.includes('Delay') || d.includes('Delayed')) return 'DELAYED';

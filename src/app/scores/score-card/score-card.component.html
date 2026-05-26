@@ -21,10 +21,13 @@
       <div class="live-dot"></div>
       {{ inningLabel }}
     </div>
-    <div *ngIf="state === 'final'" class="status-final">
+    <div *ngIf="isPostponed" class="status-postponed">
+      POSTPONED
+    </div>
+    <div *ngIf="state === 'final' && !isPostponed" class="status-final">
       FINAL{{ extraInnings }}
     </div>
-    <div *ngIf="state === 'upcoming'" class="status-upcoming">
+    <div *ngIf="state === 'upcoming' && !isPostponed" class="status-upcoming">
       {{ gameTime }}
     </div>
   </div>
@@ -59,7 +62,7 @@
       <div class="score"
            [class.score--win]="awayWin"
            [class.score--loss]="homeWin && state === 'final'"
-           *ngIf="state !== 'upcoming'">
+           *ngIf="state !== 'upcoming' && !isPostponed">
         {{ away?.score ?? 0 }}
       </div>
     </div>
@@ -92,7 +95,7 @@
       <div class="score"
            [class.score--win]="homeWin"
            [class.score--loss]="awayWin && state === 'final'"
-           *ngIf="state !== 'upcoming'">
+           *ngIf="state !== 'upcoming' && !isPostponed">
         {{ home?.score ?? 0 }}
       </div>
     </div>
@@ -103,7 +106,7 @@
     <div class="divider"></div>
 
     <!-- Linescore (Live or Final) -->
-    <div *ngIf="state !== 'upcoming'" class="linescore-wrap">
+    <div *ngIf="state !== 'upcoming' && !isPostponed" class="linescore-wrap">
       <div class="linescore-scroll">
         <table class="linescore">
           <thead>
@@ -135,8 +138,18 @@
       </div>
     </div>
 
+    <!-- Postponed Notice -->
+    <div *ngIf="isPostponed" class="postponed-notice">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div class="postponed-notice-text">
+        <span>Game postponed.</span>
+        <span *ngIf="makeupDateLabel" class="makeup-date">Makeup: {{ makeupDateLabel }}</span>
+        <span *ngIf="!makeupDateLabel">Date TBD.</span>
+      </div>
+    </div>
+
     <!-- Pitcher Matchup & Info (Upcoming) -->
-    <div *ngIf="state === 'upcoming'" class="probables">
+    <div *ngIf="state === 'upcoming' && !isPostponed" class="probables">
       <div class="matchup-rows">
         <div class="pitcher-row">
           <span class="p-label">{{ away?.team?.abbreviation || teams.abbr(awayId) }}:</span>
@@ -233,7 +246,7 @@
     </div>
 
     <!-- Decisions (Final only) -->
-    <div *ngIf="state === 'final' && decisions" class="decisions">
+    <div *ngIf="state === 'final' && !isPostponed && decisions" class="decisions">
       <div class="decision-row" *ngIf="winner">
         <span class="d-label">W:</span>
         <span class="d-name">{{ winner.fullName }}{{ getPitcherRecord(winner) }}</span>

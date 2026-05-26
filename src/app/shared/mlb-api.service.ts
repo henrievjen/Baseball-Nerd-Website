@@ -18,7 +18,7 @@ export class MlbApiService {
   getSchedule(opts: { date?: string; teamId?: number; startDate?: string; endDate?: string; gamePks?: string } = {}) {
     return this.get<any>('v1/schedule', {
       sportId: 1,
-      hydrate: 'linescore,team,broadcasts,decisions(person(stats(group=[pitching],type=[season],gameType=R))),probablePitcher(stats(group=[pitching],type=[season],gameType=R))',
+      hydrate: 'linescore,team,broadcasts,decisions(person(stats(group=[pitching],type=[season],gameType=R))),probablePitcher(stats(group=[pitching],type=[season],gameType=R)),reschedule',
       ...opts
     });
   }
@@ -152,6 +152,25 @@ export class MlbApiService {
       rosterType: 'fullSeason',
       season,
       hydrate: `person(stats(group=[fielding],type=[season],season=${season}))`
+    });
+  }
+
+  /**
+   * Searches the next 90 days of schedule for a makeup game that was rescheduled
+   * from the given original gamePk. Returns the raw game object or null.
+   * Filters by one of the two teams to keep the response small.
+   */
+  findMakeupGame(homeTeamId: number, originalGamePk: number) {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    const start = new Date();
+    const end   = new Date(); end.setDate(end.getDate() + 90);
+    return this.get<any>('v1/schedule', {
+      sportId: 1,
+      teamId: homeTeamId,
+      startDate: fmt(start),
+      endDate: fmt(end),
+      hydrate: 'team'
     });
   }
 

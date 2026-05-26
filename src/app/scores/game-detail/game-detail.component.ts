@@ -75,6 +75,7 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
   @Input() plays: any = null;
   @Input() loadingPlays = false;
   @Input() liveFeed: any = null;
+  @Input() makeupGame: any = null;
   @Output() closed = new EventEmitter<void>();
 
   mainTab: 'lineups' | 'plays' = 'lineups';
@@ -234,6 +235,50 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
     if (s === 'Live') return 'live';
     if (s === 'Final') return 'final';
     return 'upcoming';
+  }
+
+  get isPostponed(): boolean {
+    const status = this.game?.status;
+    if (!status) return false;
+    // codedGameState 'D' is the MLB API's definitive code for the original postponed entry.
+    // detailedState 'Postponed' is a safety fallback.
+    // We deliberately exclude 'Rescheduled' — the MLB API also sets that on the makeup game.
+    const postponedStatus =
+      status.codedGameState === 'D' ||
+      status.detailedState === 'Postponed';
+    if (!postponedStatus) return false;
+    // The makeup game has rescheduledFrom set — never treat it as postponed.
+    if (this.game?.rescheduledFrom) return false;
+    return true;
+  }
+
+  /**
+   * Human-readable label for the makeup game date.
+   * Sources in priority order:
+   *  1. rescheduleGameDate / rescheduleDate on the postponed game object (MLB API base fields)
+   *  2. gameDate on a makeupGame found by schedule lookup
+   */
+  get makeupDateLabel(): string | null {
+    // Priority 1: field on the postponed game itself
+    const raw = this.game?.rescheduleGameDate || this.game?.rescheduleDate;
+    if (raw) return this.formatMakeupDate(raw);
+
+    // Priority 2: makeup game passed in from parent lookup
+    if (this.makeupGame) {
+      const d = this.makeupGame.gameDate || this.makeupGame.officialDate;
+      if (d) return this.formatMakeupDate(d);
+    }
+
+    return null;
+  }
+
+  private formatMakeupDate(raw: string): string {
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return raw;
+    // If the raw string is date-only (no time component) use UTC to avoid off-by-one
+    const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(raw.trim());
+    const target = isDateOnly ? new Date(raw + 'T12:00:00Z') : d;
+    return target.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
   }
 
   get ls()          { return this.liveFeed?.liveData?.linescore || this.game?.linescore || {}; }
