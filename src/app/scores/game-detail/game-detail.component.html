@@ -182,87 +182,113 @@
                 <div class="sz-divider"></div>
               </div>
 
-              <!-- Batting Tables -->
-              <div class="section-header">
-                <img class="section-logo" [src]="teams.logo(awayId)" (error)="logoError($event)"/>
-                <span>{{ away?.team?.name }}</span>
-              </div>
-              <div class="bs-table-wrap">
-                <table class="bs-table">
-                  <thead><tr><th class="th-num">#</th><th class="th-player">Player</th><th>AB</th><th>R</th><th>H</th><th>RBI</th><th>HR</th><th>BB</th><th>K</th><th class="th-season">AVG</th><th class="th-season">OBP</th><th class="th-season">SLG</th><th class="th-season ops-col">OPS</th></tr></thead>
-                  <tbody>
-                  <ng-container *ngFor="let slot of cachedAwayLineup; trackBy: trackBySlot">
-                    <tr class="starter-row">
-                      <td class="lineup-num">{{ slot.lineupNum > 0 ? slot.lineupNum : '' }}</td>
-                      <td class="player-name-cell" (click)="openPlayer(slot.starter)">{{ slot.starter.person?.fullName }}<span class="pos-tag">{{ slot.starter.position?.abbreviation }}</span></td>
-                      <td>{{ gameBat(slot.starter,'atBats') }}</td><td>{{ gameBat(slot.starter,'runs') }}</td><td>{{ gameBat(slot.starter,'hits') }}</td><td>{{ gameBat(slot.starter,'rbi') }}</td><td>{{ gameBat(slot.starter,'homeRuns') }}</td><td>{{ gameBat(slot.starter,'baseOnBalls') }}</td><td>{{ gameBat(slot.starter,'strikeOuts') }}</td>
-                      <td class="season-stat">{{ seasonBat(slot.starter,'avg') }}</td><td class="season-stat">{{ seasonBat(slot.starter,'obp') }}</td><td class="season-stat">{{ seasonBat(slot.starter,'slg') }}</td><td class="season-stat ops-col">{{ seasonBat(slot.starter,'ops') }}</td>
-                    </tr>
-                    <tr *ngFor="let sub of slot.subs; trackBy: trackByPlayer" class="sub-row">
-                      <td class="lineup-num"></td><td class="player-name-cell sub-player" (click)="openPlayer(sub)"><span class="sub-arrow">↳</span>{{ sub.person?.fullName }}<span class="pos-tag">{{ sub.position?.abbreviation }}</span></td>
-                      <td>{{ gameBat(sub,'atBats') }}</td><td>{{ gameBat(sub,'runs') }}</td><td>{{ gameBat(sub,'hits') }}</td><td>{{ gameBat(sub,'rbi') }}</td><td>{{ gameBat(sub,'homeRuns') }}</td><td>{{ gameBat(sub,'baseOnBalls') }}</td><td>{{ gameBat(sub,'strikeOuts') }}</td>
-                      <td class="season-stat">{{ seasonBat(sub,'avg') }}</td><td class="season-stat">{{ seasonBat(sub,'obp') }}</td><td class="season-stat">{{ seasonBat(sub,'slg') }}</td><td class="season-stat ops-col">{{ seasonBat(sub,'ops') }}</td>
-                    </tr>
-                  </ng-container>
-                  </tbody>
-                </table>
-              </div>
+              <!-- Away Team Section -->
+              <ng-container *ngIf="awayLineupReported; else awayProjected">
+                <div class="section-header">
+                  <img class="section-logo" [src]="teams.logo(awayId)" (error)="logoError($event)"/>
+                  <span>{{ away?.team?.name }}</span>
+                </div>
+                <div class="bs-table-wrap">
+                  <table class="bs-table">
+                    <thead><tr><th class="th-num">#</th><th class="th-player">Player</th><th>AB</th><th>R</th><th>H</th><th>RBI</th><th>HR</th><th>BB</th><th>K</th><th class="th-season">AVG</th><th class="th-season">OBP</th><th class="th-season">SLG</th><th class="th-season ops-col">OPS</th></tr></thead>
+                    <tbody>
+                    <ng-container *ngFor="let slot of cachedAwayLineup; trackBy: trackBySlot">
+                      <tr class="starter-row">
+                        <td class="lineup-num">{{ slot.lineupNum > 0 ? slot.lineupNum : '' }}</td>
+                        <td class="player-name-cell" (click)="openPlayer(slot.starter)">{{ slot.starter.person?.fullName }}<span class="pos-tag">{{ slot.starter.position?.abbreviation }}</span></td>
+                        <td>{{ gameBat(slot.starter,'atBats') }}</td><td>{{ gameBat(slot.starter,'runs') }}</td><td>{{ gameBat(slot.starter,'hits') }}</td><td>{{ gameBat(slot.starter,'rbi') }}</td><td>{{ gameBat(slot.starter,'homeRuns') }}</td><td>{{ gameBat(slot.starter,'baseOnBalls') }}</td><td>{{ gameBat(slot.starter,'strikeOuts') }}</td>
+                        <td class="season-stat">{{ seasonBat(slot.starter,'avg') }}</td><td class="season-stat">{{ seasonBat(slot.starter,'obp') }}</td><td class="season-stat">{{ seasonBat(slot.starter,'slg') }}</td><td class="season-stat ops-col">{{ seasonBat(slot.starter,'ops') }}</td>
+                      </tr>
+                      <tr *ngFor="let sub of slot.subs; trackBy: trackByPlayer" class="sub-row">
+                        <td class="lineup-num"></td><td class="player-name-cell sub-player" (click)="openPlayer(sub)"><span class="sub-arrow">↳</span>{{ sub.person?.fullName }}<span class="pos-tag">{{ sub.position?.abbreviation }}</span></td>
+                        <td>{{ gameBat(sub,'atBats') }}</td><td>{{ gameBat(sub,'runs') }}</td><td>{{ gameBat(sub,'hits') }}</td><td>{{ gameBat(sub,'rbi') }}</td><td>{{ gameBat(sub,'homeRuns') }}</td><td>{{ gameBat(sub,'baseOnBalls') }}</td><td>{{ gameBat(sub,'strikeOuts') }}</td>
+                        <td class="season-stat">{{ seasonBat(sub,'avg') }}</td><td class="season-stat">{{ seasonBat(sub,'obp') }}</td><td class="season-stat">{{ seasonBat(sub,'slg') }}</td><td class="season-stat ops-col">{{ seasonBat(sub,'ops') }}</td>
+                      </tr>
+                    </ng-container>
+                    </tbody>
+                  </table>
+                </div>
 
-              <!-- Pitching Tables -->
-              <div class="section-header section-header--pitch"><span>{{ away?.team?.name }} Pitching</span></div>
-              <div class="bs-table-wrap">
-                <table class="bs-table">
-                  <thead><tr><th class="th-player">Pitcher</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>K</th><th>HR</th><th>P</th><th>S</th><th>B</th><th class="th-season">ERA</th><th class="th-season">WHIP</th></tr></thead>
-                  <tbody>
-                  <tr *ngFor="let p of cachedAwayPitchers; trackBy: trackByPlayer">
-                    <td class="player-name-cell" (click)="openPlayer(p)">{{ p.person?.fullName }}</td>
-                    <td>{{ gamePit(p,'inningsPitched') }}</td><td>{{ gamePit(p,'hits') }}</td><td>{{ gamePit(p,'runs') }}</td><td>{{ gamePit(p,'earnedRuns') }}</td><td>{{ gamePit(p,'baseOnBalls') }}</td><td>{{ gamePit(p,'strikeOuts') }}</td><td>{{ gamePit(p,'homeRuns') }}</td><td>{{ gamePit(p,'numberOfPitches') }}</td><td>{{ gamePit(p,'strikes') }}</td><td>{{ gamePit(p,'balls') }}</td>
-                    <td class="season-stat">{{ seasonPit(p,'era') }}</td><td class="season-stat">{{ seasonPit(p,'whip') }}</td>
-                  </tr>
-                  </tbody>
-                </table>
-              </div>
+                <div class="section-header section-header--pitch"><span>{{ away?.team?.name }} Pitching</span></div>
+                <div class="bs-table-wrap">
+                  <table class="bs-table">
+                    <thead><tr><th class="th-player">Pitcher</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>K</th><th>HR</th><th>P</th><th>S</th><th>B</th><th class="th-season">ERA</th><th class="th-season">WHIP</th></tr></thead>
+                    <tbody>
+                    <tr *ngFor="let p of cachedAwayPitchers; trackBy: trackByPlayer">
+                      <td class="player-name-cell" (click)="openPlayer(p)">{{ p.person?.fullName }}</td>
+                      <td>{{ gamePit(p,'inningsPitched') }}</td><td>{{ gamePit(p,'hits') }}</td><td>{{ gamePit(p,'runs') }}</td><td>{{ gamePit(p,'earnedRuns') }}</td><td>{{ gamePit(p,'baseOnBalls') }}</td><td>{{ gamePit(p,'strikeOuts') }}</td><td>{{ gamePit(p,'homeRuns') }}</td><td>{{ gamePit(p,'numberOfPitches') }}</td><td>{{ gamePit(p,'strikes') }}</td><td>{{ gamePit(p,'balls') }}</td>
+                      <td class="season-stat">{{ seasonPit(p,'era') }}</td><td class="season-stat">{{ seasonPit(p,'whip') }}</td>
+                    </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </ng-container>
+
+              <ng-template #awayProjected>
+                <div class="section-header">
+                  <img class="section-logo" [src]="teams.logo(awayId)" (error)="logoError($event)"/>
+                  <span>{{ away?.team?.name }}</span>
+                  <span class="gd-proj-tag">Lineup TBD</span>
+                </div>
+                <div class="gd-projected-inline">
+                  <ng-container *ngTemplateOutlet="pitcherCard; context: { team: away }"></ng-container>
+                </div>
+              </ng-template>
 
               <div class="lineup-divider"></div>
 
-              <div class="section-header">
-                <img class="section-logo" [src]="teams.logo(homeId)" (error)="logoError($event)"/>
-                <span>{{ home?.team?.name }}</span>
-              </div>
-              <div class="bs-table-wrap">
-                <table class="bs-table">
-                  <thead><tr><th class="th-num">#</th><th class="th-player">Player</th><th>AB</th><th>R</th><th>H</th><th>RBI</th><th>HR</th><th>BB</th><th>K</th><th class="th-season">AVG</th><th class="th-season">OBP</th><th class="th-season">SLG</th><th class="th-season ops-col">OPS</th></tr></thead>
-                  <tbody>
-                  <ng-container *ngFor="let slot of cachedHomeLineup; trackBy: trackBySlot">
-                    <tr class="starter-row">
-                      <td class="lineup-num">{{ slot.lineupNum > 0 ? slot.lineupNum : '' }}</td>
-                      <td class="player-name-cell" (click)="openPlayer(slot.starter)">{{ slot.starter.person?.fullName }}<span class="pos-tag">{{ slot.starter.position?.abbreviation }}</span></td>
-                      <td>{{ gameBat(slot.starter,'atBats') }}</td><td>{{ gameBat(slot.starter,'runs') }}</td><td>{{ gameBat(slot.starter,'hits') }}</td><td>{{ gameBat(slot.starter,'rbi') }}</td><td>{{ gameBat(slot.starter,'homeRuns') }}</td><td>{{ gameBat(slot.starter,'baseOnBalls') }}</td><td>{{ gameBat(slot.starter,'strikeOuts') }}</td>
-                      <td class="season-stat">{{ seasonBat(slot.starter,'avg') }}</td><td class="season-stat">{{ seasonBat(slot.starter,'obp') }}</td><td class="season-stat">{{ seasonBat(slot.starter,'slg') }}</td><td class="season-stat ops-col">{{ seasonBat(slot.starter,'ops') }}</td>
-                    </tr>
-                    <tr *ngFor="let sub of slot.subs; trackBy: trackByPlayer" class="sub-row">
-                      <td class="lineup-num"></td><td class="player-name-cell sub-player" (click)="openPlayer(sub)"><span class="sub-arrow">↳</span>{{ sub.person?.fullName }}<span class="pos-tag">{{ sub.position?.abbreviation }}</span></td>
-                      <td>{{ gameBat(sub,'atBats') }}</td><td>{{ gameBat(sub,'runs') }}</td><td>{{ gameBat(sub,'hits') }}</td><td>{{ gameBat(sub,'rbi') }}</td><td>{{ gameBat(sub,'homeRuns') }}</td><td>{{ gameBat(sub,'baseOnBalls') }}</td><td>{{ gameBat(sub,'strikeOuts') }}</td>
-                      <td class="season-stat">{{ seasonBat(sub,'avg') }}</td><td class="season-stat">{{ seasonBat(sub,'obp') }}</td><td class="season-stat">{{ seasonBat(sub,'slg') }}</td><td class="season-stat ops-col">{{ seasonBat(sub,'ops') }}</td>
-                    </tr>
-                  </ng-container>
-                  </tbody>
-                </table>
-              </div>
+              <!-- Home Team Section -->
+              <ng-container *ngIf="homeLineupReported; else homeProjected">
+                <div class="section-header">
+                  <img class="section-logo" [src]="teams.logo(homeId)" (error)="logoError($event)"/>
+                  <span>{{ home?.team?.name }}</span>
+                </div>
+                <div class="bs-table-wrap">
+                  <table class="bs-table">
+                    <thead><tr><th class="th-num">#</th><th class="th-player">Player</th><th>AB</th><th>R</th><th>H</th><th>RBI</th><th>HR</th><th>BB</th><th>K</th><th class="th-season">AVG</th><th class="th-season">OBP</th><th class="th-season">SLG</th><th class="th-season ops-col">OPS</th></tr></thead>
+                    <tbody>
+                    <ng-container *ngFor="let slot of cachedHomeLineup; trackBy: trackBySlot">
+                      <tr class="starter-row">
+                        <td class="lineup-num">{{ slot.lineupNum > 0 ? slot.lineupNum : '' }}</td>
+                        <td class="player-name-cell" (click)="openPlayer(slot.starter)">{{ slot.starter.person?.fullName }}<span class="pos-tag">{{ slot.starter.position?.abbreviation }}</span></td>
+                        <td>{{ gameBat(slot.starter,'atBats') }}</td><td>{{ gameBat(slot.starter,'runs') }}</td><td>{{ gameBat(slot.starter,'hits') }}</td><td>{{ gameBat(slot.starter,'rbi') }}</td><td>{{ gameBat(slot.starter,'homeRuns') }}</td><td>{{ gameBat(slot.starter,'baseOnBalls') }}</td><td>{{ gameBat(slot.starter,'strikeOuts') }}</td>
+                        <td class="season-stat">{{ seasonBat(slot.starter,'avg') }}</td><td class="season-stat">{{ seasonBat(slot.starter,'obp') }}</td><td class="season-stat">{{ seasonBat(slot.starter,'slg') }}</td><td class="season-stat ops-col">{{ seasonBat(slot.starter,'ops') }}</td>
+                      </tr>
+                      <tr *ngFor="let sub of slot.subs; trackBy: trackByPlayer" class="sub-row">
+                        <td class="lineup-num"></td><td class="player-name-cell sub-player" (click)="openPlayer(sub)"><span class="sub-arrow">↳</span>{{ sub.person?.fullName }}<span class="pos-tag">{{ sub.position?.abbreviation }}</span></td>
+                        <td>{{ gameBat(sub,'atBats') }}</td><td>{{ gameBat(sub,'runs') }}</td><td>{{ gameBat(sub,'hits') }}</td><td>{{ gameBat(sub,'rbi') }}</td><td>{{ gameBat(sub,'homeRuns') }}</td><td>{{ gameBat(sub,'baseOnBalls') }}</td><td>{{ gameBat(sub,'strikeOuts') }}</td>
+                        <td class="season-stat">{{ seasonBat(sub,'avg') }}</td><td class="season-stat">{{ seasonBat(sub,'obp') }}</td><td class="season-stat">{{ seasonBat(sub,'slg') }}</td><td class="season-stat ops-col">{{ seasonBat(sub,'ops') }}</td>
+                      </tr>
+                    </ng-container>
+                    </tbody>
+                  </table>
+                </div>
 
-              <div class="section-header section-header--pitch"><span>{{ home?.team?.name }} Pitching</span></div>
-              <div class="bs-table-wrap">
-                <table class="bs-table">
-                  <thead><tr><th class="th-player">Pitcher</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>K</th><th>HR</th><th>P</th><th>S</th><th>B</th><th class="th-season">ERA</th><th class="th-season">WHIP</th></tr></thead>
-                  <tbody>
-                  <tr *ngFor="let p of cachedHomePitchers; trackBy: trackByPlayer">
-                    <td class="player-name-cell" (click)="openPlayer(p)">{{ p.person?.fullName }}</td>
-                    <td>{{ gamePit(p,'inningsPitched') }}</td><td>{{ gamePit(p,'hits') }}</td><td>{{ gamePit(p,'runs') }}</td><td>{{ gamePit(p,'earnedRuns') }}</td><td>{{ gamePit(p,'baseOnBalls') }}</td><td>{{ gamePit(p,'strikeOuts') }}</td><td>{{ gamePit(p,'homeRuns') }}</td><td>{{ gamePit(p,'numberOfPitches') }}</td><td>{{ gamePit(p,'strikes') }}</td><td>{{ gamePit(p,'balls') }}</td>
-                    <td class="season-stat">{{ seasonPit(p,'era') }}</td><td class="season-stat">{{ seasonPit(p,'whip') }}</td>
-                  </tr>
-                  </tbody>
-                </table>
-              </div>
+                <div class="section-header section-header--pitch"><span>{{ home?.team?.name }} Pitching</span></div>
+                <div class="bs-table-wrap">
+                  <table class="bs-table">
+                    <thead><tr><th class="th-player">Pitcher</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>K</th><th>HR</th><th>P</th><th>S</th><th>B</th><th class="th-season">ERA</th><th class="th-season">WHIP</th></tr></thead>
+                    <tbody>
+                    <tr *ngFor="let p of cachedHomePitchers; trackBy: trackByPlayer">
+                      <td class="player-name-cell" (click)="openPlayer(p)">{{ p.person?.fullName }}</td>
+                      <td>{{ gamePit(p,'inningsPitched') }}</td><td>{{ gamePit(p,'hits') }}</td><td>{{ gamePit(p,'runs') }}</td><td>{{ gamePit(p,'earnedRuns') }}</td><td>{{ gamePit(p,'baseOnBalls') }}</td><td>{{ gamePit(p,'strikeOuts') }}</td><td>{{ gamePit(p,'homeRuns') }}</td><td>{{ gamePit(p,'numberOfPitches') }}</td><td>{{ gamePit(p,'strikes') }}</td><td>{{ gamePit(p,'balls') }}</td>
+                      <td class="season-stat">{{ seasonPit(p,'era') }}</td><td class="season-stat">{{ seasonPit(p,'whip') }}</td>
+                    </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </ng-container>
+
+              <ng-template #homeProjected>
+                <div class="section-header">
+                  <img class="section-logo" [src]="teams.logo(homeId)" (error)="logoError($event)"/>
+                  <span>{{ home?.team?.name }}</span>
+                  <span class="gd-proj-tag">Lineup TBD</span>
+                </div>
+                <div class="gd-projected-inline">
+                  <ng-container *ngTemplateOutlet="pitcherCard; context: { team: home }"></ng-container>
+                </div>
+              </ng-template>
             </ng-container>
 
             <!-- CASE B: No Lineups Available -> Show Projected Matchup -->
@@ -270,63 +296,9 @@
               <div class="gd-projected-view">
                 <h3 class="gd-proj-title">Projected Starters</h3>
                 <div class="gd-pitcher-matchup">
-
-                  <!-- Away Pitcher -->
-                  <div class="gd-pitcher-card" [class.gd-pitcher-card--clickable]="away?.probablePitcher?.id" (click)="away?.probablePitcher?.id && openPlayer(away.probablePitcher)">
-                    <img class="gd-pitcher-photo" [src]="teams.photo(away?.probablePitcher?.id)" alt="" (error)="logoError($event)" />
-                    <div class="gd-pitcher-name">{{ away?.probablePitcher?.fullName || 'TBD' }}</div>
-                    <ng-container *ngIf="away?.probablePitcher; else tbdStats">
-                      <div class="gd-pitcher-stats">
-                        <div class="gd-pstat">
-                          <span class="gd-pstat-val">{{ getProbablePitcherRecord(away.probablePitcher) }}</span>
-                          <span class="gd-pstat-lbl">Record</span>
-                        </div>
-                        <div class="gd-pstat">
-                          <span class="gd-pstat-val">{{ getProbablePitcherStrikeouts(away.probablePitcher) }}</span>
-                          <span class="gd-pstat-lbl">K</span>
-                        </div>
-                        <div class="gd-pstat">
-                          <span class="gd-pstat-val">{{ getProbablePitcherEra(away.probablePitcher) }}</span>
-                          <span class="gd-pstat-lbl">ERA</span>
-                        </div>
-                        <div class="gd-pstat">
-                          <span class="gd-pstat-val">{{ getProbablePitcherWhip(away.probablePitcher) }}</span>
-                          <span class="gd-pstat-lbl">WHIP</span>
-                        </div>
-                      </div>
-                    </ng-container>
-                  </div>
-
+                  <ng-container *ngTemplateOutlet="pitcherCard; context: { team: away }"></ng-container>
                   <div class="gd-pitcher-vs">VS</div>
-
-                  <!-- Home Pitcher -->
-                  <div class="gd-pitcher-card" [class.gd-pitcher-card--clickable]="home?.probablePitcher?.id" (click)="home?.probablePitcher?.id && openPlayer(home.probablePitcher)">
-                    <img class="gd-pitcher-photo" [src]="teams.photo(home?.probablePitcher?.id)" alt="" (error)="logoError($event)" />
-                    <div class="gd-pitcher-name">{{ home?.probablePitcher?.fullName || 'TBD' }}</div>
-                    <ng-container *ngIf="home?.probablePitcher; else tbdStats">
-                      <div class="gd-pitcher-stats">
-                        <div class="gd-pstat">
-                          <span class="gd-pstat-val">{{ getProbablePitcherRecord(home.probablePitcher) }}</span>
-                          <span class="gd-pstat-lbl">Record</span>
-                        </div>
-                        <div class="gd-pstat">
-                          <span class="gd-pstat-val">{{ getProbablePitcherStrikeouts(home.probablePitcher) }}</span>
-                          <span class="gd-pstat-lbl">K</span>
-                        </div>
-                        <div class="gd-pstat">
-                          <span class="gd-pstat-val">{{ getProbablePitcherEra(home.probablePitcher) }}</span>
-                          <span class="gd-pstat-lbl">ERA</span>
-                        </div>
-                        <div class="gd-pstat">
-                          <span class="gd-pstat-val">{{ getProbablePitcherWhip(home.probablePitcher) }}</span>
-                          <span class="gd-pstat-lbl">WHIP</span>
-                        </div>
-                      </div>
-                    </ng-container>
-                  </div>
-
-                  <ng-template #tbdStats></ng-template>
-
+                  <ng-container *ngTemplateOutlet="pitcherCard; context: { team: home }"></ng-container>
                 </div>
               </div>
             </ng-template>
@@ -453,7 +425,35 @@
         </div>
       </ng-container>
 
-
     </div>
   </div>
 </div>
+
+<!-- Reusable Pitcher Card Template -->
+<ng-template #pitcherCard let-team="team">
+  <div class="gd-pitcher-card" [class.gd-pitcher-card--clickable]="team?.probablePitcher?.id" (click)="team?.probablePitcher?.id && openPlayer(team.probablePitcher)">
+    <img class="gd-pitcher-photo" [src]="teams.photo(team?.probablePitcher?.id)" alt="" (error)="logoError($event)" />
+    <div class="gd-pitcher-name">{{ team?.probablePitcher?.fullName || 'TBD' }}</div>
+    <ng-container *ngIf="team?.probablePitcher; else tbdStats">
+      <div class="gd-pitcher-stats">
+        <div class="gd-pstat">
+          <span class="gd-pstat-val">{{ getProbablePitcherRecord(team.probablePitcher) }}</span>
+          <span class="gd-pstat-lbl">Record</span>
+        </div>
+        <div class="gd-pstat">
+          <span class="gd-pstat-val">{{ getProbablePitcherStrikeouts(team.probablePitcher) }}</span>
+          <span class="gd-pstat-lbl">K</span>
+        </div>
+        <div class="gd-pstat">
+          <span class="gd-pstat-val">{{ getProbablePitcherEra(team.probablePitcher) }}</span>
+          <span class="gd-pstat-lbl">ERA</span>
+        </div>
+        <div class="gd-pstat">
+          <span class="gd-pstat-val">{{ getProbablePitcherWhip(team.probablePitcher) }}</span>
+          <span class="gd-pstat-lbl">WHIP</span>
+        </div>
+      </div>
+    </ng-container>
+    <ng-template #tbdStats></ng-template>
+  </div>
+</ng-template>

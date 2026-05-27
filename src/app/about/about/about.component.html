@@ -22,6 +22,23 @@
       </p>
     </section>
 
+    <!-- Support Section -->
+    <section class="about-section card support-card">
+      <h2>Support the Project</h2>
+      <p>
+        If you enjoy using Baseball Nerd and want to help keep it running and ad-free, consider supporting the development!
+      </p>
+      <div class="support-actions">
+        <a href="https://buymeacoffee.com/baseballnerd" target="_blank" class="bmc-full-btn">
+          <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 50px !important;width: 180px !important;" >
+        </a>
+        <div class="qr-container">
+          <img src="assets/bmc_qr.png" alt="Support QR Code" class="support-qr" (error)="qrError = true" *ngIf="!qrError"/>
+          <p class="qr-hint" *ngIf="!qrError">Scan to support</p>
+        </div>
+      </div>
+    </section>
+
     <section class="about-section card links-card">
       <h2>Stay Connected</h2>
       <p>Follow the project for updates and download the app on Google Play:</p>

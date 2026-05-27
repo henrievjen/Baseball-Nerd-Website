@@ -28,6 +28,10 @@ const routes: Routes = [
     loadChildren: () => import('./depth-chart/depth-chart.module').then(m => m.DepthChartModule)
   },
   {
+    path: 'feedback',
+    loadChildren: () => import('./feedback/feedback.module').then(m => m.FeedbackModule)
+  },
+  {
     path: 'about',
     loadChildren: () => import('./about/about.module').then(m => m.AboutModule)
   },

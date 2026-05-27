@@ -45,6 +45,39 @@
   }
 }
 
+.bmc-btn {
+  position: absolute;
+  top: 20px;
+  right: 76px;
+  height: 40px;
+  padding: 0 16px 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #FFDD00;
+  color: #000000;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  z-index: 100;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  transition: var(--transition);
+  white-space: nowrap;
+
+  img {
+    height: 20px;
+    width: auto;
+  }
+
+  &:hover {
+    background-color: #ffea00;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+}
+
 @media (max-width: 768px) {
   .app-shell { padding-left: 0; }
   .main-content { padding-bottom: var(--mobile-nav-h); }
@@ -54,5 +87,14 @@
     right: 16px;
     width: 36px;
     height: 36px;
+  }
+
+  .bmc-btn {
+    top: 14px;
+    right: 64px;
+    height: 36px;
+    padding: 0 10px;
+
+    .bmc-text { display: none; }
   }
 }

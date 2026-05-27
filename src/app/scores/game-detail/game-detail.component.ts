@@ -712,8 +712,15 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   get lineupsAvailable(): boolean {
-    return !!(this.awayBs?.batters?.length || this.homeBs?.batters?.length ||
-              this.awayBs?.pitchers?.length || this.homeBs?.pitchers?.length);
+    return this.awayLineupReported || this.homeLineupReported;
+  }
+
+  get awayLineupReported(): boolean {
+    return !!(this.cachedAwayLineup?.length || this.cachedAwayPitchers?.length);
+  }
+
+  get homeLineupReported(): boolean {
+    return !!(this.cachedHomeLineup?.length || this.cachedHomePitchers?.length);
   }
 
   get playsAvailable(): boolean {

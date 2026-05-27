@@ -2,6 +2,12 @@
   <app-sidebar #sidebar></app-sidebar>
 
   <main class="main-content">
+    <!-- Buy Me a Coffee Widget -->
+    <a href="https://buymeacoffee.com/baseballnerd" target="_blank" class="bmc-btn" title="Support Baseball Nerd">
+      <img src="https://cdn.buymeacoffee.com/buttons/bmc-new-btn-logo.svg" alt="Buy me a coffee">
+      <span class="bmc-text">Support</span>
+    </a>
+
     <button class="theme-toggle" (click)="toggleTheme()" [title]="isLightMode ? 'Switch to Dark Mode' : 'Switch to Light Mode'">
       <svg *ngIf="!isLightMode" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>

@@ -6,4 +6,6 @@ import { Component } from '@angular/core';
   styleUrl: './about.component.scss',
   standalone: false
 })
-export class AboutComponent {}
+export class AboutComponent {
+  qrError = false;
+}

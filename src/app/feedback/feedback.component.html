@@ -1,0 +1,48 @@
+<div class="feedback-page page-enter">
+  <header class="page-header">
+    <h1 class="page-title">FEEDBACK</h1>
+  </header>
+
+  <div class="feedback-content">
+    <div class="card feedback-card">
+      <h2>We'd Love to Hear From You</h2>
+      <p>
+        Have a suggestion, found a bug, or just want to say hi? Fill out the form below and it will open your email client
+        to send us a message.
+      </p>
+
+      <form class="feedback-form" (submit)="sendFeedback()">
+        <div class="form-group">
+          <label for="email">Your Email (Optional)</label>
+          <input type="email" id="email" [(ngModel)]="email" name="email" placeholder="email{{ '@' }}example.com">
+        </div>
+
+        <div class="form-group">
+          <label for="subject">Subject</label>
+          <input type="text" id="subject" [(ngModel)]="subject" name="subject" placeholder="What is this about?" required>
+        </div>
+
+        <div class="form-group">
+          <label for="message">Message</label>
+          <textarea id="message" [(ngModel)]="message" name="message" rows="6" placeholder="Tell us more..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit" [disabled]="!message || !subject">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+          Open Email Client
+        </button>
+      </form>
+    </div>
+
+    <div class="card info-card">
+      <h3>Direct Email</h3>
+      <p>You can also reach us directly at:</p>
+      <a [href]="'mailto:' + contactEmail" class="direct-email">
+        {{ contactEmail }}
+      </a>
+    </div>
+  </div>
+</div>

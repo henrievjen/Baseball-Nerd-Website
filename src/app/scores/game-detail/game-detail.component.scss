@@ -206,6 +206,25 @@
   padding: 24px 24px 0;
 }
 
+.gd-projected-inline {
+  padding: 8px 24px 20px;
+  .gd-pitcher-card {
+    max-width: 320px;
+  }
+}
+
+.gd-proj-tag {
+  margin-left: auto;
+  font-size: 0.62rem;
+  color: var(--text3);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--bg3);
+}
+
 .gd-game-info {
   padding: 24px;
   margin-top: 12px;
