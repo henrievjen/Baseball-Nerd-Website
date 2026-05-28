@@ -17,7 +17,7 @@
 }
 
 .theme-toggle {
-  position: absolute;
+  position: fixed;
   top: 20px;
   right: 24px;
   width: 40px;
@@ -30,7 +30,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 100;
+  z-index: 500;
   transition: var(--transition);
   padding: 0;
 
@@ -46,7 +46,7 @@
 }
 
 .bmc-btn {
-  position: absolute;
+  position: fixed;
   top: 20px;
   right: 76px;
   height: 40px;
@@ -61,7 +61,7 @@
   font-size: 0.85rem;
   font-weight: 700;
   text-decoration: none;
-  z-index: 100;
+  z-index: 500;
   box-shadow: 0 2px 5px rgba(0,0,0,0.15);
   transition: var(--transition);
   white-space: nowrap;
@@ -91,7 +91,7 @@
 
   .bmc-btn {
     top: 14px;
-    right: 64px;
+    right: 60px;
     height: 36px;
     padding: 0 10px;
 

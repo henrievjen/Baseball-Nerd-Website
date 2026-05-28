@@ -3,6 +3,11 @@
 .page-header {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 28px; flex-wrap: wrap; gap: 14px;
+  padding-right: 210px;
+
+  @media (max-width: 768px) {
+    padding-right: 110px;
+  }
 }
 
 .page-title {
@@ -146,7 +151,8 @@
   width: 24px; height: 24px; object-fit: contain; flex-shrink: 0;
   background: white;
   border-radius: 50%;
-  padding: 2px;
+  padding: 4px;
+  overflow: hidden;
 }
 
 .team-name-text { font-size: 0.85rem; font-weight: 500; color: var(--text); }

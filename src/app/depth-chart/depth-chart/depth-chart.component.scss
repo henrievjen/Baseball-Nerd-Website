@@ -14,6 +14,13 @@
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
+  // Reserve space for fixed Support + theme-toggle buttons (≈210px from right)
+  padding-right: 210px;
+
+  @media (max-width: 768px) {
+    // On mobile the bmc-btn shows only an icon (≈100px total)
+    padding-right: 110px;
+  }
 }
 
 .page-title {
@@ -109,7 +116,8 @@
       object-fit: contain;
       background: #fff;
       border-radius: 50%;
-      padding: 1px;
+      padding: 3px;
+      overflow: hidden;
     }
 
     .preview-name {
@@ -159,7 +167,8 @@
     object-fit: contain;
     background: #fff;
     border-radius: 50%;
-    padding: 1px;
+    padding: 3px;
+    overflow: hidden;
   }
 
   .team-chip-abbr { letter-spacing: 0.5px; }
@@ -201,8 +210,9 @@
   object-fit: contain;
   background: #fff;
   border-radius: 50%;
-  padding: 3px;
+  padding: 7px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
 }
 
 .team-heading-name {

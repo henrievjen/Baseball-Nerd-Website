@@ -165,34 +165,19 @@ export class PlayerModalComponent implements OnInit, OnDestroy {
 
   private buildAvailableYears() {
     if (!this.player?.stats) return;
-    const yearByYearSplits: any[] = [];
-
-    for (const s of this.player.stats) {
-      if (s.type?.displayName === 'yearByYear' || s.type?.displayName === 'yearByYearPlayoffs') continue;
-      if (s.type?.displayName !== 'yearByYear') {
-        // collect from any yearByYear block
-      }
-    }
-
-    // Find yearByYear entries for either group
-    const ybyEntry = this.player.stats.find((s: any) =>
-      s.type?.displayName === 'yearByYear'
-    );
 
     const years = new Set<number>();
-    if (ybyEntry?.splits) {
-      for (const split of ybyEntry.splits) {
-        const yr = parseInt(split.season ?? split.year, 10);
-        if (!isNaN(yr)) years.add(yr);
-      }
-    }
 
-    // Also try hitting/pitching yearByYear
+    // Collect years from all yearByYear stat groups, but only when the split
+    // actually contains meaningful stats (gamesPlayed / gamesPitched > 0).
     for (const s of this.player.stats) {
       if (s.type?.displayName === 'yearByYear' && s.splits) {
+        const group: string = s.group?.displayName?.toLowerCase() ?? '';
         for (const split of s.splits) {
           const yr = parseInt(split.season ?? split.year, 10);
-          if (!isNaN(yr)) years.add(yr);
+          if (!isNaN(yr) && this.splitHasStats(split, group)) {
+            years.add(yr);
+          }
         }
       }
     }
@@ -472,6 +457,26 @@ export class PlayerModalComponent implements OnInit, OnDestroy {
 
   photoError(ev: Event) { (ev.target as HTMLImageElement).style.opacity = '0'; }
   logoError(ev: Event)  { (ev.target as HTMLImageElement).style.display = 'none'; }
+
+  /** Returns true if a yearByYear split actually contains meaningful stats for the given group. */
+  private splitHasStats(split: any, group: string): boolean {
+    const stat = split.stat;
+    if (!stat) return false;
+
+    const hittingKeys = ['gamesPlayed', 'atBats', 'plateAppearances', 'hits'];
+    const pitchingKeys = ['gamesPitched', 'gamesStarted'];
+    const keysToCheck = group === 'pitching' ? pitchingKeys
+                      : group === 'hitting'  ? hittingKeys
+                      : [...hittingKeys, ...pitchingKeys];
+
+    return keysToCheck.some(k => {
+      const v = stat[k];
+      if (v === null || v === undefined) return false;
+      if (typeof v === 'number') return v > 0;
+      if (typeof v === 'string') { const n = parseFloat(v); return !isNaN(n) && n > 0; }
+      return false;
+    });
+  }
 
   close() {
     this.player = null;
