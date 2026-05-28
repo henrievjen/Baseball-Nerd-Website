@@ -1,3 +1,8 @@
+// Right-rail ad breakpoint — only show when there's ≥1400px total viewport
+// (sidebar ~232px + content ~968px + rail ~200px = 1400px)
+$ad-rail-w: 180px;
+$ad-breakpoint: 1400px;
+
 .app-shell {
   display: flex;
   min-height: 100vh;
@@ -14,8 +19,54 @@
   min-width: 0;
   overflow-x: hidden;
   position: relative;
+
+  // Reserve space for the ad rail on wide screens so content never hides behind it
+  @media (min-width: $ad-breakpoint) {
+    padding-right: $ad-rail-w + 16px;
+  }
 }
 
+// ── Right-rail ad ─────────────────────────────────────────────────────────────
+.ad-rail {
+  display: none; // hidden by default; shown only on wide viewports below
+
+  @media (min-width: $ad-breakpoint) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    position: fixed;
+    top: 80px;   // clear the Support + theme-toggle buttons
+    right: 0;
+    width: $ad-rail-w;
+    // Stays on screen while user scrolls; stacks below the fixed header buttons
+    z-index: 200;
+    padding: 0 12px;
+  }
+}
+
+.ad-rail__label {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text3);
+  text-align: center;
+  margin: 0;
+  user-select: none;
+}
+
+.ad-rail__unit {
+  width: 100%;
+
+  ins.adsbygoogle {
+    display: block;
+    width: 160px;  // standard Wide Skyscraper / fits the rail
+    min-height: 600px;
+  }
+}
+
+// ── Theme toggle & BMC button ─────────────────────────────────────────────────
 .theme-toggle {
   position: fixed;
   top: 20px;

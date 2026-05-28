@@ -1,6 +1,8 @@
-import { Component, OnInit, Renderer2 } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Renderer2 } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+
+declare const adsbygoogle: any[];
 
 @Component({
   selector: 'app-root',
@@ -8,7 +10,7 @@ import { filter } from 'rxjs/operators';
   styleUrl: './app.component.scss',
   standalone: false
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewInit {
   isLightMode = false;
 
   constructor(
@@ -29,6 +31,13 @@ export class AppComponent implements OnInit {
       this.isLightMode = true;
       this.updateBodyClass();
     }
+  }
+
+  ngAfterViewInit() {
+    try {
+      (window as any)['adsbygoogle'] = (window as any)['adsbygoogle'] || [];
+      (window as any)['adsbygoogle'].push({});
+    } catch (e) { /* AdSense not loaded yet */ }
   }
 
   toggleTheme() {

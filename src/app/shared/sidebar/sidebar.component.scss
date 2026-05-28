@@ -132,7 +132,7 @@
     -webkit-backdrop-filter: blur(12px);
   }
 
-  .brand, .collapse-btn, .sidebar-ad { display: none !important; }
+  .brand, .collapse-btn { display: none !important; }
 
   .nav {
     flex-direction: row;
@@ -156,13 +156,9 @@
 
     &.active {
       background: transparent;
+      box-shadow: none;
       .nav-icon { stroke: var(--red); }
-      .active-indicator {
-        position: absolute;
-        top: 0; left: 15%; right: 15%; bottom: auto;
-        width: auto; height: 2px;
-        border-radius: 0 0 2px 2px;
-      }
+      .active-indicator { display: none; }
     }
   }
 
