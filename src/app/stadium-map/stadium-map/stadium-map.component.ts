@@ -107,6 +107,7 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private map!: L.Map;
   private radarLayer: L.TileLayer | null = null;
+  private radarHost = 'https://tilecache.rainviewer.com';
   private markers: L.Marker[] = [];
   private radarTimestamps: number[] = [];
   private currentTimestampIndex = 0;
@@ -155,7 +156,8 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
       subdomains: 'abcd',
-      maxZoom: 19
+      maxZoom: 19,
+      zIndex: 1
     }).addTo(this.map);
 
     this.addStadiumMarkers();
@@ -214,6 +216,7 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   loadRadar() {
     this.http.get<any>('https://api.rainviewer.com/public/weather-maps.json').subscribe({
       next: (data) => {
+        if (data.host) this.radarHost = data.host;
         const frames: any[] = data?.radar?.past ?? [];
         this.radarTimestamps = frames.map((f: any) => f.time);
         this.currentTimestampIndex = this.radarTimestamps.length - 1;
@@ -224,22 +227,24 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private applyRadarFrame() {
-    if (!this.radarTimestamps.length) return;
+    if (!this.map || !this.radarTimestamps.length) return;
     const ts = this.radarTimestamps[this.currentTimestampIndex];
+
     if (this.radarLayer) {
       this.map.removeLayer(this.radarLayer);
       this.radarLayer = null;
     }
+
     if (!this.showRadar) return;
-    // RainViewer 512px tiles require tileSize:512 + zoomOffset:-1 so Leaflet
-    // requests the correct zoom level and the tiles line up with the base map
+
+    // Use 256px tiles for better compatibility and higher zIndex to ensure it's on top of base map
+    // Color scheme 1 (Original) is more vibrant and matches our legend better than 2 (Universal Blue)
     this.radarLayer = L.tileLayer(
-      `https://tilecache.rainviewer.com/v2/radar/${ts}/512/{z}/{x}/{y}/2/1_1.png`,
+      `${this.radarHost}/v2/radar/${ts}/256/{z}/{x}/{y}/1/1_1.png`,
       {
         opacity: this.radarOpacity,
-        zIndex: 10,
-        tileSize: 512,
-        zoomOffset: -1,
+        zIndex: 20,
+        tileSize: 256,
       }
     );
     this.radarLayer.addTo(this.map);
