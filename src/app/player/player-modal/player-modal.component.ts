@@ -184,20 +184,17 @@ export class PlayerModalComponent implements OnInit, OnDestroy {
 
     this.availableYears = Array.from(years).sort((a, b) => b - a);
 
-    // Only show the current season in the picker if the player actually
-    // appeared in it. Historical / retired players have no current-year split
-    // and should default to their most recent played season instead.
-    const playedThisYear = this.availableYears.includes(this.currentYear);
+    // If a player has NO stats in any season yet (e.g. just drafted),
+    // at least show the current year so the modal isn't broken.
     if (this.availableYears.length === 0) {
       this.availableYears = [this.currentYear];
     }
 
     // Pick the default selected year:
-    //   - active players (played current season) → current year
-    //   - everyone else → most recent year they actually played
-    this.selectedYear = playedThisYear
-      ? this.currentYear
-      : this.availableYears[0];
+    // 1. If they played this year, pick current year.
+    // 2. Otherwise, pick their most recent played year.
+    const playedThisYear = this.availableYears.includes(this.currentYear);
+    this.selectedYear = playedThisYear ? this.currentYear : this.availableYears[0];
 
     // For historical players, pre-load their most-recent-season stats so the
     // tiles aren't empty (current-season stats are otherwise pulled from
@@ -209,7 +206,15 @@ export class PlayerModalComponent implements OnInit, OnDestroy {
 
   private setDefaultGroup() {
     if (!this.player) return;
-    this.activeGroup = this.isPitcher ? 'pitching' : 'hitting';
+    // Default to the group they actually have stats for
+    const canPitch = this.hasPitching;
+    const canHit = this.hasHitting;
+
+    if (this.isPitcher) {
+      this.activeGroup = canPitch ? 'pitching' : (canHit ? 'hitting' : 'pitching');
+    } else {
+      this.activeGroup = canHit ? 'hitting' : (canPitch ? 'pitching' : 'hitting');
+    }
     this.activeView = 'season';
   }
 
@@ -465,8 +470,10 @@ export class PlayerModalComponent implements OnInit, OnDestroy {
 
     const hittingKeys = ['gamesPlayed', 'atBats', 'plateAppearances', 'hits'];
     const pitchingKeys = ['gamesPitched', 'gamesStarted'];
-    const keysToCheck = group === 'pitching' ? pitchingKeys
-                      : group === 'hitting'  ? hittingKeys
+
+    // Check keys for the specific group if known, otherwise check all keys.
+    const keysToCheck = (group === 'pitching') ? pitchingKeys
+                      : (group === 'hitting') ? hittingKeys
                       : [...hittingKeys, ...pitchingKeys];
 
     return keysToCheck.some(k => {

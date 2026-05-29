@@ -102,6 +102,25 @@
 .mobile-more-btn { display: none; }
 .more-menu-popup { display: none; }
 
+/* Privacy link */
+.privacy-link-wrap {
+  padding: 8px 14px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.privacy-link {
+  font-size: 0.72rem;
+  color: var(--text3);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  letter-spacing: 0.2px;
+  transition: color var(--transition);
+
+  &:hover { color: var(--text2); }
+}
+
 /* Collapse button */
 .collapse-btn {
   background: none; border: none;

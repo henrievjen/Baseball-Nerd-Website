@@ -50,6 +50,11 @@
     </div>
   </div>
 
+  <!-- Privacy Policy link -->
+  <div class="privacy-link-wrap" *ngIf="!collapsed">
+    <a class="privacy-link" href="https://henrievjen.github.io/Baseball-Nerd-Privacy-Policy/" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+  </div>
+
   <!-- Collapse toggle -->
   <button class="collapse-btn" (click)="toggleCollapsed()" [title]="collapsed ? 'Expand' : 'Collapse'">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
