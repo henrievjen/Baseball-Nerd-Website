@@ -3,7 +3,8 @@ import {
   ChangeDetectorRef, NgZone
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import * as L from 'leaflet';
 
 export interface Stadium {
@@ -71,7 +72,7 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
     { team: 'Baltimore Orioles',     abbr: 'BAL', teamId: 110, name: 'Oriole Park at Camden Yards',   address: '333 W Camden St, Baltimore, MD',          lat: 39.2838, lng: -76.6217  },
     { team: 'Boston Red Sox',        abbr: 'BOS', teamId: 111, name: 'Fenway Park',                   address: '4 Jersey St, Boston, MA',                lat: 42.3467, lng: -71.0972  },
     { team: 'Chicago Cubs',          abbr: 'CHC', teamId: 112, name: 'Wrigley Field',                 address: '1060 W Addison St, Chicago, IL',          lat: 41.9484, lng: -87.6553  },
-    { team: 'Chicago White Sox',     abbr: 'CHW', teamId: 145, name: 'Rate Field',                    address: '333 W 35th St, Chicago, IL',              lat: 41.8299, lng: -87.6338  },
+    { team: 'Chicago White Sox',     abbr: 'CHW', teamId: 145, name: 'Guaranteed Rate Field',         address: '333 W 35th St, Chicago, IL',              lat: 41.8299, lng: -87.6338  },
     { team: 'Cincinnati Reds',       abbr: 'CIN', teamId: 113, name: 'Great American Ball Park',      address: '100 Joe Nuxhall Way, Cincinnati, OH',     lat: 39.0979, lng: -84.5082  },
     { team: 'Cleveland Guardians',   abbr: 'CLE', teamId: 114, name: 'Progressive Field',             address: '2401 Ontario St, Cleveland, OH',          lat: 41.4962, lng: -81.6852  },
     { team: 'Colorado Rockies',      abbr: 'COL', teamId: 115, name: 'Coors Field',                   address: '2001 Blake St, Denver, CO',               lat: 39.7559, lng: -104.9942 },
@@ -79,7 +80,7 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
     { team: 'Houston Astros',        abbr: 'HOU', teamId: 117, name: 'Daikin Park',                   address: '501 Crawford St, Houston, TX',            lat: 29.7573, lng: -95.3555  },
     { team: 'Kansas City Royals',    abbr: 'KC',  teamId: 118, name: 'Kauffman Stadium',              address: '1 Royal Way, Kansas City, MO',            lat: 39.0517, lng: -94.4803  },
     { team: 'Los Angeles Angels',    abbr: 'LAA', teamId: 108, name: 'Angel Stadium',                 address: '2000 E Gene Autry Way, Anaheim, CA',      lat: 33.8003, lng: -117.8827 },
-    { team: 'Los Angeles Dodgers',   abbr: 'LAD', teamId: 119, name: 'Dodger Stadium',               address: '1000 Vin Scully Ave, Los Angeles, CA',    lat: 34.0739, lng: -118.2400 },
+    { team: 'Los Angeles Dodgers',   abbr: 'LAD', teamId: 119, name: 'Dodger Stadium',               address: '100 Vin Scully Ave, Los Angeles, CA',    lat: 34.0739, lng: -118.2400 },
     { team: 'Miami Marlins',         abbr: 'MIA', teamId: 146, name: 'LoanDepot Park',                address: '501 Marlins Way, Miami, FL',              lat: 25.7781, lng: -80.2197  },
     { team: 'Milwaukee Brewers',     abbr: 'MIL', teamId: 158, name: 'American Family Field',         address: '1 Brewers Way, Milwaukee, WI',            lat: 43.0281, lng: -87.9712  },
     { team: 'Minnesota Twins',       abbr: 'MIN', teamId: 142, name: 'Target Field',                  address: '1 Twins Way, Minneapolis, MN',            lat: 44.9817, lng: -93.2781  },
@@ -92,14 +93,14 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
     { team: 'San Francisco Giants',  abbr: 'SF',  teamId: 137, name: 'Oracle Park',                   address: '24 Willie Mays Plaza, San Francisco, CA', lat: 37.7786, lng: -122.3893 },
     { team: 'Seattle Mariners',      abbr: 'SEA', teamId: 136, name: 'T-Mobile Park',                 address: '1250 1st Ave S, Seattle, WA',             lat: 47.5914, lng: -122.3325 },
     { team: 'St. Louis Cardinals',   abbr: 'STL', teamId: 138, name: 'Busch Stadium',                 address: '700 Clark Ave, St. Louis, MO',            lat: 38.6226, lng: -90.1928  },
-    { team: 'Tampa Bay Rays',        abbr: 'TB',  teamId: 139, name: 'George M. Steinbrenner Field',  address: '1 Steinbrenner Dr, Tampa, FL',            lat: 27.9683, lng: -82.5036  },
+    { team: 'Tampa Bay Rays',        abbr: 'TB',  teamId: 139, name: 'Tropicana Field',               address: '1 Tropicana Dr, St. Petersburg, FL',      lat: 27.7682, lng: -82.6534  },
     { team: 'Texas Rangers',         abbr: 'TEX', teamId: 140, name: 'Globe Life Field',              address: '734 Stadium Dr, Arlington, TX',           lat: 32.7473, lng: -97.0828  },
     { team: 'Toronto Blue Jays',     abbr: 'TOR', teamId: 141, name: 'Rogers Centre',                 address: '1 Blue Jays Way, Toronto, ON',            lat: 43.6414, lng: -79.3894  },
     { team: 'Washington Nationals',  abbr: 'WSH', teamId: 120, name: 'Nationals Park',                address: '1500 S Capitol St SE, Washington, DC',    lat: 38.8730, lng: -77.0074  },
   ];
 
   selectedStadium: Stadium | null = null;
-  radarOpacity = 0.6;
+  radarOpacity = 0.8;
   showRadar = true;
   useCelsius = false;
   loadingWeather = false;
@@ -110,7 +111,9 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   private radarHost = 'https://tilecache.rainviewer.com';
   private markers: L.Marker[] = [];
   private radarTimestamps: number[] = [];
+  private radarData: any[] = [];
   private currentTimestampIndex = 0;
+  private lastPastIndex = 0;
   private animationInterval: any = null;
   isAnimating = false;
 
@@ -134,7 +137,6 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initMap() {
-    // Fix Leaflet default icon paths (broken by webpack)
     const iconDefault = L.icon({
       iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
       iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -152,7 +154,13 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
       zoomControl: true,
     });
 
-    // Dark-styled OpenStreetMap tiles (CartoDB Dark Matter)
+    this.map.createPane('radarPane');
+    const rPane = this.map.getPane('radarPane');
+    if (rPane) {
+      rPane.style.zIndex = '450';
+      rPane.style.pointerEvents = 'none';
+    }
+
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
       subdomains: 'abcd',
@@ -216,38 +224,73 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   loadRadar() {
     this.http.get<any>('https://api.rainviewer.com/public/weather-maps.json').subscribe({
       next: (data) => {
-        if (data.host) this.radarHost = data.host;
-        const frames: any[] = data?.radar?.past ?? [];
-        this.radarTimestamps = frames.map((f: any) => f.time);
-        this.currentTimestampIndex = this.radarTimestamps.length - 1;
-        this.zone.runOutsideAngular(() => this.applyRadarFrame());
+        if (data && data.host) {
+          let host = data.host;
+          if (host.startsWith('//')) {
+            host = 'https:' + host;
+          } else if (!host.startsWith('http')) {
+            host = 'https://' + host;
+          }
+          this.radarHost = host.replace(/^http:/, 'https:').replace(/\/$/, '');
+        }
+
+        const past = data?.radar?.past ?? [];
+        const nowcast = data?.radar?.nowcast ?? [];
+
+        // Store full data objects to access paths correctly, filtering invalid frames
+        this.radarData = [...past, ...nowcast].filter(f => {
+          const val = (f && typeof f === 'object') ? f.time : f;
+          return !isNaN(Number(val)) && Number(val) > 0;
+        });
+
+        this.radarTimestamps = this.radarData.map(f => (typeof f === 'object' ? f.time : f));
+
+        this.lastPastIndex = Math.max(0, past.length - 1);
+        this.currentTimestampIndex = Math.min(this.lastPastIndex, Math.max(0, this.radarTimestamps.length - 1));
+
+        if (this.radarTimestamps.length > 0) {
+          this.zone.runOutsideAngular(() => this.applyRadarFrame());
+        }
       },
-      error: () => {} // fail silently — map still works without radar
+      error: () => {}
     });
   }
 
   private applyRadarFrame() {
-    if (!this.map || !this.radarTimestamps.length) return;
-    const ts = this.radarTimestamps[this.currentTimestampIndex];
+    if (!this.map || !this.radarData.length) return;
 
-    if (this.radarLayer) {
-      this.map.removeLayer(this.radarLayer);
-      this.radarLayer = null;
+    this.currentTimestampIndex = Math.max(0, Math.min(this.currentTimestampIndex, this.radarData.length - 1));
+    const frame = this.radarData[this.currentTimestampIndex];
+    let path = '';
+
+    if (frame && typeof frame === 'object' && frame.path) {
+      path = frame.path;
+    } else {
+      const ts = (frame && typeof frame === 'object') ? frame.time : frame;
+      path = `/v2/radar/${ts}`;
     }
 
-    if (!this.showRadar) return;
+    const url = `${this.radarHost}${path}/256/{z}/{x}/{y}/1/1_1.png`;
 
-    // Use 256px tiles for better compatibility and higher zIndex to ensure it's on top of base map
-    // Color scheme 1 (Original) is more vibrant and matches our legend better than 2 (Universal Blue)
-    this.radarLayer = L.tileLayer(
-      `${this.radarHost}/v2/radar/${ts}/256/{z}/{x}/{y}/1/1_1.png`,
-      {
-        opacity: this.radarOpacity,
-        zIndex: 20,
-        tileSize: 256,
+    if (!this.showRadar) {
+      if (this.radarLayer) {
+        this.map.removeLayer(this.radarLayer);
+        this.radarLayer = null;
       }
-    );
-    this.radarLayer.addTo(this.map);
+      return;
+    }
+
+    if (this.radarLayer) {
+      this.radarLayer.setUrl(url);
+    } else {
+      this.radarLayer = L.tileLayer(url, {
+        opacity: this.radarOpacity,
+        zIndex: 100,
+        tileSize: 256,
+        pane: 'radarPane'
+      });
+      this.radarLayer.addTo(this.map);
+    }
   }
 
   toggleRadar() {
@@ -262,12 +305,16 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   toggleAnimation() {
     if (this.isAnimating) { this.stopAnimation(); return; }
+    if (this.radarTimestamps.length === 0) return;
+
     this.isAnimating = true;
-    this.animationInterval = setInterval(() => {
-      this.currentTimestampIndex =
-        (this.currentTimestampIndex + 1) % this.radarTimestamps.length;
-      this.zone.runOutsideAngular(() => this.applyRadarFrame());
-    }, 600);
+    this.zone.runOutsideAngular(() => {
+      this.animationInterval = setInterval(() => {
+        this.currentTimestampIndex =
+          (this.currentTimestampIndex + 1) % this.radarTimestamps.length;
+        this.applyRadarFrame();
+      }, 1200);
+    });
   }
 
   stopAnimation() {
@@ -276,17 +323,13 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
       clearInterval(this.animationInterval);
       this.animationInterval = null;
     }
-    // Snap back to latest frame
-    this.currentTimestampIndex = this.radarTimestamps.length - 1;
+    this.currentTimestampIndex = Math.min(this.lastPastIndex, Math.max(0, this.radarTimestamps.length - 1));
     this.zone.runOutsideAngular(() => this.applyRadarFrame());
   }
 
-  // ── Weather ─────────────────────────────────────────────────────────────────
   loadAllWeather() {
     this.loadingWeather = true;
 
-    // Open-Meteo allows up to ~10 locations per request but we batch all 30
-    // by firing 30 lightweight parallel requests (each is tiny JSON)
     const requests = this.stadiums.map(s =>
       this.http.get<any>(
         `https://api.open-meteo.com/v1/forecast` +
@@ -294,6 +337,8 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
         `&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,` +
         `wind_speed_10m,wind_direction_10m,is_day` +
         `&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=mm&timezone=auto`
+      ).pipe(
+        catchError(() => of(null))
       )
     );
 
@@ -301,6 +346,7 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (responses) => {
         this.zone.run(() => {
           responses.forEach((res, i) => {
+            if (!res || !res.current) return;
             const c = res.current;
             const wmo = WMO_CODES[c.weather_code] ?? { label: 'Unknown', emoji: '❓' };
             this.stadiums[i].weather = {
