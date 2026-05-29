@@ -1,0 +1,584 @@
+// ── Page layout ──────────────────────────────────────────────────────────────
+.sm-page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 0px);
+  overflow: hidden;
+  padding: 0;
+}
+
+// ── Header ───────────────────────────────────────────────────────────────────
+.sm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 18px 24px 14px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  padding-right: 220px; // clear fixed buttons
+}
+
+.page-title {
+  font-family: var(--font-head);
+  font-size: clamp(24px, 3vw, 36px);
+  letter-spacing: 2px;
+  color: var(--text);
+  margin: 0 0 2px;
+  line-height: 1;
+}
+
+.accent { color: var(--red); }
+
+.sm-subtitle {
+  font-size: 0.78rem;
+  color: var(--text3);
+  margin: 0;
+  font-family: var(--font-mono);
+  letter-spacing: 0.3px;
+}
+
+// ── Controls ─────────────────────────────────────────────────────────────────
+.sm-header__controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.unit-toggle {
+  display: flex;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  overflow: hidden;
+
+  button {
+    padding: 6px 12px;
+    background: transparent;
+    border: none;
+    color: var(--text3);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+
+    &.active {
+      background: var(--red);
+      color: #fff;
+    }
+  }
+}
+
+.ctrl-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+
+  svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+  &.active {
+    border-color: var(--red);
+    color: var(--red);
+    background: var(--red-dim);
+  }
+
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+.opacity-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.opacity-label {
+  font-size: 0.72rem;
+  color: var(--text3);
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+
+.opacity-slider {
+  width: 80px;
+  accent-color: var(--red);
+  cursor: pointer;
+}
+
+// ── Body (map + list) ────────────────────────────────────────────────────────
+.sm-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+// ── Map ───────────────────────────────────────────────────────────────────────
+.sm-map-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+#stadium-map {
+  width: 100%;
+  height: 100%;
+  background: var(--bg2);
+
+  // Override Leaflet defaults to fit dark theme
+  ::ng-deep {
+    .leaflet-control-zoom a {
+      background: var(--surface2) !important;
+      color: var(--text) !important;
+      border-color: var(--border2) !important;
+    }
+
+    .leaflet-control-attribution {
+      background: rgba(0,0,0,0.5) !important;
+      color: var(--text3) !important;
+      font-size: 0.6rem !important;
+
+      a { color: var(--text3) !important; }
+    }
+  }
+}
+
+// ── Stadium pin marker ────────────────────────────────────────────────────────
+::ng-deep .stadium-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .pin-inner {
+    width: 44px;
+    height: 36px;
+    background: var(--red, #dc2626);
+    border: 2px solid #fff;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.5);
+    transition: transform 0.15s;
+
+    &:hover { transform: scale(1.1); }
+  }
+
+  .pin-abbr {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    color: #fff;
+    letter-spacing: 0.5px;
+    line-height: 1;
+  }
+
+  .pin-tail {
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid var(--red, #dc2626);
+    margin-top: -1px;
+  }
+}
+
+// ── Map overlays ──────────────────────────────────────────────────────────────
+.map-loading {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background: rgba(0,0,0,0.75);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text2);
+  font-size: 0.8rem;
+  z-index: 500;
+  backdrop-filter: blur(8px);
+
+  &__spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--red);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+.radar-legend {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.7);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 8px 14px;
+  z-index: 500;
+  backdrop-filter: blur(8px);
+  min-width: 200px;
+
+  .legend-label {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--text3);
+    text-align: center;
+    margin-bottom: 6px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .legend-bar {
+    height: 10px;
+    border-radius: 4px;
+    background: linear-gradient(to right,
+      rgba(0, 236, 236, 0.8),
+      rgba(1, 160, 246, 0.9),
+      rgba(0, 0, 246, 0.9),
+      rgba(0, 200, 0, 0.9),
+      rgba(0, 139, 0, 0.9),
+      rgba(255, 255, 0, 0.9),
+      rgba(231, 192, 0, 0.9),
+      rgba(255, 144, 0, 0.9),
+      rgba(255, 0, 0, 0.9),
+      rgba(192, 0, 0, 0.9)
+    );
+  }
+
+  .legend-ticks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+
+    span {
+      font-size: 0.6rem;
+      color: var(--text3);
+    }
+  }
+}
+
+// ── Stadium list ──────────────────────────────────────────────────────────────
+.sm-list {
+  width: 270px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border);
+  background: var(--bg2);
+  overflow: hidden;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  &__title {
+    font-family: var(--font-head);
+    font-size: 0.9rem;
+    letter-spacing: 1.5px;
+    color: var(--text2);
+  }
+
+  &__count {
+    font-size: 0.7rem;
+    color: var(--text3);
+    font-family: var(--font-mono);
+  }
+
+  &__items {
+    overflow-y: auto;
+    flex: 1;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border2) transparent;
+  }
+}
+
+.sm-list__item {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background var(--transition);
+
+  &:hover { background: var(--surface); }
+
+  &.selected {
+    background: var(--red-dim);
+    border-left: 3px solid var(--red);
+  }
+}
+
+.sli-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.sli-abbr {
+  font-family: var(--font-head);
+  font-size: 0.85rem;
+  color: var(--red);
+  letter-spacing: 1px;
+  min-width: 28px;
+}
+
+.sli-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+  line-height: 1.2;
+}
+
+.sli-emoji { font-size: 1rem; }
+
+.sli-weather {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  padding-left: 36px;
+}
+
+.sli-temp {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.sli-condition {
+  font-size: 0.72rem;
+  color: var(--text2);
+}
+
+.sli-wind {
+  font-size: 0.7rem;
+  color: var(--text3);
+  width: 100%;
+}
+
+.sli-precip {
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 4px;
+  padding: 1px 6px;
+
+  &.precip-light    { background: rgba(34,197,94,0.15); color: #22c55e; }
+  &.precip-moderate { background: rgba(245,158,11,0.15); color: #f59e0b; }
+  &.precip-heavy    { background: rgba(220,38,38,0.2); color: var(--red); }
+}
+
+.sli-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 36px;
+  margin-top: 4px;
+}
+
+.skel-bar {
+  height: 10px;
+  border-radius: 4px;
+  background: var(--surface2);
+  width: 80%;
+  animation: shimmer 1.4s infinite;
+
+  &.short { width: 50%; }
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
+}
+
+// ── Stadium detail panel ──────────────────────────────────────────────────────
+.sm-detail {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  width: 320px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 600;
+  overflow: hidden;
+  animation: slideUp 0.22s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.sm-detail__close {
+  position: absolute;
+  top: 10px; right: 10px;
+  background: var(--surface2);
+  border: none;
+  color: var(--text2);
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.75rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: var(--transition);
+  z-index: 2;
+
+  &:hover { background: var(--red); color: #fff; }
+}
+
+.sm-detail__inner {
+  padding: 18px;
+}
+
+.smd-top { margin-bottom: 14px; }
+
+.smd-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.smd-abbr {
+  font-family: var(--font-head);
+  font-size: 2rem;
+  color: var(--red);
+  letter-spacing: 1px;
+  line-height: 1;
+  flex-shrink: 0;
+  padding-top: 3px;
+}
+
+.smd-stadium {
+  font-family: var(--font-head);
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  color: var(--text);
+  margin: 0 0 2px;
+}
+
+.smd-team {
+  font-size: 0.78rem;
+  color: var(--text2);
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
+.smd-address {
+  font-size: 0.72rem;
+  color: var(--text3);
+  margin: 0;
+}
+
+.smd-weather {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+.smd-main-weather {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.smd-emoji { font-size: 2.8rem; }
+
+.smd-temp {
+  font-family: var(--font-head);
+  font-size: 2.4rem;
+  color: var(--text);
+  letter-spacing: 1px;
+  line-height: 1;
+  display: block;
+}
+
+.smd-cond {
+  font-size: 0.85rem;
+  color: var(--text2);
+  display: block;
+  margin-top: 2px;
+}
+
+.smd-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.smd-stat {
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-label {
+  font-size: 0.65rem;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-family: var(--font-mono);
+}
+
+.stat-val {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.smd-no-weather {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text3);
+  font-size: 0.82rem;
+  padding-top: 12px;
+}
+
+.sm-spinner {
+  width: 16px; height: 16px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--red);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ── Mobile ────────────────────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .sm-page { height: auto; overflow: visible; }
+  .sm-header { padding: 14px 16px 10px; padding-right: 110px; }
+  .sm-body { flex-direction: column; height: auto; }
+  .sm-map-wrap { height: 55vw; min-height: 280px; }
+  .sm-list { width: 100%; border-left: none; border-top: 1px solid var(--border); max-height: 320px; }
+  .sm-detail { position: fixed; bottom: 70px; left: 12px; right: 12px; width: auto; }
+  .opacity-ctrl, .opacity-slider { display: none; }
+  .radar-legend { display: none; }
+}

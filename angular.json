@@ -53,11 +53,11 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
-              "src/ads.txt",
-              "src/_redirects"
+              "src/ads.txt"
             ],
             "styles": [
-              "src/styles.scss"
+              "src/styles.scss",
+              "node_modules/leaflet/dist/leaflet.css"
             ],
             "scripts": [],
             "optimization": {

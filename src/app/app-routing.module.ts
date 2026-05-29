@@ -35,6 +35,10 @@ const routes: Routes = [
     path: 'about',
     loadChildren: () => import('./about/about.module').then(m => m.AboutModule)
   },
+  {
+    path: 'stadium-weather',
+    loadChildren: () => import('./stadium-map/stadium-map.module').then(m => m.StadiumMapModule)
+  },
 ];
 
 @NgModule({

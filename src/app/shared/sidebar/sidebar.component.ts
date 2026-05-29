@@ -20,14 +20,15 @@ export class SidebarComponent implements AfterViewInit {
   isMoreOpen = false;
 
   navItems: NavItem[] = [
-    { label: 'Scores',         route: '/scores',         icon: 'scores' },
-    { label: 'Standings',      route: '/standings',      icon: 'standings' },
-    { label: 'Stats',          route: '/stats',          icon: 'stats' },
-    { label: 'Players',        route: '/players',        icon: 'players' },
-    { label: 'Team Schedule',  route: '/team-schedule',  icon: 'schedule' },
-    { label: 'Depth Chart',    route: '/depth-chart',    icon: 'depth' },
-    { label: 'Feedback',       route: '/feedback',       icon: 'feedback' },
-    { label: 'About',          route: '/about',          icon: 'about' },
+    { label: 'Scores',           route: '/scores',           icon: 'scores'   },
+    { label: 'Standings',        route: '/standings',        icon: 'standings'},
+    { label: 'Stats',            route: '/stats',            icon: 'stats'    },
+    { label: 'Players',          route: '/players',          icon: 'players'  },
+    { label: 'Team Schedule',    route: '/team-schedule',    icon: 'schedule' },
+    { label: 'Depth Chart',      route: '/depth-chart',      icon: 'depth'    },
+    { label: 'Stadium Weather',  route: '/stadium-weather',  icon: 'stadium'  },
+    { label: 'Feedback',         route: '/feedback',         icon: 'feedback' },
+    { label: 'About',            route: '/about',            icon: 'about'    },
   ];
 
   constructor(private router: Router) {
