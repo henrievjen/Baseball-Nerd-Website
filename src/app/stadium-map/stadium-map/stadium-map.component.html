@@ -1,153 +1,161 @@
 <div class="sm-page page-enter">
 
-    <!-- Header -->
-    <header class="sm-header">
-        <div class="sm-header__left">
-            <h1 class="page-title">STADIUM <span class="accent">WEATHER</span></h1>
-            <p class="sm-subtitle">Live weather & radar at all 30 MLB ballparks</p>
+  <!-- Header -->
+  <header class="sm-header">
+    <div class="sm-header__left">
+      <h1 class="page-title">STADIUM <span class="accent">WEATHER</span></h1>
+      <p class="sm-subtitle">Live weather & radar at all 30 MLB ballparks</p>
+    </div>
+
+    <div class="sm-header__controls">
+      <!-- Unit toggle -->
+      <div class="unit-toggle">
+        <button [class.active]="!useCelsius" (click)="useCelsius = false">°F</button>
+        <button [class.active]="useCelsius"  (click)="useCelsius = true">°C</button>
+      </div>
+
+      <!-- Radar toggle -->
+      <button class="ctrl-btn" [class.active]="showRadar" (click)="toggleRadar()" title="Toggle radar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6a6 6 0 1 0 6 6"/><path d="M12 10a2 2 0 1 0 2 2"/><line x1="12" y1="2" x2="12" y2="4"/>
+        </svg>
+        Radar
+      </button>
+
+      <!-- Animate radar -->
+      <button class="ctrl-btn" [class.active]="isAnimating" (click)="toggleAnimation()" [disabled]="!showRadar" title="Animate radar">
+        <svg *ngIf="!isAnimating" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <svg *ngIf="isAnimating"  viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        {{ isAnimating ? 'Stop' : 'Animate' }}
+      </button>
+
+      <!-- Opacity slider -->
+      <div class="opacity-ctrl" *ngIf="showRadar">
+        <span class="opacity-label">Radar</span>
+        <input type="range" min="0.1" max="1" step="0.05"
+               [value]="radarOpacity"
+               (input)="onOpacityChange($any($event.target).value)"
+               class="opacity-slider">
+      </div>
+    </div>
+  </header>
+
+  <!-- Map + sidebar layout -->
+  <div class="sm-body">
+
+    <!-- Map container -->
+    <div class="sm-map-wrap">
+      <div id="stadium-map"></div>
+
+      <!-- Loading weather overlay -->
+      <div class="map-loading" *ngIf="loadingWeather">
+        <div class="map-loading__spinner"></div>
+        <span>Loading weather data…</span>
+      </div>
+
+      <!-- Radar legend -->
+      <div class="radar-legend" *ngIf="showRadar">
+        <span class="legend-label">Precipitation Intensity</span>
+        <div class="legend-bar"></div>
+        <div class="legend-ticks">
+          <span>Light</span><span>Moderate</span><span>Heavy</span>
         </div>
+      </div>
+    </div>
 
-        <div class="sm-header__controls">
-            <!-- Unit toggle -->
-            <div class="unit-toggle">
-                <button [class.active]="!useCelsius" (click)="useCelsius = false">°F</button>
-                <button [class.active]="useCelsius"  (click)="useCelsius = true">°C</button>
-            </div>
+    <!-- Stadium list sidebar -->
+    <aside class="sm-list">
+      <div class="sm-list__header">
+        <span class="sm-list__title">ALL STADIUMS</span>
+        <span class="sm-list__count">{{ stadiums.length }} parks</span>
+      </div>
 
-            <!-- Radar toggle -->
-            <button class="ctrl-btn" [class.active]="showRadar" (click)="toggleRadar()" title="Toggle radar">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                    <path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6a6 6 0 1 0 6 6"/><path d="M12 10a2 2 0 1 0 2 2"/><line x1="12" y1="2" x2="12" y2="4"/>
-                </svg>
-                Radar
-            </button>
-
-            <!-- Animate radar -->
-            <button class="ctrl-btn" [class.active]="isAnimating" (click)="toggleAnimation()" [disabled]="!showRadar" title="Animate radar">
-                <svg *ngIf="!isAnimating" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                <svg *ngIf="isAnimating"  viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-                {{ isAnimating ? 'Stop' : 'Animate' }}
-            </button>
-
-            <!-- Opacity slider -->
-            <div class="opacity-ctrl" *ngIf="showRadar">
-                <span class="opacity-label">Radar</span>
-                <input type="range" min="0.1" max="1" step="0.05"
-                       [value]="radarOpacity"
-                       (input)="onOpacityChange($any($event.target).value)"
-                       class="opacity-slider">
-            </div>
-        </div>
-    </header>
-
-    <!-- Map + sidebar layout -->
-    <div class="sm-body">
-
-        <!-- Map container -->
-        <div class="sm-map-wrap">
-            <div id="stadium-map"></div>
-
-            <!-- Loading weather overlay -->
-            <div class="map-loading" *ngIf="loadingWeather">
-                <div class="map-loading__spinner"></div>
-                <span>Loading weather data…</span>
-            </div>
-
-            <!-- Radar legend -->
-            <div class="radar-legend" *ngIf="showRadar">
-                <span class="legend-label">Precipitation Intensity</span>
-                <div class="legend-bar"></div>
-                <div class="legend-ticks">
-                    <span>Light</span><span>Moderate</span><span>Heavy</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Stadium list sidebar -->
-        <aside class="sm-list">
-            <div class="sm-list__header">
-                <span class="sm-list__title">ALL STADIUMS</span>
-                <span class="sm-list__count">{{ stadiums.length }} parks</span>
-            </div>
-
-            <div class="sm-list__items">
-                <button class="sm-list__item"
-                        *ngFor="let s of stadiums"
-                        [class.selected]="selectedStadium === s"
-                        (click)="flyToStadium(s)">
-                    <div class="sli-top">
-                        <span class="sli-abbr">{{ s.abbr }}</span>
-                        <span class="sli-name">{{ s.name }}</span>
-                        <span class="sli-emoji" *ngIf="s.weather">{{ s.weather.icon }}</span>
-                    </div>
-                    <div class="sli-weather" *ngIf="s.weather; else loadingSlot">
-                        <span class="sli-temp">{{ displayTemp(s.weather) }}</span>
-                        <span class="sli-condition">{{ s.weather.condition }}</span>
-                        <span class="sli-wind">💨 {{ s.weather.windSpeed }} mph {{ windDirectionLabel(s.weather.windDir) }}</span>
-                        <span class="sli-precip" [class]="getPrecipClass(s.weather.precipitation)"
-                              *ngIf="s.weather.precipitation > 0">
+      <div class="sm-list__items">
+        <button class="sm-list__item"
+                *ngFor="let s of stadiums"
+                [class.selected]="selectedStadium === s"
+                (click)="flyToStadium(s)">
+          <div class="sli-top">
+            <img class="sli-logo"
+                 [src]="'https://www.mlbstatic.com/team-logos/' + s.teamId + '.svg'"
+                 [alt]="s.abbr"
+                 (error)="$any($event.target).style.display='none'"/>
+            <span class="sli-name">{{ s.name }}</span>
+            <span class="sli-emoji" *ngIf="s.weather">{{ s.weather.icon }}</span>
+          </div>
+          <div class="sli-weather" *ngIf="s.weather; else loadingSlot">
+            <span class="sli-temp">{{ displayTemp(s.weather) }}</span>
+            <span class="sli-condition">{{ s.weather.condition }}</span>
+            <span class="sli-wind">💨 {{ s.weather.windSpeed }} mph {{ windDirectionLabel(s.weather.windDir) }}</span>
+            <span class="sli-precip" [class]="getPrecipClass(s.weather.precipitation)"
+                  *ngIf="s.weather.precipitation > 0">
               🌧 {{ s.weather.precipitation.toFixed(1) }} mm/h
             </span>
-                    </div>
-                    <ng-template #loadingSlot>
-                        <div class="sli-skeleton">
-                            <span class="skel-bar"></span><span class="skel-bar short"></span>
-                        </div>
-                    </ng-template>
-                </button>
+          </div>
+          <ng-template #loadingSlot>
+            <div class="sli-skeleton">
+              <span class="skel-bar"></span><span class="skel-bar short"></span>
             </div>
-        </aside>
-    </div>
+          </ng-template>
+        </button>
+      </div>
+    </aside>
+  </div>
 
-    <!-- Stadium detail panel -->
-    <div class="sm-detail" *ngIf="selectedStadium" [@slideIn]>
-        <button class="sm-detail__close" (click)="closePanel()">✕</button>
-        <div class="sm-detail__inner">
-            <div class="smd-top">
-                <div class="smd-title">
-                    <span class="smd-abbr">{{ selectedStadium.abbr }}</span>
-                    <div>
-                        <h2 class="smd-stadium">{{ selectedStadium.name }}</h2>
-                        <p class="smd-team">{{ selectedStadium.team }}</p>
-                        <p class="smd-address">📍 {{ selectedStadium.address }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="smd-weather" *ngIf="selectedStadium.weather">
-                <div class="smd-main-weather">
-                    <span class="smd-emoji">{{ selectedStadium.weather.icon }}</span>
-                    <div class="smd-temp-block">
-                        <span class="smd-temp">{{ displayTemp(selectedStadium.weather) }}</span>
-                        <span class="smd-cond">{{ selectedStadium.weather.condition }}</span>
-                    </div>
-                </div>
-
-                <div class="smd-stats">
-                    <div class="smd-stat">
-                        <span class="stat-label">Wind</span>
-                        <span class="stat-val">{{ selectedStadium.weather.windSpeed }} mph {{ windDirectionLabel(selectedStadium.weather.windDir) }}</span>
-                    </div>
-                    <div class="smd-stat">
-                        <span class="stat-label">Humidity</span>
-                        <span class="stat-val">{{ selectedStadium.weather.humidity }}%</span>
-                    </div>
-                    <div class="smd-stat">
-                        <span class="stat-label">Precip</span>
-                        <span class="stat-val">{{ selectedStadium.weather.precipitation.toFixed(1) }} mm/h</span>
-                    </div>
-                    <div class="smd-stat">
-                        <span class="stat-label">Time</span>
-                        <span class="stat-val">{{ selectedStadium.weather.isDay ? '☀️ Day' : '🌙 Night' }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="smd-no-weather" *ngIf="!selectedStadium.weather && loadingWeather">
-                <div class="sm-spinner"></div>
-                <span>Loading weather…</span>
-            </div>
+  <!-- Stadium detail panel -->
+  <div class="sm-detail" *ngIf="selectedStadium" [@slideIn]>
+    <button class="sm-detail__close" (click)="closePanel()">✕</button>
+    <div class="sm-detail__inner">
+      <div class="smd-top">
+        <div class="smd-title">
+          <div class="smd-logo-wrap">
+            <img class="smd-logo"
+                 [src]="'https://www.mlbstatic.com/team-logos/' + selectedStadium.teamId + '.svg'"
+                 [alt]="selectedStadium.abbr"
+                 (error)="$any($event.target).style.display='none'"/>
+          </div>
+          <div>
+            <h2 class="smd-stadium">{{ selectedStadium.name }}</h2>
+            <p class="smd-team">{{ selectedStadium.team }}</p>
+            <p class="smd-address">📍 {{ selectedStadium.address }}</p>
+          </div>
         </div>
+      </div>
+
+      <div class="smd-weather" *ngIf="selectedStadium.weather">
+        <div class="smd-main-weather">
+          <span class="smd-emoji">{{ selectedStadium.weather.icon }}</span>
+          <div class="smd-temp-block">
+            <span class="smd-temp">{{ displayTemp(selectedStadium.weather) }}</span>
+            <span class="smd-cond">{{ selectedStadium.weather.condition }}</span>
+          </div>
+        </div>
+
+        <div class="smd-stats">
+          <div class="smd-stat">
+            <span class="stat-label">Wind</span>
+            <span class="stat-val">{{ selectedStadium.weather.windSpeed }} mph {{ windDirectionLabel(selectedStadium.weather.windDir) }}</span>
+          </div>
+          <div class="smd-stat">
+            <span class="stat-label">Humidity</span>
+            <span class="stat-val">{{ selectedStadium.weather.humidity }}%</span>
+          </div>
+          <div class="smd-stat">
+            <span class="stat-label">Precip</span>
+            <span class="stat-val">{{ selectedStadium.weather.precipitation.toFixed(1) }} mm/h</span>
+          </div>
+          <div class="smd-stat">
+            <span class="stat-label">Time</span>
+            <span class="stat-val">{{ selectedStadium.weather.isDay ? '☀️ Day' : '🌙 Night' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="smd-no-weather" *ngIf="!selectedStadium.weather && loadingWeather">
+        <div class="sm-spinner"></div>
+        <span>Loading weather…</span>
+      </div>
     </div>
+  </div>
 
 </div>

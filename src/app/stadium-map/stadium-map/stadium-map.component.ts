@@ -9,6 +9,7 @@ import * as L from 'leaflet';
 export interface Stadium {
   team: string;
   abbr: string;
+  teamId: number;   // MLB team ID for logo URL
   name: string;
   address: string;
   lat: number;
@@ -65,36 +66,36 @@ const WMO_CODES: Record<number, { label: string; emoji: string }> = {
 export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   stadiums: Stadium[] = [
-    { team: 'Arizona Diamondbacks', abbr: 'ARI', name: 'Chase Field',                  address: '401 E Jefferson St, Phoenix, AZ',        lat: 33.4453, lng: -112.0667 },
-    { team: 'Atlanta Braves',        abbr: 'ATL', name: 'Truist Park',                   address: '755 Battery Ave SE, Atlanta, GA',         lat: 33.8908, lng: -84.4678  },
-    { team: 'Baltimore Orioles',     abbr: 'BAL', name: 'Oriole Park at Camden Yards',   address: '333 W Camden St, Baltimore, MD',          lat: 39.2838, lng: -76.6217  },
-    { team: 'Boston Red Sox',        abbr: 'BOS', name: 'Fenway Park',                   address: '4 Jersey St, Boston, MA',                lat: 42.3467, lng: -71.0972  },
-    { team: 'Chicago Cubs',          abbr: 'CHC', name: 'Wrigley Field',                 address: '1060 W Addison St, Chicago, IL',          lat: 41.9484, lng: -87.6553  },
-    { team: 'Chicago White Sox',     abbr: 'CHW', name: 'Rate Field',                    address: '333 W 35th St, Chicago, IL',              lat: 41.8299, lng: -87.6338  },
-    { team: 'Cincinnati Reds',       abbr: 'CIN', name: 'Great American Ball Park',      address: '100 Joe Nuxhall Way, Cincinnati, OH',     lat: 39.0979, lng: -84.5082  },
-    { team: 'Cleveland Guardians',   abbr: 'CLE', name: 'Progressive Field',             address: '2401 Ontario St, Cleveland, OH',          lat: 41.4962, lng: -81.6852  },
-    { team: 'Colorado Rockies',      abbr: 'COL', name: 'Coors Field',                   address: '2001 Blake St, Denver, CO',               lat: 39.7559, lng: -104.9942 },
-    { team: 'Detroit Tigers',        abbr: 'DET', name: 'Comerica Park',                 address: '2100 Woodward Ave, Detroit, MI',          lat: 42.3390, lng: -83.0485  },
-    { team: 'Houston Astros',        abbr: 'HOU', name: 'Daikin Park',                   address: '501 Crawford St, Houston, TX',            lat: 29.7573, lng: -95.3555  },
-    { team: 'Kansas City Royals',    abbr: 'KC',  name: 'Kauffman Stadium',              address: '1 Royal Way, Kansas City, MO',            lat: 39.0517, lng: -94.4803  },
-    { team: 'Los Angeles Angels',    abbr: 'LAA', name: 'Angel Stadium',                 address: '2000 E Gene Autry Way, Anaheim, CA',      lat: 33.8003, lng: -117.8827 },
-    { team: 'Los Angeles Dodgers',   abbr: 'LAD', name: 'Dodger Stadium',               address: '1000 Vin Scully Ave, Los Angeles, CA',    lat: 34.0739, lng: -118.2400 },
-    { team: 'Miami Marlins',         abbr: 'MIA', name: 'LoanDepot Park',                address: '501 Marlins Way, Miami, FL',              lat: 25.7781, lng: -80.2197  },
-    { team: 'Milwaukee Brewers',     abbr: 'MIL', name: 'American Family Field',         address: '1 Brewers Way, Milwaukee, WI',            lat: 43.0281, lng: -87.9712  },
-    { team: 'Minnesota Twins',       abbr: 'MIN', name: 'Target Field',                  address: '1 Twins Way, Minneapolis, MN',            lat: 44.9817, lng: -93.2781  },
-    { team: 'New York Mets',         abbr: 'NYM', name: 'Citi Field',                    address: '41 Seaver Way, Queens, NY',               lat: 40.7571, lng: -73.8458  },
-    { team: 'New York Yankees',      abbr: 'NYY', name: 'Yankee Stadium',                address: '1 E 161 St, Bronx, NY',                   lat: 40.8296, lng: -73.9262  },
-    { team: 'Athletics',             abbr: 'OAK', name: 'Sutter Health Park',            address: '400 Ballpark Dr, West Sacramento, CA',    lat: 38.5803, lng: -121.5087 },
-    { team: 'Philadelphia Phillies', abbr: 'PHI', name: 'Citizens Bank Park',            address: '1 Citizens Bank Way, Philadelphia, PA',   lat: 39.9061, lng: -75.1665  },
-    { team: 'Pittsburgh Pirates',    abbr: 'PIT', name: 'PNC Park',                      address: '115 Federal St, Pittsburgh, PA',          lat: 40.4469, lng: -80.0057  },
-    { team: 'San Diego Padres',      abbr: 'SD',  name: 'Petco Park',                    address: '100 Park Blvd, San Diego, CA',            lat: 32.7073, lng: -117.1566 },
-    { team: 'San Francisco Giants',  abbr: 'SF',  name: 'Oracle Park',                   address: '24 Willie Mays Plaza, San Francisco, CA', lat: 37.7786, lng: -122.3893 },
-    { team: 'Seattle Mariners',      abbr: 'SEA', name: 'T-Mobile Park',                 address: '1250 1st Ave S, Seattle, WA',             lat: 47.5914, lng: -122.3325 },
-    { team: 'St. Louis Cardinals',   abbr: 'STL', name: 'Busch Stadium',                 address: '700 Clark Ave, St. Louis, MO',            lat: 38.6226, lng: -90.1928  },
-    { team: 'Tampa Bay Rays',        abbr: 'TB',  name: 'George M. Steinbrenner Field',  address: '1 Steinbrenner Dr, Tampa, FL',            lat: 27.9683, lng: -82.5036  },
-    { team: 'Texas Rangers',         abbr: 'TEX', name: 'Globe Life Field',              address: '734 Stadium Dr, Arlington, TX',           lat: 32.7473, lng: -97.0828  },
-    { team: 'Toronto Blue Jays',     abbr: 'TOR', name: 'Rogers Centre',                 address: '1 Blue Jays Way, Toronto, ON',            lat: 43.6414, lng: -79.3894  },
-    { team: 'Washington Nationals',  abbr: 'WSH', name: 'Nationals Park',                address: '1500 S Capitol St SE, Washington, DC',    lat: 38.8730, lng: -77.0074  },
+    { team: 'Arizona Diamondbacks', abbr: 'ARI', teamId: 109, name: 'Chase Field',                  address: '401 E Jefferson St, Phoenix, AZ',        lat: 33.4453, lng: -112.0667 },
+    { team: 'Atlanta Braves',        abbr: 'ATL', teamId: 144, name: 'Truist Park',                   address: '755 Battery Ave SE, Atlanta, GA',         lat: 33.8908, lng: -84.4678  },
+    { team: 'Baltimore Orioles',     abbr: 'BAL', teamId: 110, name: 'Oriole Park at Camden Yards',   address: '333 W Camden St, Baltimore, MD',          lat: 39.2838, lng: -76.6217  },
+    { team: 'Boston Red Sox',        abbr: 'BOS', teamId: 111, name: 'Fenway Park',                   address: '4 Jersey St, Boston, MA',                lat: 42.3467, lng: -71.0972  },
+    { team: 'Chicago Cubs',          abbr: 'CHC', teamId: 112, name: 'Wrigley Field',                 address: '1060 W Addison St, Chicago, IL',          lat: 41.9484, lng: -87.6553  },
+    { team: 'Chicago White Sox',     abbr: 'CHW', teamId: 145, name: 'Rate Field',                    address: '333 W 35th St, Chicago, IL',              lat: 41.8299, lng: -87.6338  },
+    { team: 'Cincinnati Reds',       abbr: 'CIN', teamId: 113, name: 'Great American Ball Park',      address: '100 Joe Nuxhall Way, Cincinnati, OH',     lat: 39.0979, lng: -84.5082  },
+    { team: 'Cleveland Guardians',   abbr: 'CLE', teamId: 114, name: 'Progressive Field',             address: '2401 Ontario St, Cleveland, OH',          lat: 41.4962, lng: -81.6852  },
+    { team: 'Colorado Rockies',      abbr: 'COL', teamId: 115, name: 'Coors Field',                   address: '2001 Blake St, Denver, CO',               lat: 39.7559, lng: -104.9942 },
+    { team: 'Detroit Tigers',        abbr: 'DET', teamId: 116, name: 'Comerica Park',                 address: '2100 Woodward Ave, Detroit, MI',          lat: 42.3390, lng: -83.0485  },
+    { team: 'Houston Astros',        abbr: 'HOU', teamId: 117, name: 'Daikin Park',                   address: '501 Crawford St, Houston, TX',            lat: 29.7573, lng: -95.3555  },
+    { team: 'Kansas City Royals',    abbr: 'KC',  teamId: 118, name: 'Kauffman Stadium',              address: '1 Royal Way, Kansas City, MO',            lat: 39.0517, lng: -94.4803  },
+    { team: 'Los Angeles Angels',    abbr: 'LAA', teamId: 108, name: 'Angel Stadium',                 address: '2000 E Gene Autry Way, Anaheim, CA',      lat: 33.8003, lng: -117.8827 },
+    { team: 'Los Angeles Dodgers',   abbr: 'LAD', teamId: 119, name: 'Dodger Stadium',               address: '1000 Vin Scully Ave, Los Angeles, CA',    lat: 34.0739, lng: -118.2400 },
+    { team: 'Miami Marlins',         abbr: 'MIA', teamId: 146, name: 'LoanDepot Park',                address: '501 Marlins Way, Miami, FL',              lat: 25.7781, lng: -80.2197  },
+    { team: 'Milwaukee Brewers',     abbr: 'MIL', teamId: 158, name: 'American Family Field',         address: '1 Brewers Way, Milwaukee, WI',            lat: 43.0281, lng: -87.9712  },
+    { team: 'Minnesota Twins',       abbr: 'MIN', teamId: 142, name: 'Target Field',                  address: '1 Twins Way, Minneapolis, MN',            lat: 44.9817, lng: -93.2781  },
+    { team: 'New York Mets',         abbr: 'NYM', teamId: 121, name: 'Citi Field',                    address: '41 Seaver Way, Queens, NY',               lat: 40.7571, lng: -73.8458  },
+    { team: 'New York Yankees',      abbr: 'NYY', teamId: 147, name: 'Yankee Stadium',                address: '1 E 161 St, Bronx, NY',                   lat: 40.8296, lng: -73.9262  },
+    { team: 'Athletics',             abbr: 'OAK', teamId: 133, name: 'Sutter Health Park',            address: '400 Ballpark Dr, West Sacramento, CA',    lat: 38.5803, lng: -121.5087 },
+    { team: 'Philadelphia Phillies', abbr: 'PHI', teamId: 143, name: 'Citizens Bank Park',            address: '1 Citizens Bank Way, Philadelphia, PA',   lat: 39.9061, lng: -75.1665  },
+    { team: 'Pittsburgh Pirates',    abbr: 'PIT', teamId: 134, name: 'PNC Park',                      address: '115 Federal St, Pittsburgh, PA',          lat: 40.4469, lng: -80.0057  },
+    { team: 'San Diego Padres',      abbr: 'SD',  teamId: 135, name: 'Petco Park',                    address: '100 Park Blvd, San Diego, CA',            lat: 32.7073, lng: -117.1566 },
+    { team: 'San Francisco Giants',  abbr: 'SF',  teamId: 137, name: 'Oracle Park',                   address: '24 Willie Mays Plaza, San Francisco, CA', lat: 37.7786, lng: -122.3893 },
+    { team: 'Seattle Mariners',      abbr: 'SEA', teamId: 136, name: 'T-Mobile Park',                 address: '1250 1st Ave S, Seattle, WA',             lat: 47.5914, lng: -122.3325 },
+    { team: 'St. Louis Cardinals',   abbr: 'STL', teamId: 138, name: 'Busch Stadium',                 address: '700 Clark Ave, St. Louis, MO',            lat: 38.6226, lng: -90.1928  },
+    { team: 'Tampa Bay Rays',        abbr: 'TB',  teamId: 139, name: 'George M. Steinbrenner Field',  address: '1 Steinbrenner Dr, Tampa, FL',            lat: 27.9683, lng: -82.5036  },
+    { team: 'Texas Rangers',         abbr: 'TEX', teamId: 140, name: 'Globe Life Field',              address: '734 Stadium Dr, Arlington, TX',           lat: 32.7473, lng: -97.0828  },
+    { team: 'Toronto Blue Jays',     abbr: 'TOR', teamId: 141, name: 'Rogers Centre',                 address: '1 Blue Jays Way, Toronto, ON',            lat: 43.6414, lng: -79.3894  },
+    { team: 'Washington Nationals',  abbr: 'WSH', teamId: 120, name: 'Nationals Park',                address: '1500 S Capitol St SE, Washington, DC',    lat: 38.8730, lng: -77.0074  },
   ];
 
   selectedStadium: Stadium | null = null;
@@ -181,19 +182,24 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private createStadiumIcon(stadium: Stadium): L.DivIcon {
+    const logoUrl = `https://www.mlbstatic.com/team-logos/${stadium.teamId}.svg`;
     return L.divIcon({
       html: `
         <div class="stadium-pin">
           <div class="pin-inner">
-            <span class="pin-abbr">${stadium.abbr}</span>
+            <img class="pin-logo"
+                 src="${logoUrl}"
+                 alt="${stadium.abbr}"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+            <span class="pin-abbr-fallback" style="display:none">${stadium.abbr}</span>
           </div>
           <div class="pin-tail"></div>
         </div>
       `,
       className: '',
-      iconSize: [44, 52],
-      iconAnchor: [22, 52],
-      popupAnchor: [0, -54]
+      iconSize: [48, 56],
+      iconAnchor: [24, 56],
+      popupAnchor: [0, -58]
     });
   }
 
@@ -225,9 +231,16 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
       this.radarLayer = null;
     }
     if (!this.showRadar) return;
+    // RainViewer 512px tiles require tileSize:512 + zoomOffset:-1 so Leaflet
+    // requests the correct zoom level and the tiles line up with the base map
     this.radarLayer = L.tileLayer(
       `https://tilecache.rainviewer.com/v2/radar/${ts}/512/{z}/{x}/{y}/2/1_1.png`,
-      { opacity: this.radarOpacity, zIndex: 10 }
+      {
+        opacity: this.radarOpacity,
+        zIndex: 10,
+        tileSize: 512,
+        zoomOffset: -1,
+      }
     );
     this.radarLayer.addTo(this.map);
   }
