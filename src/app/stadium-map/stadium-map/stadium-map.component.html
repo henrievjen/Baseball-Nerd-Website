@@ -47,6 +47,17 @@
     <div class="sm-map-wrap">
       <div id="stadium-map"></div>
 
+      <!-- No active precipitation notice -->
+      <div class="radar-no-precip" *ngIf="showRadar && !radarHiddenByZoom && radarHasNoPrecip && weatherLoaded">
+        ☀️ No active precipitation at any stadium
+      </div>
+
+      <!-- Zoom-too-close radar notice -->
+      <div class="radar-zoom-notice" *ngIf="showRadar && radarHiddenByZoom">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        Zoom out to see radar
+      </div>
+
       <!-- Loading weather overlay -->
       <div class="map-loading" *ngIf="loadingWeather">
         <div class="map-loading__spinner"></div>
@@ -147,6 +158,23 @@
           <div class="smd-stat">
             <span class="stat-label">Time</span>
             <span class="stat-val">{{ selectedStadium.weather.isDay ? '☀️ Day' : '🌙 Night' }}</span>
+          </div>
+        </div>
+
+        <!-- Hourly Forecast -->
+        <div class="smd-hourly" *ngIf="selectedStadium.weather.hourly">
+          <h3 class="hourly-title">Hourly Forecast</h3>
+          <div class="hourly-list">
+            <div class="hourly-item" *ngFor="let h of selectedStadium.weather.hourly">
+              <span class="h-date" *ngIf="h.dateLabel">{{ h.dateLabel }}</span>
+              <span class="h-time">{{ h.time }}</span>
+              <span class="h-icon" [title]="h.condition">{{ h.icon }}</span>
+              <span class="h-temp">{{ displayHourlyTemp(h) }}</span>
+              <span class="h-precip">
+                <ng-container *ngIf="h.precipProb > 0; else noPrecip">💧 {{ h.precipProb }}%</ng-container>
+                <ng-template #noPrecip><span class="no-prob">0%</span></ng-template>
+              </span>
+            </div>
           </div>
         </div>
       </div>
