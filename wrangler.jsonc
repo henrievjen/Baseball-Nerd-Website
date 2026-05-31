@@ -1,5 +1,5 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
+  "$schema": "../../baseball-nerd-fixed 4/node_modules/wrangler/config-schema.json",
   "name": "baseball-nerd-website",
   "compatibility_date": "2025-05-17",
   "observability": {

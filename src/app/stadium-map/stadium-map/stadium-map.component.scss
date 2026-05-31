@@ -203,7 +203,7 @@
   }
 }
 
-// ── Radar zoom notice ─────────────────────────────────────────────────────────
+// ── Radar notices ──────────────────────────────────────────────────────────
 .radar-no-precip {
   position: absolute;
   top: 12px;
@@ -220,34 +220,6 @@
   backdrop-filter: blur(6px);
   white-space: nowrap;
   pointer-events: none;
-}
-
-.radar-zoom-notice {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.75);
-  border: 1px solid var(--border2);
-  border-radius: 20px;
-  padding: 6px 14px 6px 10px;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--text2);
-  font-size: 0.78rem;
-  font-weight: 600;
-  z-index: 700;
-  backdrop-filter: blur(6px);
-  white-space: nowrap;
-  pointer-events: none;
-
-  svg {
-    width: 14px;
-    height: 14px;
-    flex-shrink: 0;
-    color: var(--red);
-  }
 }
 
 // ── Map overlays ──────────────────────────────────────────────────────────────
@@ -288,6 +260,16 @@
   z-index: 500;
   backdrop-filter: blur(8px);
   min-width: 200px;
+
+  .radar-ts {
+    display: block;
+    font-size: 0.75rem;
+    color: #fff;
+    text-align: center;
+    margin-bottom: 4px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+  }
 
   .legend-label {
     display: block;
