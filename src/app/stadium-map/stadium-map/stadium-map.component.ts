@@ -94,7 +94,7 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
 
   selectedStadium:  Stadium | null = null;
-  radarOpacity      = 0.8;
+  radarOpacity      = 1;
   showRadar         = true;
   useCelsius        = false;
   loadingWeather    = false;
@@ -145,7 +145,7 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   ngAfterViewInit() {
     this.zone.runOutsideAngular(() => {
-      setTimeout(() => this.initMap(), 150);
+      setTimeout(() => this.initMap(), 50);
     });
   }
   ngOnDestroy() {
@@ -270,19 +270,30 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initMap() {
-    // Mainland US Center: [39.0, -98.0]
-    const centerUS: L.LatLngExpression = [39.0, -98.0];
-    const zoomUS = 4;
+    const usBounds: L.LatLngBoundsExpression = [
+      [24.5, -125.0],
+      [49.5, -66.5]
+    ];
+
+    let userHasMoved = false;
 
     this.map = L.map('stadium-map', {
-      center: centerUS,
-      zoom: zoomUS,
       maxZoom: 20,
       zoomSnap: 1,
       zoomDelta: 1,
       zoomControl: true,
       attributionControl: false
     });
+
+    // Fire once after first tile renders — container has real pixel size by then
+    this.map.once('load', () => {
+      if (!userHasMoved) {
+        this.map.invalidateSize();
+        this.map.fitBounds(usBounds, { animate: false, padding: [0, 0] });
+      }
+    });
+
+    this.map.once('movestart', () => { userHasMoved = true; });
 
     this.map.createPane('radarPane');
     const rp = this.map.getPane('radarPane')!;
@@ -298,30 +309,29 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
       maxZoom: 20,
     }).addTo(this.map);
 
+    // Initial fit — may be imprecise if container not fully laid out yet,
+    // but the 'load' event above will correct it once tiles render
+    this.map.invalidateSize();
+    this.map.fitBounds(usBounds, { animate: false, padding: [0, 0] });
+
     this.addStadiumMarkers();
     this.loadRadar();
     this.loadAllWeather();
 
-    // Use ResizeObserver to ensure the map always knows its container size and stays centered
     const container = document.getElementById('stadium-map');
     if (container) {
       this.resizeObserver = new ResizeObserver(() => {
         this.zone.runOutsideAngular(() => {
-          this.map.invalidateSize();
-          // Force back to center if it looks like it's drifted (usually north) due to initialization size mismatches
-          if (this.map.getZoom() === zoomUS) {
-            this.map.setView(centerUS, zoomUS, { animate: false });
+          if (!userHasMoved) {
+            this.map.invalidateSize();
+            this.map.fitBounds(usBounds, { animate: false, padding: [0, 0] });
+          } else {
+            this.map.invalidateSize();
           }
         });
       });
       this.resizeObserver.observe(container);
     }
-
-    // Final insurance for initialization
-    setTimeout(() => {
-      this.map.invalidateSize();
-      this.map.setView(centerUS, zoomUS, { animate: false });
-    }, 500);
   }
 
   // ── Markers ──────────────────────────────────────────────────────────────

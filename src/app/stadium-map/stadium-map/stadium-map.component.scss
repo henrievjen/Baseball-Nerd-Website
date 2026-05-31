@@ -132,7 +132,8 @@
 
 #stadium-map {
   width: 100%;
-  height: 100%;
+  height: calc(100vh - 116px); /* 116px ≈ header (108px) + sm-body padding */
+  min-height: 400px;
   background: #1a1a2e;
 
   ::ng-deep {
@@ -841,10 +842,10 @@
   // ── Radar scrubber: compact but visible ──
   .radar-scrubber {
     display: block;
-    width: calc(100% - 24px);
+    width: calc(100% - 78px); /* 66px zoom controls + 12px right margin */
     max-width: none;
     top: 10px;
-    left: 12px;
+    left: 66px; /* clear the zoom +/- buttons (≈50px wide + 16px gap) */
     transform: none;
     padding: 8px 12px;
     border-radius: 8px;
