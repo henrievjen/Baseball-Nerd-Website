@@ -51,15 +51,19 @@
       <div class="radar-scrubber" *ngIf="showRadar && radarLoaded">
         <div class="scrubber-top">
           <span class="scrubber-time">{{ radarTimestamp }}</span>
-          <span class="scrubber-label">RADAR TIMELINE (PAST 1H)</span>
+          <span class="scrubber-label">
+            {{ radarFrames[frameIndex]?.isForecast ? 'FORECAST ▶' : 'RADAR TIMELINE' }}
+          </span>
         </div>
         <input type="range" min="0" [max]="radarFrames.length - 1"
                [value]="frameIndex"
                (input)="onFrameChange($any($event.target).value)"
-               class="scrubber-slider">
+               class="scrubber-slider"
+               [class.is-forecast]="radarFrames[frameIndex]?.isForecast">
         <div class="scrubber-ticks">
           <span *ngFor="let f of radarFrames; let i = index"
                 [class.active]="i === frameIndex"
+                [class.forecast-tick]="f.isForecast"
                 (click)="onFrameChange(i.toString())"></span>
         </div>
       </div>

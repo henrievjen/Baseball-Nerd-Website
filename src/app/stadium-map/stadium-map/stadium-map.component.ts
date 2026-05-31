@@ -106,26 +106,16 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   protected readonly Math = Math;
 
   private readonly STADIA_API_KEY = 'YOUR_STADIA_API_KEY';
+  // RainViewer: maximum supported tile zoom. Their API only serves tiles up
+  // to z=7; we cap requests at z=6 so Leaflet upscales from 6→20 seamlessly.
+  private rvHost = 'https://tilecache.rainviewer.com';
 
   private map!:              L.Map;
   private markers:           L.Marker[] = [];
   private radarLayer:        L.TileLayer | null = null;
-  // IEM NEXRAD layer names for animation (last 60 mins, 5 min intervals)
-  radarFrames:       { layer: string; label: string; timeOffset: number }[] = [
-    { layer: 'nexrad-n0q-900913-m55m', label: '', timeOffset: -55 },
-    { layer: 'nexrad-n0q-900913-m50m', label: '', timeOffset: -50 },
-    { layer: 'nexrad-n0q-900913-m45m', label: '', timeOffset: -45 },
-    { layer: 'nexrad-n0q-900913-m40m', label: '', timeOffset: -40 },
-    { layer: 'nexrad-n0q-900913-m35m', label: '', timeOffset: -35 },
-    { layer: 'nexrad-n0q-900913-m30m', label: '', timeOffset: -30 },
-    { layer: 'nexrad-n0q-900913-m25m', label: '', timeOffset: -25 },
-    { layer: 'nexrad-n0q-900913-m20m', label: '', timeOffset: -20 },
-    { layer: 'nexrad-n0q-900913-m15m', label: '', timeOffset: -15 },
-    { layer: 'nexrad-n0q-900913-m10m', label: '', timeOffset: -10 },
-    { layer: 'nexrad-n0q-900913-m05m', label: '', timeOffset: -5 },
-    { layer: 'nexrad-n0q-900913',      label: '', timeOffset: 0 }
-  ];
-  frameIndex         = 11;
+  // Frames populated from RainViewer API: past + nowcast (forecast)
+  radarFrames: { path: string; time: number; label: string; isForecast: boolean }[] = [];
+  frameIndex         = 0;
   private animationInterval: any = null;
 
   constructor(
@@ -135,7 +125,7 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.updateRadarLabels();
+    // radar frames are populated dynamically from RainViewer API in loadRadar()
   }
   ngAfterViewInit() {
     this.zone.runOutsideAngular(() => setTimeout(() => this.initMap(), 100));
@@ -145,15 +135,119 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.map) this.map.remove();
   }
 
-  private updateRadarLabels() {
-    const now = new Date();
-    this.radarFrames.forEach(f => {
-      const d = new Date(now.getTime() + f.timeOffset * 60000);
-      f.label = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // ── RainViewer radar ──────────────────────────────────────────────────────
+  loadRadar() {
+    this.http.get<any>('https://api.rainviewer.com/public/weather-maps.json').subscribe({
+      next: (data) => {
+        this.rvHost = data?.host ?? this.rvHost;
+        const past: any[]     = data?.radar?.past     ?? [];
+        const nowcast: any[]  = data?.radar?.nowcast  ?? [];
+
+        this.radarFrames = [
+          ...past.map((f: any) => ({
+            path:       f.path,
+            time:       f.time,
+            label:      this.fmtTime(f.time),
+            isForecast: false,
+          })),
+          ...nowcast.map((f: any) => ({
+            path:       f.path,
+            time:       f.time,
+            label:      this.fmtTime(f.time),
+            isForecast: true,
+          })),
+        ];
+
+        if (this.radarFrames.length) {
+          // Start on the most-recent past frame (last non-forecast frame)
+          const lastPast = this.radarFrames.filter(f => !f.isForecast).length - 1;
+          this.frameIndex = Math.max(0, lastPast);
+          this.zone.runOutsideAngular(() => this.applyRadarFrame());
+          this.zone.run(() => { this.radarLoaded = true; this.cdr.detectChanges(); });
+        }
+      },
+      error: () => {}
     });
   }
 
-  // ── Map ─────────────────────────────────────────────────────────────────
+  private fmtTime(unixSec: number): string {
+    return new Date(unixSec * 1000)
+      .toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  private applyRadarFrame() {
+    if (!this.map || !this.radarFrames.length) return;
+    this.frameIndex = Math.max(0, Math.min(this.frameIndex, this.radarFrames.length - 1));
+
+    if (this.radarLayer) {
+      this.map.removeLayer(this.radarLayer);
+      this.radarLayer = null;
+    }
+    if (!this.showRadar) return;
+
+    const frame   = this.radarFrames[this.frameIndex];
+    const host    = this.rvHost;
+    const opacity = this.radarOpacity;
+    const pane    = 'radarPane';
+
+    // Standard tileLayer with maxNativeZoom:7 (RainViewer's actual max).
+    // Leaflet upscales z=7 tiles for higher zoom levels — no coord remapping,
+    // no duplicate storm patterns, no "Zoom Level Not Supported" images.
+    // smooth=1 in the options segment gives RainViewer's built-in smoothing.
+    const urlTemplate = `${host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`;
+
+    this.radarLayer = L.tileLayer(urlTemplate, {
+      opacity,
+      pane,
+      tileSize:       256,
+      maxZoom:        20,
+      maxNativeZoom:  7,
+      crossOrigin:    'anonymous',
+      zIndex:         450,
+      attribution:    'Radar &copy; RainViewer'
+    });
+    this.radarLayer.addTo(this.map);
+
+    this.zone.run(() => {
+      this.radarTimestamp = frame.label;
+      this.cdr.detectChanges();
+    });
+  }
+
+  onFrameChange(val: string) {
+    this.frameIndex = parseInt(val, 10);
+    this.zone.runOutsideAngular(() => this.applyRadarFrame());
+  }
+
+  toggleRadar() {
+    this.showRadar = !this.showRadar;
+    this.zone.runOutsideAngular(() => this.applyRadarFrame());
+  }
+
+  onOpacityChange(val: string) {
+    this.radarOpacity = parseFloat(val);
+    if (this.radarLayer) this.radarLayer.setOpacity(this.radarOpacity);
+  }
+
+  toggleAnimation() {
+    if (this.isAnimating) { this.stopAnimation(); return; }
+    if (!this.radarFrames.length) return;
+    this.isAnimating = true;
+    this.zone.runOutsideAngular(() => {
+      this.animationInterval = setInterval(() => {
+        this.frameIndex = (this.frameIndex + 1) % this.radarFrames.length;
+        this.applyRadarFrame();
+      }, 600);
+    });
+  }
+
+  stopAnimation() {
+    this.isAnimating = false;
+    if (this.animationInterval) { clearInterval(this.animationInterval); this.animationInterval = null; }
+    this.frameIndex = this.radarFrames.filter(f => !f.isForecast).length - 1;
+    this.zone.runOutsideAngular(() => this.applyRadarFrame());
+  }
+
   private initMap() {
     this.map = L.map('stadium-map', {
       center: [38.5, -96], zoom: 4, maxZoom: 20,
@@ -211,75 +305,6 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
     if (i >= 0 && this.markers[i]) this.markers[i].setIcon(this.createStadiumIcon(s));
   }
 
-  // ── IEM NEXRAD radar ─────────────────────────────────────────────────────
-  loadRadar() {
-    this.zone.runOutsideAngular(() => this.applyRadarFrame());
-    this.zone.run(() => { this.radarLoaded = true; this.cdr.detectChanges(); });
-  }
-
-  private applyRadarFrame() {
-    if (!this.map || !this.radarFrames.length) return;
-    this.frameIndex = Math.max(0, Math.min(this.frameIndex, this.radarFrames.length - 1));
-
-    if (this.radarLayer) {
-      this.map.removeLayer(this.radarLayer);
-      this.radarLayer = null;
-    }
-    if (!this.showRadar) return;
-
-    const frame = this.radarFrames[this.frameIndex];
-    const urlTemplate = `https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/${frame.layer}/{z}/{x}/{y}.png`;
-
-    this.radarLayer = L.tileLayer(urlTemplate, {
-      opacity:        this.radarOpacity,
-      pane:           'radarPane',
-      tileSize:       256,
-      maxZoom:        20,
-      crossOrigin:    'anonymous',
-      zIndex:         450,
-      attribution:    'Radar &copy; IEM NEXRAD'
-    });
-    this.radarLayer.addTo(this.map);
-
-    this.zone.run(() => {
-      this.radarTimestamp = frame.label;
-      this.cdr.detectChanges();
-    });
-  }
-
-  onFrameChange(val: string) {
-    this.frameIndex = parseInt(val, 10);
-    this.zone.runOutsideAngular(() => this.applyRadarFrame());
-  }
-
-  toggleRadar() {
-    this.showRadar = !this.showRadar;
-    this.zone.runOutsideAngular(() => this.applyRadarFrame());
-  }
-
-  onOpacityChange(val: string) {
-    this.radarOpacity = parseFloat(val);
-    if (this.radarLayer) this.radarLayer.setOpacity(this.radarOpacity);
-  }
-
-  toggleAnimation() {
-    if (this.isAnimating) { this.stopAnimation(); return; }
-    if (!this.radarFrames.length) return;
-    this.isAnimating = true;
-    this.zone.runOutsideAngular(() => {
-      this.animationInterval = setInterval(() => {
-        this.frameIndex = (this.frameIndex + 1) % this.radarFrames.length;
-        this.applyRadarFrame();
-      }, 600);
-    });
-  }
-
-  stopAnimation() {
-    this.isAnimating = false;
-    if (this.animationInterval) { clearInterval(this.animationInterval); this.animationInterval = null; }
-    this.frameIndex = this.radarFrames.length - 1;
-    this.zone.runOutsideAngular(() => this.applyRadarFrame());
-  }
 
   // ── Weather ──────────────────────────────────────────────────────────────
   loadAllWeather() {
