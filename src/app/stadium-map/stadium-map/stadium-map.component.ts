@@ -1,6 +1,6 @@
 import {
   Component, OnInit, OnDestroy, AfterViewInit,
-  ChangeDetectorRef, NgZone
+  ChangeDetectorRef, NgZone, ElementRef, ViewChild
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin, of } from 'rxjs';
@@ -87,7 +87,7 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
     { team: 'San Francisco Giants',  abbr: 'SF',  teamId: 137, name: 'Oracle Park',                 address: '24 Willie Mays Plaza, San Francisco, CA', lat: 37.7786, lng: -122.3893 },
     { team: 'Seattle Mariners',      abbr: 'SEA', teamId: 136, name: 'T-Mobile Park',               address: '1250 1st Ave S, Seattle, WA',             lat: 47.5914, lng: -122.3325 },
     { team: 'St. Louis Cardinals',   abbr: 'STL', teamId: 138, name: 'Busch Stadium',               address: '700 Clark Ave, St. Louis, MO',            lat: 38.6226, lng: -90.1928  },
-    { team: 'Tampa Bay Rays',        abbr: 'TB',  teamId: 139, name: 'George M. Steinbrenner Field',address: '1 Steinbrenner Dr, Tampa, FL',            lat: 27.9683, lng: -82.5036  },
+    { team: 'Tampa Bay Rays',        abbr: 'TB',  teamId: 139, name: 'Tropicana Field',             address: '1 Tropicana Dr, St. Petersburg, FL',      lat: 27.7682, lng: -82.6402  },
     { team: 'Texas Rangers',         abbr: 'TEX', teamId: 140, name: 'Globe Life Field',            address: '734 Stadium Dr, Arlington, TX',           lat: 32.7473, lng: -97.0828  },
     { team: 'Toronto Blue Jays',     abbr: 'TOR', teamId: 141, name: 'Rogers Centre',               address: '1 Blue Jays Way, Toronto, ON',            lat: 43.6414, lng: -79.3894  },
     { team: 'Washington Nationals',  abbr: 'WSH', teamId: 120, name: 'Nationals Park',              address: '1500 S Capitol St SE, Washington, DC',    lat: 38.8730, lng: -77.0074  },
@@ -104,6 +104,9 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   radarTimestamp    = '';       // "HH:MM local" of the current frame
 
   isLightModeLocal = false;
+
+  private resizeObserver!: ResizeObserver;
+  @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef;
 
   toggleThemeLocal() {
     this.isLightModeLocal = !this.isLightModeLocal;
@@ -141,10 +144,15 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
     // radar frames are populated dynamically from RainViewer API in loadRadar()
   }
   ngAfterViewInit() {
-    this.zone.runOutsideAngular(() => setTimeout(() => this.initMap(), 100));
+    this.zone.runOutsideAngular(() => {
+      setTimeout(() => this.initMap(), 150);
+    });
   }
   ngOnDestroy() {
     this.stopAnimation();
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
     if (this.map) this.map.remove();
   }
 
@@ -262,10 +270,18 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initMap() {
+    // Mainland US Center: [39.0, -98.0]
+    const centerUS: L.LatLngExpression = [39.0, -98.0];
+    const zoomUS = 4;
+
     this.map = L.map('stadium-map', {
-      center: [38.5, -96], zoom: 4, maxZoom: 20,
-      zoomSnap: 1, zoomDelta: 1, zoomControl: true,
-      attributionControl: false // This disables the attribution control entirely
+      center: centerUS,
+      zoom: zoomUS,
+      maxZoom: 20,
+      zoomSnap: 1,
+      zoomDelta: 1,
+      zoomControl: true,
+      attributionControl: false
     });
 
     this.map.createPane('radarPane');
@@ -278,18 +294,39 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
       : `https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png`;
 
     L.tileLayer(stadiaUrl, {
-      attribution: '', // Removed attribution string
+      attribution: '',
       maxZoom: 20,
     }).addTo(this.map);
 
     this.addStadiumMarkers();
     this.loadRadar();
     this.loadAllWeather();
-    setTimeout(() => this.map.invalidateSize(), 300);
+
+    // Use ResizeObserver to ensure the map always knows its container size and stays centered
+    const container = document.getElementById('stadium-map');
+    if (container) {
+      this.resizeObserver = new ResizeObserver(() => {
+        this.zone.runOutsideAngular(() => {
+          this.map.invalidateSize();
+          // Force back to center if it looks like it's drifted (usually north) due to initialization size mismatches
+          if (this.map.getZoom() === zoomUS) {
+            this.map.setView(centerUS, zoomUS, { animate: false });
+          }
+        });
+      });
+      this.resizeObserver.observe(container);
+    }
+
+    // Final insurance for initialization
+    setTimeout(() => {
+      this.map.invalidateSize();
+      this.map.setView(centerUS, zoomUS, { animate: false });
+    }, 500);
   }
 
   // ── Markers ──────────────────────────────────────────────────────────────
   private addStadiumMarkers() {
+    this.markers = [];
     this.stadiums.forEach(s => {
       const m = L.marker([s.lat, s.lng], {
         icon: this.createStadiumIcon(s), zIndexOffset: 100,
