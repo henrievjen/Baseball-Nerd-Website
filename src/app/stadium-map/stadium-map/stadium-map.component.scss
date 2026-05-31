@@ -2,7 +2,7 @@
 .sm-page {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 0px);
+  height: 100%;
   overflow: hidden;
   padding: 0;
 }
@@ -265,38 +265,8 @@
         background: var(--red);
         transform: scale(1.5);
       }
-
-      &.forecast-tick {
-        background: rgba(96, 165, 250, 0.5);
-        &:hover, &.active {
-          background: #60a5fa;
-        }
-      }
     }
   }
-
-  .scrubber-slider.is-forecast {
-    accent-color: #60a5fa;
-  }
-}
-
-// ── Radar notices ──────────────────────────────────────────────────────────
-.radar-no-precip {
-  position: absolute;
-  top: 86px; // Below scrubber
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.7);
-  border: 1px solid var(--border2);
-  border-radius: 20px;
-  padding: 5px 14px;
-  color: var(--text2);
-  font-size: 0.75rem;
-  font-weight: 600;
-  z-index: 700;
-  backdrop-filter: blur(6px);
-  white-space: nowrap;
-  pointer-events: none;
 }
 
 // ── Map overlays ──────────────────────────────────────────────────────────────
@@ -746,7 +716,6 @@
 
   .h-icon {
     font-size: 1.1rem;
-    z-index: 2;
   }
 
   .h-temp {
@@ -754,7 +723,6 @@
     font-weight: 700;
     color: var(--text);
     font-family: var(--font-mono);
-    z-index: 2;
   }
 
   // Precipitation intensity bar
@@ -837,8 +805,6 @@
     &::-webkit-scrollbar { display: none; }
   }
 
-  .unit-toggle button { padding: 5px 9px; font-size: 0.72rem; }
-
   .ctrl-btn {
     padding: 5px 8px;
     font-size: 0.7rem;
@@ -857,6 +823,7 @@
     flex-direction: column;
     overflow: hidden;
     min-height: 0;
+    padding-bottom: 110px; // space for the fixed list
   }
 
   .sm-map-wrap {
@@ -866,15 +833,24 @@
     overflow: hidden;
 
     #stadium-map { height: 100% !important; }
+
+    ::ng-deep {
+      .leaflet-bottom.leaflet-right {
+        bottom: 114px !important; // Offset attribution above fixed bar
+      }
+    }
   }
 
   // ── Radar scrubber: compact but visible ──
   .radar-scrubber {
     display: block;
-    width: calc(100% - 90px);
-    max-width: 280px;
+    width: calc(100% - 24px);
+    max-width: none;
     top: 10px;
+    left: 12px;
+    transform: none;
     padding: 8px 12px;
+    border-radius: 8px;
 
     .scrubber-top { margin-bottom: 6px; }
     .scrubber-time { font-size: 0.78rem; }
@@ -885,8 +861,8 @@
   // ── Radar legend: compact bottom-left ──
   .radar-legend {
     display: block;
-    bottom: 96px;
-    left: 8px;
+    bottom: 118px; // Above fixed list
+    left: 10px;
     transform: none;
     min-width: 140px;
     padding: 6px 10px;
@@ -896,25 +872,33 @@
     .legend-ticks span { font-size: 0.55rem; }
   }
 
-  // ── Stadium list: horizontal chip strip at bottom ──
+  // ── Stadium list: fixed bottom horizontal strip ──
   .sm-list {
     width: 100%;
     flex-shrink: 0;
     border-left: none;
     border-top: 1px solid var(--border);
-    background: var(--bg);
-    height: 88px;
+    background: var(--bg2);
+    height: 110px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
 
+    // Fixed Positioning above mobile nav
+    position: fixed;
+    bottom: var(--mobile-nav-h, 62px);
+    left: 0;
+    right: 0;
+    z-index: 250;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.25);
+
     &__header {
-      padding: 4px 10px;
+      padding: 6px 10px 4px;
       flex-shrink: 0;
       border-bottom: 1px solid var(--border);
     }
-    &__title { font-size: 0.68rem; }
-    &__count { font-size: 0.6rem; }
+    &__title { font-size: 0.65rem; font-weight: 700; color: var(--text2); }
+    &__count { font-size: 0.6rem; color: var(--text3); }
 
     &__items {
       display: flex;
@@ -924,26 +908,29 @@
       flex: 1;
       scrollbar-width: none;
       &::-webkit-scrollbar { display: none; }
-      padding: 4px;
-      gap: 0;
+      padding: 6px 8px;
+      gap: 8px;
       align-items: stretch;
     }
   }
 
   .sm-list__item {
     flex-shrink: 0;
-    width: 80px;
-    border-bottom: none;
-    border-right: 1px solid var(--border);
-    padding: 4px 6px;
+    width: 96px;
+    height: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 4px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1px;
+    justify-content: center;
+    gap: 2px;
+    text-align: center;
 
     &.selected {
-      border-left: none;
-      border-top: 2px solid var(--red);
+      border-color: var(--red);
       background: var(--red-dim);
     }
   }
@@ -951,27 +938,34 @@
   .sli-top {
     flex-direction: column;
     align-items: center;
-    gap: 1px;
-    margin-bottom: 1px;
+    gap: 2px;
+    margin-bottom: 0;
   }
 
-  .sli-logo { width: 22px; height: 22px; padding: 2px; }
+  .sli-logo {
+    width: 24px;
+    height: 24px;
+    padding: 2px;
+    background: #fff;
+    border-radius: 50%;
+  }
 
   .sli-name {
-    font-size: 0.56rem;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--text);
     text-align: center;
     line-height: 1.1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 74px;
+    white-space: normal;
+    word-break: break-word;
+    max-width: 100%;
   }
 
-  .sli-emoji { font-size: 0.7rem; }
-  .sli-weather { padding-left: 0; justify-content: center; gap: 1px; }
-  .sli-temp { font-size: 0.72rem; }
+  .sli-emoji { font-size: 0.8rem; line-height: 1; }
+  .sli-weather { padding-left: 0; justify-content: center; gap: 4px; margin-top: 1px; }
+  .sli-temp { font-size: 0.72rem; font-weight: 700; }
   .sli-condition, .sli-wind { display: none; }
-  .sli-precip { font-size: 0.58rem; padding: 1px 3px; }
+  .sli-precip { font-size: 0.55rem; padding: 1px 3px; font-weight: 700; }
   .sli-skeleton { padding-left: 0; align-items: center; }
 
   // ── Detail panel: bottom sheet ──
@@ -1014,7 +1008,7 @@
   .stat-val { font-size: 0.82rem; }
   .hourly-item { flex: 0 0 66px; padding: 8px 3px; }
 
-  .map-loading { bottom: 96px; left: 10px; }
+  .map-loading { bottom: 128px; left: 12px; }
 }
 
 // ── Very small phones (≤ 380px) ──────────────────────────────────────────────
@@ -1022,13 +1016,15 @@
   .sm-header { padding-right: 8px; }
   .page-title { font-size: 1.05rem; }
   .ctrl-btn { padding: 4px 6px; font-size: 0.64rem; }
-  .radar-scrubber { max-width: 190px; }
-  .sm-list { height: 80px; }
-  .sm-list__item { width: 70px; }
+
+  .sm-body { padding-bottom: 90px; }
+  .sm-list { height: 90px; }
+  .sm-list__item { width: 80px; }
+  .map-loading { bottom: 108px; }
+  .radar-legend { bottom: 100px; min-width: 120px; }
 }
 
 // ── Mobile-only header buttons (Support + theme) ──────────────────────────────
-// Hidden on desktop — the global floating buttons handle that
 .mobile-support-btn,
 .mobile-theme-btn {
   display: none;

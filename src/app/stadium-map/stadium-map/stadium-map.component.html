@@ -38,7 +38,7 @@
                class="opacity-slider">
       </div>
 
-      <!-- Support + theme: mobile-only, live in header here instead of floating -->
+      <!-- Support + theme: mobile-only header buttons -->
       <a href="https://buymeacoffee.com/baseballnerd" target="_blank" class="ctrl-btn mobile-support-btn" title="Support">
         <img src="https://cdn.buymeacoffee.com/buttons/bmc-new-btn-logo.svg" alt="☕" class="bmc-icon">
         Support
@@ -65,18 +65,18 @@
       <div id="stadium-map"></div>
 
       <!-- Radar Timeline Scrubber -->
-      <div class="radar-scrubber" *ngIf="showRadar && radarLoaded">
+      <div class="radar-scrubber" *ngIf="showRadar && radarLoaded && radarFrames.length > 0">
         <div class="scrubber-top">
           <span class="scrubber-time">{{ radarTimestamp }}</span>
           <span class="scrubber-label">
-            {{ radarFrames[frameIndex]?.isForecast ? 'FORECAST ▶' : 'RADAR TIMELINE' }}
+            {{ radarFrames[frameIndex].isForecast ? 'FORECAST ▶' : 'RADAR TIMELINE (PAST 1H)' }}
           </span>
         </div>
         <input type="range" min="0" [max]="radarFrames.length - 1"
                [value]="frameIndex"
                (input)="onFrameChange($any($event.target).value)"
                class="scrubber-slider"
-               [class.is-forecast]="radarFrames[frameIndex]?.isForecast">
+               [class.is-forecast]="radarFrames[frameIndex].isForecast">
         <div class="scrubber-ticks">
           <span *ngFor="let f of radarFrames; let i = index"
                 [class.active]="i === frameIndex"
@@ -101,7 +101,7 @@
       </div>
     </div>
 
-    <!-- Stadium list sidebar -->
+    <!-- Stadium list sidebar (Fixed at bottom on mobile) -->
     <aside class="sm-list">
       <div class="sm-list__header">
         <span class="sm-list__title">ALL STADIUMS</span>
@@ -119,9 +119,9 @@
                  [alt]="s.abbr"
                  (error)="$any($event.target).style.display='none'"/>
             <span class="sli-name">{{ s.name }}</span>
-            <span class="sli-emoji" *ngIf="s.weather">{{ s.weather.icon }}</span>
           </div>
           <div class="sli-weather" *ngIf="s.weather; else loadingSlot">
+            <span class="sli-emoji">{{ s.weather.icon }}</span>
             <span class="sli-temp">{{ displayTemp(s.weather) }}</span>
             <span class="sli-condition">{{ s.weather.condition }}</span>
             <span class="sli-wind">💨 {{ s.weather.windSpeed }} mph {{ windDirectionLabel(s.weather.windDir) }}</span>
