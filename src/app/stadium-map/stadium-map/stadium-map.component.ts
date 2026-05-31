@@ -22,6 +22,7 @@ export interface HourlyWeather {
   time: string; dateLabel?: string;
   temp: number; tempC: number;
   condition: string; icon: string; precipProb: number;
+  precipIntensity: number; // in mm
 }
 
 const WMO_CODES: Record<number, { label: string; emoji: string }> = {
@@ -69,7 +70,7 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
     { team: 'Cincinnati Reds',       abbr: 'CIN', teamId: 113, name: 'Great American Ball Park',    address: '100 Joe Nuxhall Way, Cincinnati, OH',     lat: 39.0979, lng: -84.5082  },
     { team: 'Cleveland Guardians',   abbr: 'CLE', teamId: 114, name: 'Progressive Field',           address: '2401 Ontario St, Cleveland, OH',          lat: 41.4962, lng: -81.6852  },
     { team: 'Colorado Rockies',      abbr: 'COL', teamId: 115, name: 'Coors Field',                 address: '2001 Blake St, Denver, CO',               lat: 39.7559, lng: -104.9942 },
-    { team: 'Detroit Tigers',        abbr: 'DET', teamId: 116, name: 'Comerica Park',               address: '2100 Woodward Ave, Detroit, MA',          lat: 42.3390, lng: -83.0485  },
+    { team: 'Detroit Tigers',        abbr: 'DET', teamId: 116, name: 'Comerica Park',               address: '2100 Woodward Ave, Detroit, MI',          lat: 42.3390, lng: -83.0485  },
     { team: 'Houston Astros',        abbr: 'HOU', teamId: 117, name: 'Daikin Park',                 address: '501 Crawford St, Houston, TX',            lat: 29.7573, lng: -95.3555  },
     { team: 'Kansas City Royals',    abbr: 'KC',  teamId: 118, name: 'Kauffman Stadium',            address: '1 Royal Way, Kansas City, MO',            lat: 39.0517, lng: -94.4803  },
     { team: 'Los Angeles Angels',    abbr: 'LAA', teamId: 108, name: 'Angel Stadium',               address: '2000 E Gene Autry Way, Anaheim, CA',      lat: 33.8003, lng: -117.8827 },
@@ -99,9 +100,10 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   loadingWeather    = false;
   weatherLoaded     = false;
   isAnimating       = false;
-  radarHasNoPrecip  = false;
   radarLoaded       = false;
   radarTimestamp    = '';       // "HH:MM local" of the current frame
+
+  protected readonly Math = Math;
 
   private readonly STADIA_API_KEY = 'YOUR_STADIA_API_KEY';
 
@@ -109,21 +111,21 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   private markers:           L.Marker[] = [];
   private radarLayer:        L.TileLayer | null = null;
   // IEM NEXRAD layer names for animation (last 60 mins, 5 min intervals)
-  private radarFrames:       { layer: string; label: string }[] = [
-    { layer: 'nexrad-n0q-900913-m55m', label: '55m ago' },
-    { layer: 'nexrad-n0q-900913-m50m', label: '50m ago' },
-    { layer: 'nexrad-n0q-900913-m45m', label: '45m ago' },
-    { layer: 'nexrad-n0q-900913-m40m', label: '40m ago' },
-    { layer: 'nexrad-n0q-900913-m35m', label: '35m ago' },
-    { layer: 'nexrad-n0q-900913-m30m', label: '30m ago' },
-    { layer: 'nexrad-n0q-900913-m25m', label: '25m ago' },
-    { layer: 'nexrad-n0q-900913-m20m', label: '20m ago' },
-    { layer: 'nexrad-n0q-900913-m15m', label: '15m ago' },
-    { layer: 'nexrad-n0q-900913-m10m', label: '10m ago' },
-    { layer: 'nexrad-n0q-900913-m05m', label: '5m ago' },
-    { layer: 'nexrad-n0q-900913',      label: 'Latest' }
+  radarFrames:       { layer: string; label: string; timeOffset: number }[] = [
+    { layer: 'nexrad-n0q-900913-m55m', label: '', timeOffset: -55 },
+    { layer: 'nexrad-n0q-900913-m50m', label: '', timeOffset: -50 },
+    { layer: 'nexrad-n0q-900913-m45m', label: '', timeOffset: -45 },
+    { layer: 'nexrad-n0q-900913-m40m', label: '', timeOffset: -40 },
+    { layer: 'nexrad-n0q-900913-m35m', label: '', timeOffset: -35 },
+    { layer: 'nexrad-n0q-900913-m30m', label: '', timeOffset: -30 },
+    { layer: 'nexrad-n0q-900913-m25m', label: '', timeOffset: -25 },
+    { layer: 'nexrad-n0q-900913-m20m', label: '', timeOffset: -20 },
+    { layer: 'nexrad-n0q-900913-m15m', label: '', timeOffset: -15 },
+    { layer: 'nexrad-n0q-900913-m10m', label: '', timeOffset: -10 },
+    { layer: 'nexrad-n0q-900913-m05m', label: '', timeOffset: -5 },
+    { layer: 'nexrad-n0q-900913',      label: '', timeOffset: 0 }
   ];
-  private frameIndex         = 11;
+  frameIndex         = 11;
   private animationInterval: any = null;
 
   constructor(
@@ -132,13 +134,23 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
     private zone: NgZone
   ) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.updateRadarLabels();
+  }
   ngAfterViewInit() {
     this.zone.runOutsideAngular(() => setTimeout(() => this.initMap(), 100));
   }
   ngOnDestroy() {
     this.stopAnimation();
     if (this.map) this.map.remove();
+  }
+
+  private updateRadarLabels() {
+    const now = new Date();
+    this.radarFrames.forEach(f => {
+      const d = new Date(now.getTime() + f.timeOffset * 60000);
+      f.label = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    });
   }
 
   // ── Map ─────────────────────────────────────────────────────────────────
@@ -200,8 +212,6 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // ── IEM NEXRAD radar ─────────────────────────────────────────────────────
-  // Switched to IEM NEXRAD WMS because it supports all zoom levels
-  // and covers MLB stadiums (including Toronto via US border radar).
   loadRadar() {
     this.zone.runOutsideAngular(() => this.applyRadarFrame());
     this.zone.run(() => { this.radarLoaded = true; this.cdr.detectChanges(); });
@@ -218,7 +228,6 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.showRadar) return;
 
     const frame = this.radarFrames[this.frameIndex];
-    // IEM NEXRAD WMS / TMS layer
     const urlTemplate = `https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/${frame.layer}/{z}/{x}/{y}.png`;
 
     this.radarLayer = L.tileLayer(urlTemplate, {
@@ -236,6 +245,11 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
       this.radarTimestamp = frame.label;
       this.cdr.detectChanges();
     });
+  }
+
+  onFrameChange(val: string) {
+    this.frameIndex = parseInt(val, 10);
+    this.zone.runOutsideAngular(() => this.applyRadarFrame());
   }
 
   toggleRadar() {
@@ -276,9 +290,9 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
         `?latitude=${s.lat}&longitude=${s.lng}` +
         `&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,` +
         `wind_speed_10m,wind_direction_10m,is_day` +
-        `&hourly=temperature_2m,weather_code,precipitation_probability` +
+        `&hourly=temperature_2m,weather_code,precipitation,precipitation_probability` +
         `&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=mm` +
-        `&timezone=auto&forecast_days=14`
+        `&timezone=auto&forecast_days=3`
       ).pipe(catchError(() => of(null)))
     );
 
@@ -295,7 +309,9 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
             if (res.hourly?.time) {
               let start = res.hourly.time.findIndex((t: string) => new Date(t).getTime() >= nowTs);
               if (start === -1) start = 0;
-              for (let j = start; j < res.hourly.time.length; j++) {
+              // Take 24 hours for the timeline
+              const end = Math.min(start + 24, res.hourly.time.length);
+              for (let j = start; j < end; j++) {
                 const hw = WMO_CODES[res.hourly.weather_code[j]] ?? { label: 'Unknown', emoji: '❓' };
                 const ht = new Date(res.hourly.time[j]);
                 let dateLabel: string | undefined;
@@ -309,6 +325,7 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
                   condition:  hw.label,
                   icon:       hw.emoji,
                   precipProb: res.hourly.precipitation_probability?.[j] ?? 0,
+                  precipIntensity: res.hourly.precipitation[j] ?? 0
                 });
               }
             }
@@ -329,7 +346,6 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
           });
           this.loadingWeather  = false;
           this.weatherLoaded   = true;
-          this.radarHasNoPrecip = this.stadiums.every(s => (s.weather?.precipitation ?? 0) === 0);
           this.cdr.detectChanges();
         });
       },

@@ -203,10 +203,76 @@
   }
 }
 
+// ── Radar Scrubber ───────────────────────────────────────────────────────────
+.radar-scrubber {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 10px 16px;
+  z-index: 700;
+  backdrop-filter: blur(10px);
+  width: 320px;
+  box-shadow: var(--shadow-lg);
+
+  .scrubber-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .scrubber-time {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .scrubber-label {
+    font-size: 0.6rem;
+    color: var(--text3);
+    letter-spacing: 1px;
+    font-family: var(--font-head);
+  }
+
+  .scrubber-slider {
+    width: 100%;
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 2px;
+    accent-color: var(--red);
+    cursor: pointer;
+  }
+
+  .scrubber-ticks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    padding: 0 2px;
+
+    span {
+      width: 4px; height: 4px;
+      background: var(--text3);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: var(--transition);
+
+      &:hover, &.active {
+        background: var(--red);
+        transform: scale(1.5);
+      }
+    }
+  }
+}
+
 // ── Radar notices ──────────────────────────────────────────────────────────
 .radar-no-precip {
   position: absolute;
-  top: 12px;
+  top: 86px; // Below scrubber
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0, 0, 0, 0.7);
@@ -260,16 +326,6 @@
   z-index: 500;
   backdrop-filter: blur(8px);
   min-width: 200px;
-
-  .radar-ts {
-    display: block;
-    font-size: 0.75rem;
-    color: #fff;
-    text-align: center;
-    margin-bottom: 4px;
-    font-weight: 700;
-    font-family: var(--font-mono);
-  }
 
   .legend-label {
     display: block;
@@ -603,26 +659,41 @@
   color: var(--text);
 }
 
+// ── Hourly Timeline ──────────────────────────────────────────────────────────
 .smd-hourly {
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid var(--border);
-}
 
-.hourly-title {
-  font-size: 0.65rem;
-  color: var(--text3);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-family: var(--font-mono);
-  margin-bottom: 10px;
+  .hourly-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .hourly-title {
+    font-size: 0.65rem;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: var(--font-mono);
+    margin: 0;
+  }
+
+  .hourly-hint {
+    font-size: 0.55rem;
+    color: var(--text3);
+    opacity: 0.7;
+    font-family: var(--font-mono);
+  }
 }
 
 .hourly-list {
   display: flex;
   overflow-x: auto;
-  gap: 8px;
-  padding-bottom: 10px;
+  gap: 6px;
+  padding-bottom: 12px;
   scrollbar-width: thin;
   scrollbar-color: var(--border2) transparent;
 
@@ -640,6 +711,13 @@
   background: var(--surface);
   border-radius: 8px;
   min-width: 0;
+  position: relative;
+  transition: var(--transition);
+
+  &.has-precip {
+    background: rgba(37, 99, 235, 0.08);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+  }
 
   .h-date {
     font-size: 0.55rem;
@@ -657,6 +735,7 @@
 
   .h-icon {
     font-size: 1.1rem;
+    z-index: 2;
   }
 
   .h-temp {
@@ -664,6 +743,26 @@
     font-weight: 700;
     color: var(--text);
     font-family: var(--font-mono);
+    z-index: 2;
+  }
+
+  // Precipitation intensity bar
+  .h-precip-bar {
+    position: absolute;
+    bottom: 24px;
+    width: 100%;
+    height: 40px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0.4;
+
+    .bar-fill {
+      width: 12px;
+      background: linear-gradient(to top, #2563eb, #60a5fa);
+      border-radius: 4px 4px 0 0;
+    }
   }
 
   .h-precip {
@@ -671,6 +770,7 @@
     color: #60a5fa;
     font-weight: 600;
     font-family: var(--font-mono);
+    z-index: 2;
 
     .no-prob { color: var(--text3); opacity: 0.5; font-weight: 400; }
   }
@@ -848,8 +948,8 @@
     z-index: 700;
   }
 
-  // Hide the radar legend on mobile (no room)
-  .radar-legend { display: none; }
+  // Hide the radar legend and scrubber on mobile (no room)
+  .radar-legend, .radar-scrubber { display: none; }
 
   // Map loading badge — move above the list strip
   .map-loading {

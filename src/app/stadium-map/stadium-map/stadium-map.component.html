@@ -47,9 +47,21 @@
     <div class="sm-map-wrap">
       <div id="stadium-map"></div>
 
-      <!-- No active precipitation notice -->
-      <div class="radar-no-precip" *ngIf="showRadar && radarHasNoPrecip && weatherLoaded">
-        ☀️ No active precipitation at any stadium
+      <!-- Radar Timeline Scrubber -->
+      <div class="radar-scrubber" *ngIf="showRadar && radarLoaded">
+        <div class="scrubber-top">
+          <span class="scrubber-time">{{ radarTimestamp }}</span>
+          <span class="scrubber-label">RADAR TIMELINE (PAST 1H)</span>
+        </div>
+        <input type="range" min="0" [max]="radarFrames.length - 1"
+               [value]="frameIndex"
+               (input)="onFrameChange($any($event.target).value)"
+               class="scrubber-slider">
+        <div class="scrubber-ticks">
+          <span *ngFor="let f of radarFrames; let i = index"
+                [class.active]="i === frameIndex"
+                (click)="onFrameChange(i.toString())"></span>
+        </div>
       </div>
 
       <!-- Loading weather overlay -->
@@ -60,7 +72,6 @@
 
       <!-- Radar legend -->
       <div class="radar-legend" *ngIf="showRadar">
-        <div class="radar-ts" *ngIf="radarTimestamp">{{ radarTimestamp }}</div>
         <span class="legend-label">Precipitation Intensity</span>
         <div class="legend-bar"></div>
         <div class="legend-ticks">
@@ -156,15 +167,23 @@
           </div>
         </div>
 
-        <!-- Hourly Forecast -->
+        <!-- Hourly Forecast Timeline -->
         <div class="smd-hourly" *ngIf="selectedStadium.weather.hourly">
-          <h3 class="hourly-title">Hourly Forecast</h3>
+          <div class="hourly-header">
+            <h3 class="hourly-title">24-HOUR FORECAST</h3>
+            <span class="hourly-hint">Scroll for timeline</span>
+          </div>
+
           <div class="hourly-list">
-            <div class="hourly-item" *ngFor="let h of selectedStadium.weather.hourly">
+            <div class="hourly-item" *ngFor="let h of selectedStadium.weather.hourly"
+                 [class.has-precip]="h.precipIntensity > 0">
               <span class="h-date" *ngIf="h.dateLabel">{{ h.dateLabel }}</span>
               <span class="h-time">{{ h.time }}</span>
               <span class="h-icon" [title]="h.condition">{{ h.icon }}</span>
               <span class="h-temp">{{ displayHourlyTemp(h) }}</span>
+              <div class="h-precip-bar" *ngIf="h.precipIntensity > 0">
+                <div class="bar-fill" [style.height.%]="Math.min(100, h.precipIntensity * 20)"></div>
+              </div>
               <span class="h-precip">
                 <ng-container *ngIf="h.precipProb > 0; else noPrecip">💧 {{ h.precipProb }}%</ng-container>
                 <ng-template #noPrecip><span class="no-prob">0%</span></ng-template>
