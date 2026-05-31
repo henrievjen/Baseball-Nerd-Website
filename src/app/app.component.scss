@@ -4,7 +4,9 @@ $ad-breakpoint: 1200px;
 
 .app-shell {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   transition: padding-left 0.22s ease;
   padding-left: var(--sidebar-w);
 
@@ -16,7 +18,10 @@ $ad-breakpoint: 1200px;
 .main-content {
   flex: 1;
   min-width: 0;
-  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden; // Prevent page-level scroll; components should manage their own scroll areas
   position: relative;
 
   // Reserve space for the ad rail on wide screens
@@ -150,8 +155,16 @@ $ad-breakpoint: 1200px;
 }
 
 @media (max-width: 768px) {
-  .app-shell { padding-left: 0; }
-  .main-content { padding-bottom: var(--mobile-nav-h); }
+  .app-shell {
+    padding-left: 0;
+    height: 100vh;
+    height: 100dvh;
+  }
+  .main-content {
+    height: calc(100% - var(--mobile-nav-h, 62px));
+    padding-bottom: 0;
+    overflow: hidden;
+  }
 
   // Hidden on mobile — stadium weather page renders its own copies in the header
   .theme-toggle,

@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import * as L from 'leaflet';
+import * as protomapsL from 'protomaps-leaflet';
 
 export interface Stadium {
   team: string; abbr: string; teamId: number;
@@ -120,15 +121,15 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   protected readonly Math = Math;
 
-  private readonly STADIA_API_KEY = 'YOUR_STADIA_API_KEY';
-  // RainViewer: maximum supported tile zoom. Their API only serves tiles up
-  // to z=7; we cap requests at z=6 so Leaflet upscales from 6→20 seamlessly.
-  private rvHost = 'https://tilecache.rainviewer.com';
+  // Get a free Protomaps API key at https://protomaps.com/dashboard
+  // Works on any domain — no per-domain whitelist configuration needed.
+  private readonly PROTOMAPS_API_KEY = 'f7cae4d570f34795';
 
   private map!:              L.Map;
   private markers:           L.Marker[] = [];
   private radarLayer:        L.TileLayer | null = null;
   // Frames populated from RainViewer API: past + nowcast (forecast)
+  private rvHost = 'https://tilecache.rainviewer.com';
   radarFrames: { path: string; time: number; label: string; isForecast: boolean }[] = [];
   frameIndex         = 0;
   private animationInterval: any = null;
@@ -156,33 +157,30 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.map) this.map.remove();
   }
 
-  // ── RainViewer radar ──────────────────────────────────────────────────────
+  // ── RainViewer Radar (free, no API key required) ──────────────────────────
+  // Provides ~2 hours of past radar frames + ~30 min of AI nowcast forecast.
+  // Extended history (6h+) requires RainViewer's paid Maps API.
   loadRadar() {
     this.http.get<any>('https://api.rainviewer.com/public/weather-maps.json').subscribe({
       next: (data) => {
         this.rvHost = data?.host ?? this.rvHost;
-        const past: any[]     = data?.radar?.past     ?? [];
-        const nowcast: any[]  = data?.radar?.nowcast  ?? [];
+        const past: any[]    = data?.radar?.past    ?? [];
+        const nowcast: any[] = data?.radar?.nowcast ?? [];
 
         this.radarFrames = [
           ...past.map((f: any) => ({
-            path:       f.path,
-            time:       f.time,
-            label:      this.fmtTime(f.time),
-            isForecast: false,
+            path: f.path, time: f.time,
+            label: this.fmtTime(f.time), isForecast: false,
           })),
           ...nowcast.map((f: any) => ({
-            path:       f.path,
-            time:       f.time,
-            label:      this.fmtTime(f.time),
-            isForecast: true,
+            path: f.path, time: f.time,
+            label: this.fmtTime(f.time), isForecast: true,
           })),
         ];
 
         if (this.radarFrames.length) {
-          // Start on the most-recent past frame (last non-forecast frame)
-          const lastPast = this.radarFrames.filter(f => !f.isForecast).length - 1;
-          this.frameIndex = Math.max(0, lastPast);
+          // Start on the most recent observed frame
+          this.frameIndex = this.radarFrames.filter(f => !f.isForecast).length - 1;
           this.zone.runOutsideAngular(() => this.applyRadarFrame());
           this.zone.run(() => { this.radarLoaded = true; this.cdr.detectChanges(); });
         }
@@ -207,15 +205,11 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.showRadar) return;
 
     const frame   = this.radarFrames[this.frameIndex];
-    const host    = this.rvHost;
     const opacity = this.radarOpacity;
     const pane    = 'radarPane';
 
-    // Standard tileLayer with maxNativeZoom:7 (RainViewer's actual max).
-    // Leaflet upscales z=7 tiles for higher zoom levels — no coord remapping,
-    // no duplicate storm patterns, no "Zoom Level Not Supported" images.
-    // smooth=1 in the options segment gives RainViewer's built-in smoothing.
-    const urlTemplate = `${host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`;
+    // RainViewer — free, no API key required
+    const urlTemplate = `${this.rvHost}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`;
 
     this.radarLayer = L.tileLayer(urlTemplate, {
       opacity,
@@ -225,7 +219,7 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
       maxNativeZoom:  7,
       crossOrigin:    'anonymous',
       zIndex:         450,
-      attribution:    '' // Removed attribution string
+      attribution: ''
     });
     this.radarLayer.addTo(this.map);
 
@@ -300,14 +294,14 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
     rp.style.zIndex = '450';
     rp.style.pointerEvents = 'none';
 
-    const stadiaUrl = (this.STADIA_API_KEY && this.STADIA_API_KEY !== 'YOUR_STADIA_API_KEY')
-      ? `https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png?api_key=${this.STADIA_API_KEY}`
-      : `https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png`;
-
-    L.tileLayer(stadiaUrl, {
-      attribution: '',
-      maxZoom: 20,
-    }).addTo(this.map);
+    // Protomaps — free for non-commercial use, no per-domain restrictions.
+    // Get a free API key at https://protomaps.com and paste it below.
+    // Works on any domain without whitelist configuration.
+    const protomapsUrl = `https://api.protomaps.com/tiles/v4/{z}/{x}/{y}.mvt?key=${this.PROTOMAPS_API_KEY}`;
+    (protomapsL.leafletLayer({
+      url: protomapsUrl,
+      flavor: 'dark',
+    }) as any).addTo(this.map);
 
     // Initial fit — may be imprecise if container not fully laid out yet,
     // but the 'load' event above will correct it once tiles render

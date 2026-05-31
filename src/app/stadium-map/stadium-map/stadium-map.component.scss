@@ -1,3 +1,9 @@
+:host {
+  display: block;
+  height: 100%;
+  overflow: hidden;
+}
+
 // ── Page layout ──────────────────────────────────────────────────────────────
 .sm-page {
   display: flex;
@@ -128,12 +134,12 @@
   flex: 1;
   position: relative;
   overflow: hidden;
+  height: 100%;
 }
 
 #stadium-map {
   width: 100%;
-  height: calc(100vh - 116px); /* 116px ≈ header (108px) + sm-body padding */
-  min-height: 400px;
+  height: 100%;
   background: #1a1a2e;
 
   ::ng-deep {
@@ -147,6 +153,15 @@
     }
     .leaflet-control-attribution {
       display: none !important;
+    }
+
+    // Force bilinear interpolation on radar tiles so upscaled pixels
+    // blend smoothly instead of appearing as hard-edged blocks
+    .leaflet-pane.radarPane img.leaflet-tile {
+      image-rendering: auto;        // bilinear in all modern browsers
+      image-rendering: smooth;      // explicit in supporting browsers
+      image-rendering: high-quality;
+      -ms-interpolation-mode: bicubic;
     }
   }
 }
@@ -348,13 +363,14 @@
 
 // ── Stadium list ──────────────────────────────────────────────────────────────
 .sm-list {
-  width: 270px;
+  width: 320px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   border-left: 1px solid var(--border);
   background: var(--bg2);
   overflow: hidden;
+  height: 100%;
 
   &__header {
     display: flex;
@@ -383,6 +399,14 @@
     flex: 1;
     scrollbar-width: thin;
     scrollbar-color: var(--border2) transparent;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: var(--border2);
+      border-radius: 3px;
+    }
   }
 }
 
@@ -392,7 +416,7 @@
   background: transparent;
   border: none;
   border-bottom: 1px solid var(--border);
-  padding: 10px 14px;
+  padding: 12px 16px;
   cursor: pointer;
   transition: background var(--transition);
 
@@ -407,22 +431,22 @@
 .sli-top {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: 10px;
+  margin-bottom: 6px;
 }
 
 .sli-logo {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
   flex-shrink: 0;
   background: white;
   border-radius: 50%;
-  padding: 3px;
+  padding: 4px;
 }
 
 .sli-name {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--text);
   flex: 1;
@@ -435,7 +459,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px 10px;
-  padding-left: 38px;
+  padding-left: 42px;
 }
 
 .sli-temp {
@@ -471,7 +495,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding-left: 38px;
+  padding-left: 42px;
   margin-top: 4px;
 }
 

@@ -60,7 +60,7 @@
         <div class="scrubber-top">
           <span class="scrubber-time">{{ radarTimestamp }}</span>
           <span class="scrubber-label">
-            {{ radarFrames[frameIndex].isForecast ? 'FORECAST ▶' : 'RADAR TIMELINE (PAST 1H)' }}
+            {{ radarFrames[frameIndex].isForecast ? 'FORECAST (+6H) ▶' : 'RADAR TIMELINE (PAST 6H)' }}
           </span>
         </div>
         <input type="range" min="0" [max]="radarFrames.length - 1"
