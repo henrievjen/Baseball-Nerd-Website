@@ -20,9 +20,21 @@ $ad-breakpoint: 1200px;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  overflow: hidden; // Prevent page-level scroll; components should manage their own scroll areas
   position: relative;
+
+  // PRIMARY SCROLLER: All normal pages scroll here.
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+
+  // SPECIAL CASE: Stadium Weather Map
+  // We disable scrolling on the main container so the map stays fixed
+  // and the component's internal list scrollbar handles the movement.
+  &:has(app-stadium-map) {
+    overflow-y: hidden;
+    height: 100vh;
+    height: 100dvh;
+  }
 
   // Reserve space for the ad rail on wide screens
   @media (min-width: $ad-breakpoint) {
@@ -157,13 +169,19 @@ $ad-breakpoint: 1200px;
 @media (max-width: 768px) {
   .app-shell {
     padding-left: 0;
-    height: 100vh;
-    height: 100dvh;
   }
   .main-content {
-    height: calc(100% - var(--mobile-nav-h, 62px));
-    padding-bottom: 0;
-    overflow: hidden;
+    height: auto;
+    min-height: calc(100vh - var(--mobile-nav-h, 62px));
+    padding-bottom: var(--mobile-nav-h, 62px);
+    overflow-y: auto;
+
+    &:has(app-stadium-map) {
+      height: calc(100vh - var(--mobile-nav-h, 62px));
+      height: calc(100dvh - var(--mobile-nav-h, 62px));
+      overflow-y: hidden;
+      padding-bottom: 0;
+    }
   }
 
   // Hidden on mobile — stadium weather page renders its own copies in the header
