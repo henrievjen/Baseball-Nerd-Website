@@ -153,19 +153,9 @@ $ad-breakpoint: 1200px;
   .app-shell { padding-left: 0; }
   .main-content { padding-bottom: var(--mobile-nav-h); }
 
-  .theme-toggle {
-    top: 14px;
-    right: 16px;
-    width: 36px;
-    height: 36px;
-  }
-
+  // Hidden on mobile — stadium weather page renders its own copies in the header
+  .theme-toggle,
   .bmc-btn {
-    top: 14px;
-    right: 60px;
-    height: 36px;
-    padding: 0 10px;
-
-    .bmc-text { display: none; }
+    display: none;
   }
 }

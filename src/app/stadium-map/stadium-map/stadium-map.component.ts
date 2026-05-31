@@ -103,6 +103,18 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   radarLoaded       = false;
   radarTimestamp    = '';       // "HH:MM local" of the current frame
 
+  isLightModeLocal = false;
+
+  toggleThemeLocal() {
+    this.isLightModeLocal = !this.isLightModeLocal;
+    localStorage.setItem('theme', this.isLightModeLocal ? 'light' : 'dark');
+    if (this.isLightModeLocal) {
+      document.body.classList.add('light-mode');
+    } else {
+      document.body.classList.remove('light-mode');
+    }
+  }
+
   protected readonly Math = Math;
 
   private readonly STADIA_API_KEY = 'YOUR_STADIA_API_KEY';
@@ -125,6 +137,7 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    this.isLightModeLocal = localStorage.getItem('theme') === 'light';
     // radar frames are populated dynamically from RainViewer API in loadRadar()
   }
   ngAfterViewInit() {

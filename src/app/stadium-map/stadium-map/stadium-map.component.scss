@@ -808,42 +808,49 @@
 
 // ── Mobile ────────────────────────────────────────────────────────────────────
 @media (max-width: 768px) {
-  // Let the page fill the full viewport height so the map can too
   .sm-page {
-    height: 100dvh;
-    height: 100vh; // fallback
+    height: calc(100dvh - var(--mobile-nav-h, 62px));
     overflow: hidden;
     display: flex;
     flex-direction: column;
   }
 
+  // ── Header: tight single row ──
   .sm-header {
-    padding: 10px 12px 8px;
-    padding-right: 108px; // clear fixed support/theme buttons
-    flex-shrink: 0;
-    gap: 8px;
-
-    // Stack title above controls on very small screens
-    flex-wrap: wrap;
+    padding: 8px 10px 8px;
+    padding-right: 10px;
+    gap: 6px;
+    flex-wrap: nowrap;
+    align-items: center;
   }
 
-  .page-title { font-size: 1.4rem; }
+  .sm-header__left { flex-shrink: 0; }
+  .page-title { font-size: 1.25rem; letter-spacing: 1px; }
   .sm-subtitle { display: none; }
+  .unit-toggle { display: none; }
 
-  // Compact controls on mobile
-  .sm-header__controls { gap: 6px; }
+  .sm-header__controls {
+    gap: 6px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+  }
+
+  .unit-toggle button { padding: 5px 9px; font-size: 0.72rem; }
 
   .ctrl-btn {
-    padding: 5px 9px;
-    font-size: 0.72rem;
+    padding: 5px 8px;
+    font-size: 0.7rem;
     gap: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    svg { width: 12px; height: 12px; }
   }
 
-  .unit-toggle button { padding: 5px 9px; font-size: 0.75rem; }
+  .opacity-ctrl { display: none; }
 
-  .opacity-ctrl { display: none; } // too small for a slider
-
-  // Body: map fills remaining height, list is a compact bottom strip
+  // ── Body ──
   .sm-body {
     flex: 1;
     display: flex;
@@ -852,7 +859,6 @@
     min-height: 0;
   }
 
-  // Map takes all remaining space above the list strip
   .sm-map-wrap {
     flex: 1;
     min-height: 0;
@@ -862,21 +868,53 @@
     #stadium-map { height: 100% !important; }
   }
 
-  // List becomes a horizontal scrollable chip strip at the bottom
+  // ── Radar scrubber: compact but visible ──
+  .radar-scrubber {
+    display: block;
+    width: calc(100% - 90px);
+    max-width: 280px;
+    top: 10px;
+    padding: 8px 12px;
+
+    .scrubber-top { margin-bottom: 6px; }
+    .scrubber-time { font-size: 0.78rem; }
+    .scrubber-label { font-size: 0.55rem; }
+    .scrubber-ticks span { width: 3px; height: 3px; }
+  }
+
+  // ── Radar legend: compact bottom-left ──
+  .radar-legend {
+    display: block;
+    bottom: 96px;
+    left: 8px;
+    transform: none;
+    min-width: 140px;
+    padding: 6px 10px;
+
+    .legend-label { font-size: 0.58rem; margin-bottom: 4px; }
+    .legend-bar { height: 7px; }
+    .legend-ticks span { font-size: 0.55rem; }
+  }
+
+  // ── Stadium list: horizontal chip strip at bottom ──
   .sm-list {
     width: 100%;
     flex-shrink: 0;
     border-left: none;
     border-top: 1px solid var(--border);
     background: var(--bg);
-    height: 100px; // fixed compact height
+    height: 88px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
 
-    &__header { padding: 6px 12px; }
-    &__title  { font-size: 0.75rem; }
-    &__count  { font-size: 0.65rem; }
+    &__header {
+      padding: 4px 10px;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
+    }
+    &__title { font-size: 0.68rem; }
+    &__count { font-size: 0.6rem; }
 
     &__items {
       display: flex;
@@ -886,85 +924,137 @@
       flex: 1;
       scrollbar-width: none;
       &::-webkit-scrollbar { display: none; }
+      padding: 4px;
       gap: 0;
-      padding: 0 4px 4px;
+      align-items: stretch;
     }
   }
 
-  // Each list item becomes a compact vertical card chip
   .sm-list__item {
     flex-shrink: 0;
-    width: 90px;
+    width: 80px;
     border-bottom: none;
     border-right: 1px solid var(--border);
-    padding: 6px 8px;
+    padding: 4px 6px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
+    gap: 1px;
 
-    &.selected { border-left: none; border-top: 2px solid var(--red); }
+    &.selected {
+      border-left: none;
+      border-top: 2px solid var(--red);
+      background: var(--red-dim);
+    }
   }
 
   .sli-top {
     flex-direction: column;
     align-items: center;
-    gap: 2px;
-    margin-bottom: 2px;
+    gap: 1px;
+    margin-bottom: 1px;
   }
 
-  .sli-logo { width: 24px; height: 24px; }
+  .sli-logo { width: 22px; height: 22px; padding: 2px; }
 
   .sli-name {
-    font-size: 0.58rem;
+    font-size: 0.56rem;
     text-align: center;
     line-height: 1.1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 80px;
+    max-width: 74px;
   }
 
-  .sli-emoji { font-size: 0.75rem; }
+  .sli-emoji { font-size: 0.7rem; }
+  .sli-weather { padding-left: 0; justify-content: center; gap: 1px; }
+  .sli-temp { font-size: 0.72rem; }
+  .sli-condition, .sli-wind { display: none; }
+  .sli-precip { font-size: 0.58rem; padding: 1px 3px; }
+  .sli-skeleton { padding-left: 0; align-items: center; }
 
-  .sli-weather {
-    padding-left: 0;
-    justify-content: center;
-    gap: 2px;
-  }
-
-  .sli-temp {
-    font-size: 0.75rem;
-    font-weight: 700;
-  }
-
-  .sli-condition { display: none; }
-  .sli-wind      { display: none; }
-  .sli-precip    { font-size: 0.6rem; padding: 1px 4px; }
-
-  .sli-skeleton {
-    padding-left: 0;
-    align-items: center;
-  }
-
-  // Detail panel: fixed above the bottom nav bar
+  // ── Detail panel: bottom sheet ──
   .sm-detail {
     position: fixed;
-    bottom: calc(var(--mobile-nav-h, 62px) + 8px);
-    left: 10px;
-    right: 10px;
-    width: auto;
-    max-height: 50vh;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 72vh;
+    border-radius: 18px 18px 0 0;
+    border: none;
+    border-top: 1px solid var(--border2);
     overflow-y: auto;
-    z-index: 700;
+    z-index: 800;
+
+    &::before {
+      content: '';
+      display: block;
+      width: 40px;
+      height: 4px;
+      background: var(--border2);
+      border-radius: 2px;
+      margin: 10px auto 4px;
+    }
   }
 
-  // Hide the radar legend and scrubber on mobile (no room)
-  .radar-legend, .radar-scrubber { display: none; }
+  .sm-detail__inner { padding: 10px 16px 28px; }
+  .sm-detail__close { top: 14px; right: 14px; }
 
-  // Map loading badge — move above the list strip
-  .map-loading {
-    bottom: 108px;
-    left: 12px;
+  .smd-logo-wrap { width: 44px; height: 44px; }
+  .smd-logo { width: 34px; height: 34px; }
+  .smd-stadium { font-size: 0.95rem; }
+  .smd-team { font-size: 0.72rem; }
+  .smd-address { font-size: 0.66rem; }
+  .smd-emoji { font-size: 2.2rem; }
+  .smd-temp { font-size: 2rem; }
+  .smd-stats { gap: 8px; }
+  .smd-stat { padding: 6px 10px; }
+  .stat-val { font-size: 0.82rem; }
+  .hourly-item { flex: 0 0 66px; padding: 8px 3px; }
+
+  .map-loading { bottom: 96px; left: 10px; }
+}
+
+// ── Very small phones (≤ 380px) ──────────────────────────────────────────────
+@media (max-width: 380px) {
+  .sm-header { padding-right: 8px; }
+  .page-title { font-size: 1.05rem; }
+  .ctrl-btn { padding: 4px 6px; font-size: 0.64rem; }
+  .radar-scrubber { max-width: 190px; }
+  .sm-list { height: 80px; }
+  .sm-list__item { width: 70px; }
+}
+
+// ── Mobile-only header buttons (Support + theme) ──────────────────────────────
+// Hidden on desktop — the global floating buttons handle that
+.mobile-support-btn,
+.mobile-theme-btn {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-support-btn {
+    display: flex;
+    background: #FFDD00;
+    color: #000;
+    border-color: transparent;
+    font-weight: 700;
+    flex-shrink: 0;
+    gap: 4px;
+
+    .bmc-icon {
+      height: 14px;
+      width: auto;
+    }
+
+    &:hover { background: #ffea00; }
+  }
+
+  .mobile-theme-btn {
+    display: flex;
+    flex-shrink: 0;
+    padding: 5px 7px;
   }
 }
