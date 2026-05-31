@@ -217,7 +217,7 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
       maxNativeZoom:  7,
       crossOrigin:    'anonymous',
       zIndex:         450,
-      attribution:    'Radar &copy; RainViewer'
+      attribution:    '' // Removed attribution string
     });
     this.radarLayer.addTo(this.map);
 
@@ -265,6 +265,7 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.map = L.map('stadium-map', {
       center: [38.5, -96], zoom: 4, maxZoom: 20,
       zoomSnap: 1, zoomDelta: 1, zoomControl: true,
+      attributionControl: false // This disables the attribution control entirely
     });
 
     this.map.createPane('radarPane');
@@ -277,7 +278,7 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
       : `https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png`;
 
     L.tileLayer(stadiaUrl, {
-      attribution: '&copy; <a href="https://stadiamaps.com/">Stadia</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+      attribution: '', // Removed attribution string
       maxZoom: 20,
     }).addTo(this.map);
 

@@ -341,3 +341,10 @@ body.light-mode {
   .leader-row td,
   .div-leader-row td { background: rgba(15, 23, 42, 0.03); }
 }
+
+/* Hide Leaflet attribution globally */
+.leaflet-control-attribution {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
