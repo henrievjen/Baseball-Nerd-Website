@@ -2,19 +2,67 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Baseball Nerd</title>
+  <title>Baseball Nerd — Live MLB Scores, Standings & Stats</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Baseball Nerd — fast, clean MLB scores, standings, stats, depth charts, and player data for every team and player in the league.">
+
+  <!-- Primary SEO meta tags -->
+  <meta name="description" content="Baseball Nerd is a free MLB companion app with live scores, standings, player stats, team schedules, depth charts, and more for all 30 Major League Baseball teams.">
+  <meta name="keywords" content="MLB scores, baseball standings, MLB stats, baseball app, MLB schedule, baseball player stats, major league baseball">
+  <meta name="author" content="Henri Evjen">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph / social sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Baseball Nerd — Live MLB Scores, Standings & Stats">
+  <meta property="og:description" content="Free MLB companion app with live scores, standings, player stats, team schedules, depth charts, and more for all 30 Major League Baseball teams.">
+  <meta property="og:site_name" content="Baseball Nerd">
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=DM+Sans:wght@300;400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <link rel="icon" type="image/png" href="assets/logo.png">
-  <!-- Google AdSense — replace ca-pub-XXXXXXXXXXXXXXXX with your publisher ID -->
+
+  <!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8890032903923645"
           crossorigin="anonymous"></script>
 </head>
 <body>
-<app-root></app-root>
+<app-root>
+  <!-- Static fallback content visible to crawlers that don't execute JavaScript.
+       This ensures Google's AdSense crawler sees real content even without JS. -->
+  <div style="font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 20px;">
+    <h1>Baseball Nerd — Live MLB Scores, Standings &amp; Stats</h1>
+    <p>
+      Baseball Nerd is a free web application for Major League Baseball fans. Get live scores for every
+      MLB game, full AL and NL standings, player batting and pitching statistics, team schedules,
+      organizational depth charts, and real-time stadium weather — all in one clean, fast interface.
+    </p>
+    <h2>Features</h2>
+    <ul>
+      <li><strong>Live Scores</strong> — Real-time MLB scores for every game with inning-by-inning breakdowns</li>
+      <li><strong>Standings</strong> — Full American League and National League standings with wild card tracking</li>
+      <li><strong>Player Stats</strong> — Career and season batting and pitching statistics for all MLB players</li>
+      <li><strong>Team Schedules</strong> — Full season schedules for all 30 MLB franchises</li>
+      <li><strong>Depth Charts</strong> — Organizational depth charts from MLB rosters through the minor leagues</li>
+      <li><strong>Stadium Weather</strong> — Live weather conditions at all 30 MLB ballparks</li>
+      <li><strong>Tabletop Baseball</strong> — A playable dice baseball simulation using real MLB rosters</li>
+    </ul>
+    <p>
+      Built by Henri Evjen, Baseball Nerd pulls data from the official MLB Stats API and is updated
+      continuously throughout the baseball season. The app covers all 30 teams from the New York Yankees
+      and Los Angeles Dodgers to the Oakland Athletics and Tampa Bay Rays.
+    </p>
+    <nav>
+      <a href="/scores">Scores</a> |
+      <a href="/standings">Standings</a> |
+      <a href="/stats">Stats</a> |
+      <a href="/players">Players</a> |
+      <a href="/about">About</a> |
+      <a href="/privacy">Privacy Policy</a>
+    </nav>
+  </div>
+</app-root>
 </body>
 </html>

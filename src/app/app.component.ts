@@ -1,8 +1,7 @@
-import { Component, OnInit, AfterViewInit, Renderer2 } from '@angular/core';
+import { Component, OnInit, OnDestroy, Renderer2 } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-
-declare const adsbygoogle: any[];
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -10,20 +9,14 @@ declare const adsbygoogle: any[];
   styleUrl: './app.component.scss',
   standalone: false
 })
-export class AppComponent implements OnInit, AfterViewInit {
+export class AppComponent implements OnInit, OnDestroy {
   isLightMode = false;
+  private routerSub!: Subscription;
 
   constructor(
     private renderer: Renderer2,
     private router: Router
-  ) {
-    // Failsafe to ensure scroll to top on every navigation
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe(() => {
-      window.scrollTo(0, 0);
-    });
-  }
+  ) {}
 
   ngOnInit() {
     const saved = localStorage.getItem('theme');
@@ -31,13 +24,26 @@ export class AppComponent implements OnInit, AfterViewInit {
       this.isLightMode = true;
       this.updateBodyClass();
     }
+
+    // Push a new ad unit on every route change so AdSense refreshes
+    // in this Single Page Application. Also scroll to top on navigation.
+    this.routerSub = this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      window.scrollTo(0, 0);
+      this.pushAd();
+    });
   }
 
-  ngAfterViewInit() {
+  private pushAd() {
     try {
       (window as any)['adsbygoogle'] = (window as any)['adsbygoogle'] || [];
       (window as any)['adsbygoogle'].push({});
-    } catch (e) { /* AdSense not loaded yet */ }
+    } catch (e) { /* AdSense not loaded */ }
+  }
+
+  ngOnDestroy() {
+    if (this.routerSub) this.routerSub.unsubscribe();
   }
 
   toggleTheme() {

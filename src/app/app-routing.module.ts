@@ -36,9 +36,13 @@ const routes: Routes = [
     loadChildren: () => import('./about/about.module').then(m => m.AboutModule)
   },
   {
+    path: 'privacy',
+    loadChildren: () => import('./privacy/privacy.module').then(m => m.PrivacyModule)
+  },
+  {
     path: 'stadium-weather',
     loadChildren: () => import('./stadium-map/stadium-map.module').then(m => m.StadiumMapModule)
-  },
+  }
 ];
 
 @NgModule({

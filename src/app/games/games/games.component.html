@@ -1,0 +1,417 @@
+<div class="games-page page-enter">
+
+  <!-- ═══════════════ MENU ═══════════════ -->
+  <div class="menu-view" *ngIf="phase === 'menu'">
+    <header class="page-header">
+      <h1 class="page-title">GAMES</h1>
+      <p class="page-subtitle">Fun baseball games you can play anywhere</p>
+    </header>
+    <div class="game-card card" (click)="goToSetup()">
+      <div class="game-icon">
+        <svg viewBox="0 0 64 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Die 1 -->
+          <rect x="1" y="1" width="28" height="28" rx="5" fill="var(--red)" opacity="0.12" stroke="var(--red)" stroke-width="2"/>
+          <circle cx="10" cy="10" r="2.5" fill="var(--red)"/>
+          <circle cx="22" cy="10" r="2.5" fill="var(--red)"/>
+          <circle cx="16" cy="15" r="2.5" fill="var(--red)"/>
+          <circle cx="10" cy="20" r="2.5" fill="var(--red)"/>
+          <circle cx="22" cy="20" r="2.5" fill="var(--red)"/>
+          <!-- Die 2 -->
+          <rect x="35" y="1" width="28" height="28" rx="5" fill="var(--red)" opacity="0.12" stroke="var(--red)" stroke-width="2"/>
+          <circle cx="44" cy="10" r="2.5" fill="var(--red)"/>
+          <circle cx="56" cy="10" r="2.5" fill="var(--red)"/>
+          <circle cx="44" cy="20" r="2.5" fill="var(--red)"/>
+          <circle cx="56" cy="20" r="2.5" fill="var(--red)"/>
+        </svg>
+      </div>
+      <div class="game-info">
+        <h2 class="game-title">Tabletop Baseball</h2>
+        <p class="game-description">Roll dice, watch runners move, play real MLB lineups in a full 9-inning game — fully automated scoring!</p>
+        <div class="game-meta">
+          <span class="meta-tag">🎲 Auto Dice</span>
+          <span class="meta-tag">⚾ Live Diamond</span>
+          <span class="meta-tag">🏟️ Real Lineups</span>
+        </div>
+      </div>
+      <div class="game-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SETUP ═══════════════ -->
+  <div class="setup-view" *ngIf="phase === 'setup'">
+    <button class="back-btn" (click)="backToMenu()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Back
+    </button>
+    <div class="setup-card card">
+      <h2 class="setup-title">⚾ Choose Your Teams</h2>
+
+      <!-- You are playing as -->
+      <div class="player-side-row">
+        <span class="player-side-label">You are playing as</span>
+        <div class="side-toggle">
+          <button class="side-btn" [class.active]="playerSide === 'away'" (click)="setPlayerSide('away')">▲ Away</button>
+          <button class="side-btn" [class.active]="playerSide === 'home'" (click)="setPlayerSide('home')">▼ Home</button>
+        </div>
+      </div>
+
+      <div class="setup-teams">
+        <!-- Away team -->
+        <div class="team-setup" [class.you]="playerSide === 'away'">
+          <div class="team-col-header">
+            <label class="team-label">Away Team</label>
+            <span class="you-badge" *ngIf="playerSide === 'away'">YOU</span>
+          </div>
+          <div class="team-logo-wrap" *ngIf="awayTeamId">
+            <img [src]="'https://www.mlbstatic.com/team-logos/' + awayTeamId + '.svg'" class="team-logo-preview" alt=""/>
+          </div>
+          <select class="team-select" (change)="onTeamSelect('away', $any($event.target).value)">
+            <option value="" disabled [selected]="!awayTeamId">Select team…</option>
+            <option *ngFor="let t of allTeams" [value]="t.id" [selected]="t.id === awayTeamId">{{ t.name }}</option>
+          </select>
+          <div class="roster-list" *ngIf="awayRoster.length">
+            <div class="roster-row" *ngFor="let b of awayRoster; let i = index">
+              <span class="roster-num">{{ i + 1 }}</span>
+              <img *ngIf="b.id" [src]="playerPhotoUrl(b.id)" class="roster-photo"
+                   alt="" (error)="$any($event.target).style.display='none'"/>
+              <span class="roster-name-txt">{{ b.name }}</span>
+              <span class="roster-pos" *ngIf="b.position">{{ b.position }}</span>
+            </div>
+          </div>
+          <div class="roster-empty" *ngIf="!awayRoster.length && awayTeamId && !loadingRoster">No roster data</div>
+        </div>
+
+        <div class="vs-badge">VS</div>
+
+        <!-- Home team -->
+        <div class="team-setup" [class.you]="playerSide === 'home'">
+          <div class="team-col-header">
+            <label class="team-label">Home Team</label>
+            <span class="you-badge" *ngIf="playerSide === 'home'">YOU</span>
+          </div>
+          <div class="team-logo-wrap" *ngIf="homeTeamId">
+            <img [src]="'https://www.mlbstatic.com/team-logos/' + homeTeamId + '.svg'" class="team-logo-preview" alt=""/>
+          </div>
+          <select class="team-select" (change)="onTeamSelect('home', $any($event.target).value)">
+            <option value="" disabled [selected]="!homeTeamId">Select team…</option>
+            <option *ngFor="let t of allTeams" [value]="t.id" [selected]="t.id === homeTeamId">{{ t.name }}</option>
+          </select>
+          <div class="roster-list" *ngIf="homeRoster.length">
+            <div class="roster-row" *ngFor="let b of homeRoster; let i = index">
+              <span class="roster-num">{{ i + 1 }}</span>
+              <img *ngIf="b.id" [src]="playerPhotoUrl(b.id)" class="roster-photo"
+                   alt="" (error)="$any($event.target).style.display='none'"/>
+              <span class="roster-name-txt">{{ b.name }}</span>
+              <span class="roster-pos" *ngIf="b.position">{{ b.position }}</span>
+            </div>
+          </div>
+          <div class="roster-empty" *ngIf="!homeRoster.length && homeTeamId && !loadingRoster">No roster data</div>
+        </div>
+      </div>
+
+      <div class="loading-row" *ngIf="loadingRoster">
+        <span class="loading-dot"></span> Loading roster…
+      </div>
+
+      <button class="play-btn" (click)="startGame()">⚾ PLAY BALL!</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════ PLAYING ═══════════════ -->
+  <div class="game-view" *ngIf="phase === 'playing'">
+
+    <!-- Scoreboard bar -->
+    <div class="scoreboard-bar card">
+      <div class="score-teams">
+        <img *ngIf="awayTeamId" [src]="teamLogoUrl(awayTeamId)" class="sb-logo" alt=""/>
+        <span class="score-team" [class.batting]="half === 'top'">{{ awayTeamName }}</span>
+        <span class="score-sep">–</span>
+        <span class="score-team" [class.batting]="half === 'bottom'">{{ homeTeamName }}</span>
+        <img *ngIf="homeTeamId" [src]="teamLogoUrl(homeTeamId)" class="sb-logo" alt=""/>
+      </div>
+      <div class="score-totals">
+        <span class="score-num away" [class.leading]="awayTotal > homeTotal">{{ awayTotal }}</span>
+        <span class="score-colon">:</span>
+        <span class="score-num home" [class.leading]="homeTotal > awayTotal">{{ homeTotal }}</span>
+      </div>
+      <div class="inning-badge">{{ inningLabel }}</div>
+    </div>
+
+    <!-- Inning grid -->
+    <div class="inning-grid-wrap card">
+      <table class="inning-table">
+        <thead>
+          <tr>
+            <th class="team-th"></th>
+            <th *ngFor="let i of innings" [class.current-inning]="i === inning">{{ i }}</th>
+            <th class="rhe-th">R</th>
+            <th class="rhe-th">H</th>
+            <th class="rhe-th">E</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="team-td">
+              <img *ngIf="awayTeamId" [src]="teamLogoUrl(awayTeamId)" class="table-logo" alt=""/>
+              {{ awayTeamName }}
+            </td>
+            <td *ngFor="let i of innings; let idx = index"
+                [class.active-half]="i === inning && half === 'top'">
+              {{ getScore(idx, 'top') }}
+            </td>
+            <td class="rhe-val">{{ awayTotal }}</td>
+            <td class="rhe-val">{{ awayHits }}</td>
+            <td class="rhe-val">{{ awayErrors }}</td>
+          </tr>
+          <tr>
+            <td class="team-td">
+              <img *ngIf="homeTeamId" [src]="teamLogoUrl(homeTeamId)" class="table-logo" alt=""/>
+              {{ homeTeamName }}
+            </td>
+            <td *ngFor="let i of innings; let idx = index"
+                [class.active-half]="i === inning && half === 'bottom'">
+              {{ getScore(idx, 'bottom') }}
+            </td>
+            <td class="rhe-val">{{ homeTotal }}</td>
+            <td class="rhe-val">{{ homeHits }}</td>
+            <td class="rhe-val">{{ homeErrors }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Main play area -->
+    <div class="play-area">
+
+      <!-- Left: Diamond + Status -->
+      <div class="field-col">
+        <!-- Current batter hero -->
+        <div class="batter-hero">
+          <div class="batter-team-logo-wrap">
+            <img *ngIf="currentTeamId" [src]="teamLogoUrl(currentTeamId)" class="batter-team-logo" alt=""/>
+          </div>
+          <div class="batter-photo-wrap">
+            <img *ngIf="currentBatterId"
+                 [src]="playerPhotoUrl(currentBatterId)"
+                 class="batter-photo"
+                 alt="{{ currentBatterName }}"
+                 (error)="$any($event.target).style.display='none'"/>
+            <div class="batter-photo-fallback" *ngIf="!currentBatterId">
+              <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="14" r="8" fill="var(--text2)" opacity="0.3"/><path d="M4 38 C4 28 36 28 36 38" fill="var(--text2)" opacity="0.3"/></svg>
+            </div>
+          </div>
+          <div class="batter-info">
+            <div class="batting-team-label">{{ currentTeam }} batting</div>
+            <div class="batter-name">{{ currentBatterName || ('Batter #' + currentBatterNum) }}</div>
+            <div class="batter-pos" *ngIf="currentBatterPosition">{{ currentBatterPosition }}</div>
+          </div>
+        </div>
+
+        <!-- Baseball Diamond (Containerless) -->
+        <svg class="diamond-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" style="max-width: 320px; margin: 0 auto 12px; display: block;">
+          <defs>
+            <pattern id="grassStripes" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+              <rect width="20" height="40" fill="#3d8a35" />
+              <rect x="20" width="20" height="40" fill="#357a2e" />
+            </pattern>
+            <clipPath id="stadiumClip">
+              <!-- Radius 250 Arc centered at Home (200, 380). Wedge widened to 120 deg (foul grass). -->
+              <path d="M 200,380 L -16.5,265 A 250,250 0 0,1 416.5,265 Z" />
+            </clipPath>
+          </defs>
+
+          <!-- Stadium Outer Boundary -->
+          <rect width="400" height="400" fill="#1b3a16" />
+
+          <!-- Playable Field Group (Clipped by Stadium Wall) -->
+          <g clip-path="url(#stadiumClip)">
+            <!-- Grass background (includes foul territory) -->
+            <rect width="400" height="400" fill="url(#grassStripes)" />
+
+            <!-- Infield Dirt Fan -->
+            <!-- Radius 185 covers 2B completely. 110 degree wedge provides symmetric dirt on both sides of foul lines. -->
+            <path d="M 48.5,273.9 A 185,185 0 0,1 351.5,273.9 L 200,380 Z" fill="#b08d5e" />
+
+            <!-- Infield Grass Diamond (The Island) -->
+            <!-- Points calculated for perfect symmetry and even dirt path width -->
+            <path d="M 200,270 L 243,313 L 200,356 L 157,313 Z" fill="#3d8a35" />
+
+            <!-- Foul Lines -->
+            <!-- Start at back of home plate and extend to outfield wall. Perfectly 45 degrees. -->
+            <g stroke="white" stroke-width="2.5" opacity="0.9">
+              <line x1="200" y1="380" x2="376.8" y2="213.2" />
+              <line x1="200" y1="380" x2="23.2" y2="213.2" />
+            </g>
+          </g>
+
+          <!-- Base Paths (Thin visual guide connecting bases) -->
+          <g stroke="#b08d5e" stroke-width="10" opacity="0.3">
+            <line x1="270" y1="310" x2="200" y2="240" />
+            <line x1="200" y1="240" x2="130" y2="310" />
+          </g>
+
+          <!-- Pitching Mound -->
+          <circle cx="200" cy="310" r="14" fill="#a07d4e" stroke="#7a5a32" stroke-width="1"/>
+          <rect x="195" y="309" width="10" height="3" fill="white" />
+
+          <!-- Home Area Dirt -->
+          <circle cx="200" cy="380" r="22" fill="#b08d5e"/>
+          <!-- Home Plate -->
+          <polygon points="200,380 193,373 193,365 207,365 207,373" fill="white" />
+
+          <!-- Bases -->
+          <g class="bases">
+            <!-- 2nd base (Top) - At (200, 240) -->
+            <rect x="193" y="233" width="14" height="14" rx="1" transform="rotate(45 200 240)"
+                  [attr.fill]="runnerOnSecond ? 'var(--runner-color)' : 'white'"
+                  class="base" [class.base-occupied]="runnerOnSecond"/>
+            <!-- 1st base (Right) - At (270, 310) -->
+            <rect x="263" y="303" width="14" height="14" rx="1" transform="rotate(45 270 310)"
+                  [attr.fill]="runnerOnFirst ? 'var(--runner-color)' : 'white'"
+                  class="base" [class.base-occupied]="runnerOnFirst"/>
+            <!-- 3rd base (Left) - At (130, 310) -->
+            <rect x="123" y="303" width="14" height="14" rx="1" transform="rotate(45 130 310)"
+                  [attr.fill]="runnerOnThird ? 'var(--runner-color)' : 'white'"
+                  class="base" [class.base-occupied]="runnerOnThird"/>
+          </g>
+
+          <!-- Runners -->
+          <g class="runners">
+            <circle *ngIf="runnerOnFirst"  cx="270" cy="310" r="8" fill="var(--runner-color)" class="runner-dot"/>
+            <circle *ngIf="runnerOnSecond" cx="200" cy="240" r="8" fill="var(--runner-color)" class="runner-dot"/>
+            <circle *ngIf="runnerOnThird"  cx="130" cy="310" r="8" fill="var(--runner-color)" class="runner-dot"/>
+          </g>
+        </svg>
+
+        <!-- Outs -->
+        <div class="outs-row">
+          <span class="outs-label">OUTS</span>
+          <div class="out-dots">
+            <div class="out-dot" [class.active]="outs >= 1"></div>
+            <div class="out-dot" [class.active]="outs >= 2"></div>
+            <div class="out-dot" [class.active]="outs >= 3"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Dice + Result + Log -->
+      <div class="dice-col">
+        <!-- Result banner -->
+        <div class="result-banner" [class.visible]="showResult" [ngClass]="getResultClass()">
+          {{ lastResultLabel }}
+        </div>
+
+        <!-- Dice -->
+        <div class="dice-area card">
+          <div class="dice-pair">
+            <div class="die-2d" [class.rolling]="isRolling">
+              <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="2" width="56" height="56" rx="10" fill="var(--bg2)" stroke="var(--border)" stroke-width="2"/>
+                <ng-container *ngIf="die1Face === 1"><circle cx="30" cy="30" r="5" fill="var(--red)"/></ng-container>
+                <ng-container *ngIf="die1Face === 2"><circle cx="18" cy="18" r="5" fill="var(--red)"/><circle cx="42" cy="42" r="5" fill="var(--red)"/></ng-container>
+                <ng-container *ngIf="die1Face === 3"><circle cx="18" cy="18" r="5" fill="var(--red)"/><circle cx="30" cy="30" r="5" fill="var(--red)"/><circle cx="42" cy="42" r="5" fill="var(--red)"/></ng-container>
+                <ng-container *ngIf="die1Face === 4"><circle cx="18" cy="18" r="5" fill="var(--red)"/><circle cx="42" cy="18" r="5" fill="var(--red)"/><circle cx="18" cy="42" r="5" fill="var(--red)"/><circle cx="42" cy="42" r="5" fill="var(--red)"/></ng-container>
+                <ng-container *ngIf="die1Face === 5"><circle cx="18" cy="18" r="5" fill="var(--red)"/><circle cx="42" cy="18" r="5" fill="var(--red)"/><circle cx="30" cy="30" r="5" fill="var(--red)"/><circle cx="18" cy="42" r="5" fill="var(--red)"/><circle cx="42" cy="42" r="5" fill="var(--red)"/></ng-container>
+                <ng-container *ngIf="die1Face === 6"><circle cx="18" cy="14" r="5" fill="var(--red)"/><circle cx="42" cy="14" r="5" fill="var(--red)"/><circle cx="18" cy="30" r="5" fill="var(--red)"/><circle cx="42" cy="30" r="5" fill="var(--red)"/><circle cx="18" cy="46" r="5" fill="var(--red)"/><circle cx="42" cy="46" r="5" fill="var(--red)"/></ng-container>
+              </svg>
+            </div>
+            <div class="die-2d" [class.rolling]="isRolling">
+              <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="2" width="56" height="56" rx="10" fill="var(--bg2)" stroke="var(--border)" stroke-width="2"/>
+                <ng-container *ngIf="die2Face === 1"><circle cx="30" cy="30" r="5" fill="var(--red)"/></ng-container>
+                <ng-container *ngIf="die2Face === 2"><circle cx="18" cy="18" r="5" fill="var(--red)"/><circle cx="42" cy="42" r="5" fill="var(--red)"/></ng-container>
+                <ng-container *ngIf="die2Face === 3"><circle cx="18" cy="18" r="5" fill="var(--red)"/><circle cx="30" cy="30" r="5" fill="var(--red)"/><circle cx="42" cy="42" r="5" fill="var(--red)"/></ng-container>
+                <ng-container *ngIf="die2Face === 4"><circle cx="18" cy="18" r="5" fill="var(--red)"/><circle cx="42" cy="18" r="5" fill="var(--red)"/><circle cx="18" cy="42" r="5" fill="var(--red)"/><circle cx="42" cy="42" r="5" fill="var(--red)"/></ng-container>
+                <ng-container *ngIf="die2Face === 5"><circle cx="18" cy="18" r="5" fill="var(--red)"/><circle cx="42" cy="18" r="5" fill="var(--red)"/><circle cx="30" cy="30" r="5" fill="var(--red)"/><circle cx="18" cy="42" r="5" fill="var(--red)"/><circle cx="42" cy="42" r="5" fill="var(--red)"/></ng-container>
+                <ng-container *ngIf="die2Face === 6"><circle cx="18" cy="14" r="5" fill="var(--red)"/><circle cx="42" cy="14" r="5" fill="var(--red)"/><circle cx="18" cy="30" r="5" fill="var(--red)"/><circle cx="42" cy="30" r="5" fill="var(--red)"/><circle cx="18" cy="46" r="5" fill="var(--red)"/><circle cx="42" cy="46" r="5" fill="var(--red)"/></ng-container>
+              </svg>
+            </div>
+          </div>
+          <button class="roll-btn" (click)="rollDice()" [disabled]="isRolling" [class.rolling]="isRolling">
+            {{ isRolling ? 'ROLLING...' : 'ROLL DICE' }}
+          </button>
+        </div>
+
+        <!-- Play log -->
+        <div class="log-card card">
+          <div class="log-header">PLAY LOG</div>
+          <div class="log-body">
+            <div class="log-entry" *ngFor="let entry of playLog; let i = index" [class.log-new]="i === 0">
+              {{ entry }}
+            </div>
+            <div class="log-empty" *ngIf="playLog.length === 0">Roll dice to start!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dice Legend (collapsible) -->
+    <div class="legend-section card">
+      <button class="legend-toggle" (click)="legendOpen = !legendOpen">
+        <span>🎲 Dice Roll Legend</span>
+        <svg class="legend-chevron" [class.open]="legendOpen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      <div class="legend-grid" *ngIf="legendOpen">
+        <div class="legend-row" *ngFor="let row of legend" [ngClass]="getLegendClass(row.result)">
+          <span class="leg-combo">{{ row.combo }}</span>
+          <span class="leg-result">{{ resultLabels[row.result] }}</span>
+          <span class="leg-note" *ngIf="row.note">{{ row.note }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════ GAME OVER ═══════════════ -->
+  <div class="gameover-view" *ngIf="phase === 'game_over'">
+    <div class="gameover-card card">
+      <div class="gameover-icon">⚾</div>
+      <h2 class="gameover-title">GAME OVER</h2>
+      <p class="gameover-result">{{ gameOverMessage }}</p>
+      <div class="final-line-score">
+        <table class="inning-table final-table">
+          <thead>
+            <tr>
+              <th class="team-th"></th>
+              <th *ngFor="let i of innings">{{ i }}</th>
+              <th class="rhe-th">R</th>
+              <th class="rhe-th">H</th>
+              <th class="rhe-th">E</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="team-td">
+                <img *ngIf="awayTeamId" [src]="teamLogoUrl(awayTeamId)" class="table-logo" alt=""/>
+                {{ awayTeamName }}
+              </td>
+              <td *ngFor="let i of innings; let idx = index">{{ getScore(idx, 'top') }}</td>
+              <td class="rhe-val">{{ awayTotal }}</td>
+              <td class="rhe-val">{{ awayHits }}</td>
+              <td class="rhe-val">{{ awayErrors }}</td>
+            </tr>
+            <tr>
+              <td class="team-td">
+                <img *ngIf="homeTeamId" [src]="teamLogoUrl(homeTeamId)" class="table-logo" alt=""/>
+                {{ homeTeamName }}
+              </td>
+              <td *ngFor="let i of innings; let idx = index">{{ getScore(idx, 'bottom') }}</td>
+              <td class="rhe-val">{{ homeTotal }}</td>
+              <td class="rhe-val">{{ homeHits }}</td>
+              <td class="rhe-val">{{ homeErrors }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="gameover-actions">
+        <button class="play-btn" (click)="startGame()">Play Again</button>
+        <button class="secondary-btn" (click)="goToSetup()">Change Teams</button>
+        <button class="secondary-btn" (click)="backToMenu()">Main Menu</button>
+      </div>
+    </div>
+  </div>
+</div>
