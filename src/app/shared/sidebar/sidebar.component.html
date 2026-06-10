@@ -35,21 +35,6 @@
     </a>
   </nav>
 
-  <!-- Mobile "More" Menu Popup -->
-  <div class="more-menu-popup" *ngIf="isMoreOpen" (click)="$event.stopPropagation()">
-    <div class="more-menu-header">More</div>
-    <div class="more-menu-grid">
-      <a class="more-menu-item" *ngFor="let item of navItems.slice(3)"
-         [class.active]="isActive(item.route)"
-         (click)="navigate(item.route)">
-        <div class="more-menu-icon">
-          <ng-container [ngTemplateOutlet]="iconTmpl" [ngTemplateOutletContext]="{ icon: item.icon }"></ng-container>
-        </div>
-        <span class="more-menu-label">{{ item.label }}</span>
-      </a>
-    </div>
-  </div>
-
   <!-- Privacy Policy link -->
   <div class="privacy-link-wrap" *ngIf="!collapsed">
     <a class="privacy-link" href="https://henrievjen.github.io/Baseball-Nerd-Privacy-Policy/" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
@@ -63,6 +48,23 @@
     </svg>
   </button>
 </aside>
+
+<!-- Mobile "More" Menu Popup — rendered OUTSIDE <aside> so it is not
+     trapped by the sidebar's backdrop-filter stacking context (which
+     prevents position:fixed children from escaping on Chrome/Edge/Safari) -->
+<div class="more-menu-popup" *ngIf="isMoreOpen" (click)="$event.stopPropagation()">
+  <div class="more-menu-header">More</div>
+  <div class="more-menu-grid">
+    <a class="more-menu-item" *ngFor="let item of navItems.slice(3)"
+       [class.active]="isActive(item.route)"
+       (click)="navigate(item.route)">
+      <div class="more-menu-icon">
+        <ng-container [ngTemplateOutlet]="iconTmpl" [ngTemplateOutletContext]="{ icon: item.icon }"></ng-container>
+      </div>
+      <span class="more-menu-label">{{ item.label }}</span>
+    </a>
+  </div>
+</div>
 
 <!-- Icon Template for reuse -->
 <ng-template #iconTmpl let-icon="icon">

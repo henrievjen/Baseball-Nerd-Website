@@ -58,13 +58,19 @@ export class SidebarComponent implements AfterViewInit {
 
   toggleCollapsed() { this.collapsed = !this.collapsed; }
 
+  private _suppressClose = false;
+
   toggleMore(event: Event) {
     event.stopPropagation();
     this.isMoreOpen = !this.isMoreOpen;
+    // Suppress the document:click handler that fires in the same event cycle
+    this._suppressClose = true;
+    setTimeout(() => { this._suppressClose = false; }, 0);
   }
 
   @HostListener('document:click')
   closeMore() {
+    if (this._suppressClose) return;
     this.isMoreOpen = false;
   }
 }

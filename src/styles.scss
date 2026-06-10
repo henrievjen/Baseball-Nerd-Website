@@ -256,15 +256,30 @@ img { max-width: 100%; }
   .tabs { overflow-x: auto; }
 
   .modal-overlay {
-    padding: 12px;
-    align-items: center;
+    /* Switch from center to flex-start so the modal top is never clipped
+       on Edge, older Safari, or devices with notches/dynamic islands. */
+    align-items: flex-start;
+    /* Add safe-area top padding so header stays below notch/status bar,
+       and bottom padding to clear the mobile nav bar. */
+    padding-top: max(12px, env(safe-area-inset-top, 12px));
+    padding-bottom: calc(var(--mobile-nav-h, 60px) + max(12px, env(safe-area-inset-bottom, 12px)));
+    padding-left: 12px;
+    padding-right: 12px;
+    /* Allow overlay to scroll if modal content is taller than viewport */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .modal-box {
     border-radius: var(--radius-lg);
-    max-height: 90vh;
+    /* Remove fixed max-height — let content flow naturally within the
+       scrollable overlay so nothing gets clipped on any browser. */
+    max-height: none;
     width: 100%;
     max-width: 100%;
+    overflow-y: visible;
+    /* Center within the overlay when content is shorter than viewport */
+    margin: auto;
   }
 }
 

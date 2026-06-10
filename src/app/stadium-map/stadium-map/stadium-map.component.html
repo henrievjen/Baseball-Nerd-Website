@@ -193,9 +193,6 @@
               <span class="h-time">{{ h.time }}</span>
               <span class="h-icon" [title]="h.condition">{{ h.icon }}</span>
               <span class="h-temp">{{ displayHourlyTemp(h) }}</span>
-              <div class="h-precip-bar" *ngIf="h.precipIntensity > 0">
-                <div class="bar-fill" [style.height.%]="Math.min(100, h.precipIntensity * 20)"></div>
-              </div>
               <span class="h-precip">
                 <ng-container *ngIf="h.precipProb > 0; else noPrecip">💧 {{ h.precipProb }}%</ng-container>
                 <ng-template #noPrecip><span class="no-prob">0%</span></ng-template>
