@@ -21,7 +21,7 @@
     <div class="team-selector-header" (click)="toggleTeamBar()">
       <span class="selector-label">Select Team</span>
       <div class="active-team-preview" *ngIf="!isTeamBarExpanded && teamId">
-        <img [src]="teams.logo(teamId)" class="preview-logo" alt=""/>
+        <span class="preview-logo-wrap"><img [src]="teams.logo(teamId)" class="preview-logo" alt=""/></span>
         <span class="preview-name">{{ teams.name(teamId) }}</span>
       </div>
       <button class="selector-toggle">
@@ -39,7 +39,7 @@
               [class.is-fav]="favorites.isFavorite(t.id)"
               (click)="selectTeam(t.id)"
               [title]="t.name">
-        <img class="team-chip-logo" [src]="teams.logo(t.id)" [alt]="t.name"/>
+        <span class="team-chip-logo-wrap"><img class="team-chip-logo" [src]="teams.logo(t.id)" [alt]="t.name"/></span>
         <span class="team-chip-abbr">{{ t.abbr }}</span>
         <span class="team-chip-fav" *ngIf="favorites.isFavorite(t.id)" aria-hidden="true">★</span>
       </button>
@@ -48,7 +48,9 @@
 
   <ng-container *ngIf="teamId">
     <div class="team-heading">
-      <img class="team-heading-logo" [src]="teams.logo(teamId)" [alt]="teams.name(teamId)"/>
+      <div class="team-heading-logo-wrap">
+        <img class="team-heading-logo" [src]="teams.logo(teamId)" [alt]="teams.name(teamId)"/>
+      </div>
       <h2 class="team-heading-name">{{ teams.name(teamId) }}</h2>
       <button class="fav-btn-lg"
               [class.is-fav]="favorites.isFavorite(teamId)"

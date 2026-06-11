@@ -41,7 +41,7 @@
             <tr *ngFor="let t of div.teams; let i = index" [class.leader-row]="i === 0">
               <td class="td-team td-team--link" (click)="goToTeam(t.teamId)">
                 <span class="rank-num">{{ t.rank }}</span>
-                <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
+                <span class="st-logo-wrap"><img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/></span>
                 <span class="team-name-text">{{ t.teamName }}</span>
               </td>
               <td class="num-cell">{{ t.wins }}</td>
@@ -73,7 +73,7 @@
             <tr *ngFor="let t of div.teams; let i = index" [class.leader-row]="i === 0">
               <td class="td-team td-team--link" (click)="goToTeam(t.teamId)">
                 <span class="rank-num">{{ t.rank }}</span>
-                <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
+                <span class="st-logo-wrap"><img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/></span>
                 <span class="team-name-text">{{ t.teamName }}</span>
               </td>
               <td class="num-cell">{{ t.wins }}</td>
@@ -107,7 +107,7 @@
             <tr *ngFor="let t of alDivisionLeaders" class="leader-row div-leader-row">
               <td class="td-team td-team--link" (click)="goToTeam(t.teamId)">
                 <span class="div-crown">👑</span>
-                <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
+                <span class="st-logo-wrap"><img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/></span>
                 <div class="team-name-stack">
                   <span class="team-name-text">{{ t.teamName }}</span>
                   <span class="div-name-sub">{{ t.divisionShortName }}</span>
@@ -131,7 +131,7 @@
             <tr *ngFor="let t of alWildCard" [class.wc-spot-row]="(t.wcRank ?? 99) <= 3" [class.wc-bubble-row]="(t.wcRank ?? 99) > 3">
               <td class="td-team td-team--link" (click)="goToTeam(t.teamId)">
                 <span class="rank-num">{{ t.wcRank }}</span>
-                <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
+                <span class="st-logo-wrap"><img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/></span>
                 <span class="team-name-text">{{ t.teamName }}</span>
                 <span *ngIf="(t.wcRank ?? 99) <= 3" class="wc-badge">WC</span>
               </td>
@@ -160,7 +160,7 @@
             <tr *ngFor="let t of nlDivisionLeaders" class="leader-row div-leader-row">
               <td class="td-team td-team--link" (click)="goToTeam(t.teamId)">
                 <span class="div-crown">👑</span>
-                <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
+                <span class="st-logo-wrap"><img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/></span>
                 <div class="team-name-stack">
                   <span class="team-name-text">{{ t.teamName }}</span>
                   <span class="div-name-sub">{{ t.divisionShortName }}</span>
@@ -184,7 +184,7 @@
             <tr *ngFor="let t of nlWildCard" [class.wc-spot-row]="(t.wcRank ?? 99) <= 3" [class.wc-bubble-row]="(t.wcRank ?? 99) > 3">
               <td class="td-team td-team--link" (click)="goToTeam(t.teamId)">
                 <span class="rank-num">{{ t.wcRank }}</span>
-                <img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/>
+                <span class="st-logo-wrap"><img [src]="teams.logo(t.teamId)" class="st-logo" [alt]="t.teamName" (error)="logoError($event)"/></span>
                 <span class="team-name-text">{{ t.teamName }}</span>
                 <span *ngIf="(t.wcRank ?? 99) <= 3" class="wc-badge">WC</span>
               </td>

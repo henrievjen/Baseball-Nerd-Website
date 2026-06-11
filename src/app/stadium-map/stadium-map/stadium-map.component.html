@@ -105,10 +105,10 @@
                 [class.selected]="selectedStadium === s"
                 (click)="flyToStadium(s)">
           <div class="sli-top">
-            <img class="sli-logo"
+            <span class="sli-logo-wrap"><img class="sli-logo"
                  [src]="'https://www.mlbstatic.com/team-logos/' + s.teamId + '.svg'"
                  [alt]="s.abbr"
-                 (error)="$any($event.target).style.display='none'"/>
+                 (error)="$any($event.target).style.display='none'"/></span>
             <span class="sli-name">{{ s.name }}</span>
           </div>
           <div class="sli-weather" *ngIf="s.weather; else loadingSlot">

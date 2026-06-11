@@ -45,7 +45,7 @@
         </div>
         <div class="player-sub">
           <span class="player-pos" *ngIf="p.posAbbr">{{ p.posAbbr }}</span>
-          <img *ngIf="p.teamId" class="player-team-logo" [src]="teams.logo(p.teamId)" alt="" (error)="logoError($event)"/>
+          <span *ngIf="p.teamId" class="player-team-logo-wrap"><img class="player-team-logo" [src]="teams.logo(p.teamId)" alt="" (error)="logoError($event)"/></span>
           <span class="player-team">{{ p.teamName || (p.isActive ? '—' : 'Inactive') }}</span>
         </div>
       </div>

@@ -149,12 +149,16 @@
   border-radius: 4px;
 }
 
-.st-logo {
-  width: 24px; height: 24px; object-fit: contain; flex-shrink: 0;
+.st-logo-wrap {
+  width: 24px; height: 24px; flex-shrink: 0;
   background: white;
   border-radius: 50%;
-  padding: 4px;
-  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  overflow: visible;
+}
+
+.st-logo {
+  width: 17px; height: 17px; object-fit: contain;
 }
 
 .team-name-text { font-size: 0.85rem; font-weight: 500; color: var(--text); }
@@ -222,7 +226,8 @@
     th, td { padding: 8px 8px; font-size: 0.76rem; }
     thead th { font-size: 0.62rem; }
     .team-name-text { font-size: 0.78rem; }
-    .st-logo { width: 20px; height: 20px; }
+    .st-logo-wrap { width: 20px; height: 20px; }
+    .st-logo { width: 14px; height: 14px; }
   }
 
   /* Hide less-critical columns on very small screens */

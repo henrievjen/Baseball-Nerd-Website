@@ -58,7 +58,7 @@
                   <div class="leader-info">
                     <div class="leader-name">{{ l.person?.fullName }}</div>
                     <div class="leader-team">
-                      <img [src]="teams.logo(l.team?.id)" class="leader-team-logo" (error)="logoError($event)"/>
+                      <span class="leader-team-logo-wrap"><img [src]="teams.logo(l.team?.id)" class="leader-team-logo" (error)="logoError($event)"/></span>
                       {{ l.team?.name }}
                     </div>
                   </div>

@@ -20,16 +20,21 @@
   display: flex; flex-direction: column; align-items: center; gap: 4px;
 }
 
-.gd-team-logo {
-  width: 52px; height: 52px; object-fit: contain;
-  background: #fff;
+.gd-team-logo-wrap {
+  width: 52px; height: 52px;
   border-radius: 50%;
-  padding: 8px;
+  background: #fff;
   box-shadow: 0 1px 3px rgba(0,0,0,0.25);
-  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  overflow: visible;
 }
 
-.gd-team-logo--link,
+.gd-team-logo {
+  width: 38px; height: 38px; object-fit: contain;
+}
+
+.gd-team-logo-wrap--link,
 .gd-team-name--link {
   cursor: pointer;
   transition: opacity var(--transition), color var(--transition);
@@ -822,7 +827,8 @@
   .gd-header { padding: 16px 14px 10px; }
   .gd-main-tabs { padding: 0 14px; }
   .gd-score { font-size: 2.4rem; }
-  .gd-team-logo { width: 40px; height: 40px; padding: 6px; }
+  .gd-team-logo-wrap { width: 40px; height: 40px; }
+  .gd-team-logo { width: 30px; height: 30px; }
   .section-header { padding: 10px 14px 5px; font-size: 0.76rem; }
   .bs-table-wrap { padding: 0 12px 4px; }
   .bs-table {

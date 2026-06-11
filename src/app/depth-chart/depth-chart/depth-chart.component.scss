@@ -113,14 +113,22 @@
     flex: 1;
     margin-left: 16px;
 
-    .preview-logo {
+    .preview-logo-wrap {
       width: 20px;
       height: 20px;
-      object-fit: contain;
       background: #fff;
       border-radius: 50%;
-      padding: 3px;
-      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: visible;
+    }
+
+    .preview-logo {
+      width: 14px;
+      height: 14px;
+      object-fit: contain;
     }
 
     .preview-name {
@@ -164,14 +172,22 @@
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s, background 0.15s, transform 0.1s;
 
-  .team-chip-logo {
+  .team-chip-logo-wrap {
     width: 18px;
     height: 18px;
-    object-fit: contain;
     background: #fff;
     border-radius: 50%;
-    padding: 3px;
-    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: visible;
+  }
+
+  .team-chip-logo {
+    width: 13px;
+    height: 13px;
+    object-fit: contain;
   }
 
   .team-chip-abbr { letter-spacing: 0.5px; }
@@ -207,15 +223,23 @@
   margin-bottom: 16px;
 }
 
-.team-heading-logo {
+.team-heading-logo-wrap {
   width: 48px;
   height: 48px;
-  object-fit: contain;
-  background: #fff;
   border-radius: 50%;
-  padding: 7px;
+  background: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.team-heading-logo {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
 }
 
 .team-heading-name {

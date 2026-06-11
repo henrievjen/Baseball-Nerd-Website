@@ -435,14 +435,22 @@
   margin-bottom: 6px;
 }
 
-.sli-logo {
+.sli-logo-wrap {
   width: 32px;
   height: 32px;
-  object-fit: contain;
   flex-shrink: 0;
   background: white;
   border-radius: 50%;
-  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.sli-logo {
+  width: 23px;
+  height: 23px;
+  object-fit: contain;
 }
 
 .sli-name {
@@ -572,13 +580,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px;
+  overflow: visible;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 .smd-logo {
-  width: 44px;
-  height: 44px;
+  width: 41px;
+  height: 41px;
   object-fit: contain;
 }
 
@@ -964,12 +972,15 @@
     margin-bottom: 0;
   }
 
-  .sli-logo {
+  .sli-logo-wrap {
     width: 24px;
     height: 24px;
-    padding: 2px;
     background: #fff;
     border-radius: 50%;
+  }
+  .sli-logo {
+    width: 17px;
+    height: 17px;
   }
 
   .sli-name {
@@ -1019,7 +1030,7 @@
   .sm-detail__close { top: 14px; right: 14px; }
 
   .smd-logo-wrap { width: 44px; height: 44px; }
-  .smd-logo { width: 34px; height: 34px; }
+  .smd-logo { width: 32px; height: 32px; }
   .smd-stadium { font-size: 0.95rem; }
   .smd-team { font-size: 0.72rem; }
   .smd-address { font-size: 0.66rem; }

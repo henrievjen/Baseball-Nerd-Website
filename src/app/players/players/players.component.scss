@@ -186,15 +186,22 @@
   flex-shrink: 0;
 }
 
-.player-team-logo {
+.player-team-logo-wrap {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  object-fit: contain;
   background: white;
-  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  overflow: hidden;
+  overflow: visible;
+}
+
+.player-team-logo {
+  width: 13px;
+  height: 13px;
+  object-fit: contain;
 }
 
 .player-team {

@@ -2,7 +2,7 @@
   <header class="page-header">
     <div class="ts-header-top">
       <div class="ts-team-id">
-        <img *ngIf="teamId" class="ts-team-logo" [src]="teams.logo(teamId)" [alt]="teamName" (error)="logoError($event)"/>
+        <div *ngIf="teamId" class="ts-team-logo-wrap"><img class="ts-team-logo" [src]="teams.logo(teamId)" [alt]="teamName" (error)="logoError($event)"/></div>
         <div class="ts-team-text">
           <h1 class="page-title">{{ teamName || 'Team Schedule' }}</h1>
           <p class="ts-sub">

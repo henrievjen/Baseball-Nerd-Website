@@ -21,7 +21,7 @@
         <div class="player-hero-inner">
           <div class="player-photo-wrap">
             <img class="player-photo" [src]="teams.photo(player.id)" [alt]="player.fullName" (error)="photoError($event)"/>
-            <img *ngIf="teamId" class="player-team-badge" [src]="teams.logo(teamId)" (error)="logoError($event)"/>
+            <span *ngIf="teamId" class="player-team-badge-wrap"><img class="player-team-badge" [src]="teams.logo(teamId)" (error)="logoError($event)"/></span>
           </div>
           <div class="player-hero-info">
             <div class="player-number" *ngIf="player.primaryNumber">#{{ player.primaryNumber }}</div>

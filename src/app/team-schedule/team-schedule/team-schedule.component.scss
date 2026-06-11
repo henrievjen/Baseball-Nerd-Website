@@ -26,11 +26,16 @@
   display: flex; align-items: center; gap: 14px;
 }
 
-.ts-team-logo {
-  width: 60px; height: 60px; object-fit: contain;
-  background: white; border-radius: 50%; padding: 9px;
+.ts-team-logo-wrap {
+  width: 60px; height: 60px;
+  background: white; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  overflow: hidden;
+  overflow: visible;
+}
+
+.ts-team-logo {
+  width: 44px; height: 44px; object-fit: contain;
 }
 
 .ts-team-text { display: flex; flex-direction: column; gap: 4px; }
@@ -241,7 +246,8 @@
 
 @media (max-width: 760px) {
   .ts-page { padding: 16px 12px 80px; }
-  .ts-team-logo { width: 48px; height: 48px; padding: 7px; }
+  .ts-team-logo-wrap { width: 48px; height: 48px; }
+  .ts-team-logo { width: 35px; height: 35px; }
   .ts-venue-col { display: none; }
   .ts-record-col { display: none; }
   .ts-table thead th, .ts-table tbody td { padding: 8px 10px; }

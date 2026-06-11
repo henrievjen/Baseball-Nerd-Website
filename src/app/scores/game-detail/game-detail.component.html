@@ -6,7 +6,7 @@
     <div class="gd-header">
       <div class="gd-scoreboard">
         <div class="gd-team">
-          <img class="gd-team-logo gd-team-logo--link" [src]="teams.logo(awayId)" [alt]="away?.team?.name" (error)="logoError($event)" (click)="goToTeam(awayId)"/>
+          <div class="gd-team-logo-wrap gd-team-logo-wrap--link" (click)="goToTeam(awayId)"><img class="gd-team-logo" [src]="teams.logo(awayId)" [alt]="away?.team?.name" (error)="logoError($event)"/></div>
           <div class="gd-team-name gd-team-name--link" (click)="goToTeam(awayId)">{{ away?.team?.name }}</div>
           <div class="gd-score" [style.color]="teams.color(awayId)">{{ state !== 'upcoming' && !isPostponed ? awayLineR : '' }}</div>
           <div class="gd-record" *ngIf="away?.leagueRecord">{{ away.leagueRecord.wins }}-{{ away.leagueRecord.losses }}</div>
@@ -19,7 +19,7 @@
           <div class="gd-venue">{{ game?.venue?.name }}</div>
         </div>
         <div class="gd-team">
-          <img class="gd-team-logo gd-team-logo--link" [src]="teams.logo(homeId)" [alt]="home?.team?.name" (error)="logoError($event)" (click)="goToTeam(homeId)"/>
+          <div class="gd-team-logo-wrap gd-team-logo-wrap--link" (click)="goToTeam(homeId)"><img class="gd-team-logo" [src]="teams.logo(homeId)" [alt]="home?.team?.name" (error)="logoError($event)"/></div>
           <div class="gd-team-name gd-team-name--link" (click)="goToTeam(homeId)">{{ home?.team?.name }}</div>
           <div class="gd-score" [style.color]="teams.color(homeId)">{{ state !== 'upcoming' && !isPostponed ? homeLineR : '' }}</div>
           <div class="gd-record" *ngIf="home?.leagueRecord">{{ home.leagueRecord.wins }}-{{ home.leagueRecord.losses }}</div>
