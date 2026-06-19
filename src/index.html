@@ -7,15 +7,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- Primary SEO meta tags -->
-  <meta name="description" content="Baseball Nerd is a free MLB companion app with live scores, standings, player stats, team schedules, depth charts, and more for all 30 Major League Baseball teams.">
-  <meta name="keywords" content="MLB scores, baseball standings, MLB stats, baseball app, MLB schedule, baseball player stats, major league baseball">
+  <meta name="description" content="Baseball Nerd is a free MLB companion app with live scores, standings, player stats, team schedules, depth charts, and stadium weather for all 30 Major League Baseball teams.">
+  <meta name="keywords" content="MLB scores, baseball standings, MLB stats, baseball app, MLB schedule, baseball player stats, major league baseball, live scores, AL standings, NL standings">
   <meta name="author" content="Henri Evjen">
   <meta name="robots" content="index, follow">
 
   <!-- Open Graph / social sharing -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Baseball Nerd — Live MLB Scores, Standings & Stats">
-  <meta property="og:description" content="Free MLB companion app with live scores, standings, player stats, team schedules, depth charts, and more for all 30 Major League Baseball teams.">
+  <meta property="og:description" content="Free MLB companion app with live scores, standings, player stats, team schedules, depth charts, and stadium weather for all 30 Major League Baseball teams.">
   <meta property="og:site_name" content="Baseball Nerd">
 
   <!-- Fonts -->
@@ -30,38 +30,77 @@
 </head>
 <body>
 <app-root>
-  <!-- Static fallback content visible to crawlers that don't execute JavaScript.
-       This ensures Google's AdSense crawler sees real content even without JS. -->
-  <div style="font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 20px;">
-    <h1>Baseball Nerd — Live MLB Scores, Standings &amp; Stats</h1>
-    <p>
-      Baseball Nerd is a free web application for Major League Baseball fans. Get live scores for every
-      MLB game, full AL and NL standings, player batting and pitching statistics, team schedules,
-      organizational depth charts, and real-time stadium weather — all in one clean, fast interface.
+  <!--
+    Static fallback rendered inside <app-root> before Angular boots.
+    Google's AdSense crawler and many search bots read this content
+    to evaluate whether the site has real publisher content.
+  -->
+  <div style="font-family: Georgia, serif; max-width: 860px; margin: 40px auto; padding: 20px; color: #222; line-height: 1.7;">
+
+    <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">Baseball Nerd — Live MLB Scores, Standings &amp; Stats</h1>
+    <p style="font-size: 1rem; color: #555; margin-bottom: 1.5rem;">
+      Your free, fast MLB companion for all 30 Major League Baseball teams.
     </p>
-    <h2>Features</h2>
+
+    <p>
+      Baseball Nerd is a free web application built for Major League Baseball fans who want fast,
+      no-nonsense access to real-time MLB data. Every statistic, score, and standings update is
+      pulled directly from the <strong>official MLB Stats API</strong> (statsapi.mlb.com) — the
+      same API used by MLB.com. No scraping. No delays. Always accurate.
+    </p>
+
+    <h2 style="font-size: 1.4rem; margin-top: 1.5rem;">Features</h2>
     <ul>
-      <li><strong>Live Scores</strong> — Real-time MLB scores for every game with inning-by-inning breakdowns</li>
-      <li><strong>Standings</strong> — Full American League and National League standings with wild card tracking</li>
-      <li><strong>Player Stats</strong> — Career and season batting and pitching statistics for all MLB players</li>
-      <li><strong>Team Schedules</strong> — Full season schedules for all 30 MLB franchises</li>
-      <li><strong>Depth Charts</strong> — Organizational depth charts from MLB rosters through the minor leagues</li>
-      <li><strong>Stadium Weather</strong> — Live weather conditions at all 30 MLB ballparks</li>
-      <li><strong>Tabletop Baseball</strong> — A playable dice baseball simulation using real MLB rosters</li>
+      <li><strong>Live Scores</strong> — Real-time MLB scores for every game with inning-by-inning breakdowns, pitching matchups, and final results.</li>
+      <li><strong>Standings</strong> — Full American League and National League standings including wins, losses, winning percentage, games behind, run differential, and wild card tracking.</li>
+      <li><strong>Player Stats</strong> — Career and season batting statistics (AVG, OBP, SLG, OPS, HR, RBI, SB) and pitching statistics (ERA, WHIP, K/9, IP) for all MLB players.</li>
+      <li><strong>Team Schedules</strong> — Full season schedules for all 30 MLB franchises with starting pitcher matchups and results.</li>
+      <li><strong>Depth Charts</strong> — Organizational depth charts from the major league roster down through all minor league affiliates.</li>
+      <li><strong>Stadium Weather</strong> — Live weather conditions at all 30 MLB ballparks including temperature, wind speed, wind direction, and precipitation chance.</li>
+      <li><strong>Player Search</strong> — Search the complete MLB player database by name to view full profiles, career stats, and current team information.</li>
     </ul>
+
+    <h2 style="font-size: 1.4rem; margin-top: 1.5rem;">All 30 MLB Teams</h2>
+    <p>Baseball Nerd covers every franchise in both leagues and all six divisions:</p>
+    <ul>
+      <li><strong>AL East:</strong> Baltimore Orioles, Boston Red Sox, New York Yankees, Tampa Bay Rays, Toronto Blue Jays</li>
+      <li><strong>AL Central:</strong> Chicago White Sox, Cleveland Guardians, Detroit Tigers, Kansas City Royals, Minnesota Twins</li>
+      <li><strong>AL West:</strong> Houston Astros, Los Angeles Angels, Oakland Athletics, Seattle Mariners, Texas Rangers</li>
+      <li><strong>NL East:</strong> Atlanta Braves, Miami Marlins, New York Mets, Philadelphia Phillies, Washington Nationals</li>
+      <li><strong>NL Central:</strong> Chicago Cubs, Cincinnati Reds, Milwaukee Brewers, Pittsburgh Pirates, St. Louis Cardinals</li>
+      <li><strong>NL West:</strong> Arizona Diamondbacks, Colorado Rockies, Los Angeles Dodgers, San Diego Padres, San Francisco Giants</li>
+    </ul>
+
+    <h2 style="font-size: 1.4rem; margin-top: 1.5rem;">About the Data</h2>
     <p>
-      Built by Henri Evjen, Baseball Nerd pulls data from the official MLB Stats API and is updated
-      continuously throughout the baseball season. The app covers all 30 teams from the New York Yankees
-      and Los Angeles Dodgers to the Oakland Athletics and Tampa Bay Rays.
+      All data on Baseball Nerd is sourced from the official MLB Stats API. Live game data is updated
+      in near-real time during the season. Season statistics are finalized after each game and
+      retroactively corrected if MLB issues official stat adjustments. Player headshots and team logos
+      are loaded from MLB's official content delivery network.
     </p>
-    <nav>
-      <a href="/scores">Scores</a> |
-      <a href="/standings">Standings</a> |
-      <a href="/stats">Stats</a> |
-      <a href="/players">Players</a> |
-      <a href="/about">About</a> |
-      <a href="/privacy">Privacy Policy</a>
+
+    <h2 style="font-size: 1.4rem; margin-top: 1.5rem;">About Baseball Nerd</h2>
+    <p>
+      Baseball Nerd was built by Henri Evjen, a lifelong baseball fan and software developer. The site
+      is completely free to use and is supported by Google AdSense advertisements. An Android app is
+      also available on the Google Play Store. Feedback and feature requests can be submitted through
+      the Feedback page.
+    </p>
+
+    <nav style="margin-top: 2rem; font-size: 0.95rem;">
+      <a href="/" style="color: #c0392b; margin-right: 12px;">Home</a>
+      <a href="/scores" style="color: #c0392b; margin-right: 12px;">Scores</a>
+      <a href="/standings" style="color: #c0392b; margin-right: 12px;">Standings</a>
+      <a href="/stats" style="color: #c0392b; margin-right: 12px;">Stats</a>
+      <a href="/players" style="color: #c0392b; margin-right: 12px;">Players</a>
+      <a href="/team-schedule" style="color: #c0392b; margin-right: 12px;">Schedules</a>
+      <a href="/depth-chart" style="color: #c0392b; margin-right: 12px;">Depth Charts</a>
+      <a href="/stadium-weather" style="color: #c0392b; margin-right: 12px;">Stadium Weather</a>
+      <a href="/about" style="color: #c0392b; margin-right: 12px;">About</a>
+      <a href="/privacy" style="color: #c0392b; margin-right: 12px;">Privacy Policy</a>
+      <a href="/feedback" style="color: #c0392b;">Feedback</a>
     </nav>
+
   </div>
 </app-root>
 </body>

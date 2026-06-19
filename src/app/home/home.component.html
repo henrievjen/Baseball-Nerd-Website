@@ -1,0 +1,325 @@
+<div class="home-page page-enter">
+
+  <!-- Hero -->
+  <header class="home-hero">
+    <div class="home-hero__inner">
+      <h1 class="home-hero__title">Baseball Nerd</h1>
+      <p class="home-hero__sub">
+        Your free, fast, ad-supported MLB companion — live scores, standings, player stats,
+        depth charts, and stadium weather for all 30 Major League Baseball teams.
+      </p>
+      <nav class="home-hero__nav" aria-label="Quick navigation">
+        <a routerLink="/scores" class="home-hero__btn">Live Scores</a>
+        <a routerLink="/standings" class="home-hero__btn home-hero__btn--secondary">Standings</a>
+        <a routerLink="/players" class="home-hero__btn home-hero__btn--secondary">Player Stats</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="home-content">
+
+    <!-- What We Cover -->
+    <section class="home-section card">
+      <h2>What Baseball Nerd Covers</h2>
+      <p>
+        Baseball Nerd is a free web application built for Major League Baseball fans who want
+        fast, no-nonsense access to real-time MLB data. Every statistic, score, and standings
+        update is pulled directly from the <strong>official MLB Stats API</strong>, ensuring the
+        numbers you see are the same ones MLB uses officially — no estimates, no scraping, no delays.
+      </p>
+      <p>
+        The site covers all <strong>30 MLB franchises</strong> across the American League (AL) and
+        National League (NL), including all six divisions: AL East, AL Central, AL West, NL East,
+        NL Central, and NL West. Whether you're a die-hard Yankees fan, a casual Dodgers follower,
+        or a fantasy baseball manager tracking players across 10 teams, Baseball Nerd is designed
+        to give you what you need quickly and cleanly.
+      </p>
+    </section>
+
+    <!-- Features Grid -->
+    <section class="home-section card">
+      <h2>Features at a Glance</h2>
+      <div class="feature-grid">
+
+        <div class="feature-item">
+          <div class="feature-icon">⚾</div>
+          <div class="feature-body">
+            <h3><a routerLink="/scores">Live Scores</a></h3>
+            <p>
+              Follow every MLB game in real time with live box scores, inning-by-inning run totals,
+              pitching matchups, and final results. Games are organized by date with easy navigation
+              so you can jump back to yesterday's results or forward to upcoming games.
+            </p>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon">🏆</div>
+          <div class="feature-body">
+            <h3><a routerLink="/standings">Standings</a></h3>
+            <p>
+              Full American League and National League standings updated daily. View wins, losses,
+              winning percentage, games behind the division leader, run differential, home record,
+              away record, and last-10-game performance. Wild card standings are tracked separately
+              so you never lose sight of the full playoff picture.
+            </p>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon">📊</div>
+          <div class="feature-body">
+            <h3><a routerLink="/stats">Player Stats</a></h3>
+            <p>
+              Deep-dive batting and pitching statistics for every active MLB player. Batting stats
+              include AVG, OBP, SLG, OPS, home runs, RBIs, stolen bases, strikeouts, and walks.
+              Pitching stats cover ERA, WHIP, strikeouts per nine innings, wins, losses, saves,
+              innings pitched, and opponent batting average.
+            </p>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon">📅</div>
+          <div class="feature-body">
+            <h3><a routerLink="/team-schedule">Team Schedules</a></h3>
+            <p>
+              Full season schedules for all 30 MLB teams. See upcoming games with confirmed starting
+              pitcher matchups, past results with final scores, and opponent information. Filter by
+              team to track your club's complete slate from Opening Day through the World Series,
+              including the All-Star break and any makeup games.
+            </p>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon">🗺️</div>
+          <div class="feature-body">
+            <h3><a routerLink="/depth-chart">Depth Charts</a></h3>
+            <p>
+              Organizational depth charts for every MLB team, from the 26-man major league roster
+              down through each minor league affiliate. Essential for fantasy baseball managers who
+              need to know who is starting, who is on the 10-day injured list, and which prospects
+              are being called up or optioned.
+            </p>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon">🌤️</div>
+          <div class="feature-body">
+            <h3><a routerLink="/stadium-weather">Stadium Weather</a></h3>
+            <p>
+              Real-time weather conditions at all 30 MLB ballparks — temperature, wind speed,
+              wind direction, humidity, and chance of precipitation. Wind blowing out at Wrigley
+              Field historically boosts home run rates. Dome stadium conditions are noted, and
+              outdoor park weather updates continuously throughout the day.
+            </p>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon">🔍</div>
+          <div class="feature-body">
+            <h3><a routerLink="/players">Player Search</a></h3>
+            <p>
+              Search the complete MLB player database by name. Pull up full player profiles with
+              career stats, current team, position, batting hand, throwing arm, age, height, weight,
+              and a player headshot. Covers active major leaguers, historical players, and prospects
+              in the minor league system.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- MLB Teams Covered -->
+    <section class="home-section card">
+      <h2>All 30 MLB Teams Covered</h2>
+      <p>
+        Baseball Nerd tracks every franchise in both leagues. Here is the complete list of teams
+        covered, organized by division:
+      </p>
+
+      <div class="teams-grid">
+        <div class="division-block">
+          <h3>AL East</h3>
+          <ul>
+            <li>Baltimore Orioles</li>
+            <li>Boston Red Sox</li>
+            <li>New York Yankees</li>
+            <li>Tampa Bay Rays</li>
+            <li>Toronto Blue Jays</li>
+          </ul>
+        </div>
+        <div class="division-block">
+          <h3>AL Central</h3>
+          <ul>
+            <li>Chicago White Sox</li>
+            <li>Cleveland Guardians</li>
+            <li>Detroit Tigers</li>
+            <li>Kansas City Royals</li>
+            <li>Minnesota Twins</li>
+          </ul>
+        </div>
+        <div class="division-block">
+          <h3>AL West</h3>
+          <ul>
+            <li>Houston Astros</li>
+            <li>Los Angeles Angels</li>
+            <li>Oakland Athletics</li>
+            <li>Seattle Mariners</li>
+            <li>Texas Rangers</li>
+          </ul>
+        </div>
+        <div class="division-block">
+          <h3>NL East</h3>
+          <ul>
+            <li>Atlanta Braves</li>
+            <li>Miami Marlins</li>
+            <li>New York Mets</li>
+            <li>Philadelphia Phillies</li>
+            <li>Washington Nationals</li>
+          </ul>
+        </div>
+        <div class="division-block">
+          <h3>NL Central</h3>
+          <ul>
+            <li>Chicago Cubs</li>
+            <li>Cincinnati Reds</li>
+            <li>Milwaukee Brewers</li>
+            <li>Pittsburgh Pirates</li>
+            <li>St. Louis Cardinals</li>
+          </ul>
+        </div>
+        <div class="division-block">
+          <h3>NL West</h3>
+          <ul>
+            <li>Arizona Diamondbacks</li>
+            <li>Colorado Rockies</li>
+            <li>Los Angeles Dodgers</li>
+            <li>San Diego Padres</li>
+            <li>San Francisco Giants</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- About the Data -->
+    <section class="home-section card">
+      <h2>Where the Data Comes From</h2>
+      <p>
+        All statistics and game data on Baseball Nerd are fetched directly from the
+        <strong>MLB Stats API</strong> (statsapi.mlb.com), the same official API used by MLB.com and
+        other authorized MLB partners. This means every batting average, ERA, win-loss record, and
+        score you see is sourced from Major League Baseball itself — not estimated, manually entered,
+        or scraped from a secondary source.
+      </p>
+      <p>
+        The API provides real-time game data during the season, which Baseball Nerd displays with
+        minimal latency. Live scores typically reflect the current game state within seconds of each
+        pitch or play. Historical statistics and season totals are updated after each game concludes
+        and are retroactively corrected if MLB issues official stat changes.
+      </p>
+      <p>
+        Player headshots, team logos, and other media assets are also served through authorized
+        MLB channels (mlb.com image CDN), so the imagery you see is official and high quality.
+        Baseball Nerd does not host or store player images locally — they are loaded on-demand from
+        MLB's content delivery network.
+      </p>
+    </section>
+
+    <!-- Fantasy Baseball Section -->
+    <section class="home-section card">
+      <h2>Baseball Nerd for Fantasy Baseball</h2>
+      <p>
+        Fantasy baseball managers will find Baseball Nerd especially useful during the season. The
+        combination of live scores, real-time standings, detailed player statistics, and organizational
+        depth charts gives you everything you need to make smart roster decisions throughout the week.
+      </p>
+      <p>
+        <strong>Checking the waiver wire?</strong> Use the Player Search to look up any player's
+        current stats, position, and team. You can check whether they are currently on the active
+        roster or injured list using the Depth Chart feature, which shows full organizational rosters
+        right down through Triple-A.
+      </p>
+      <p>
+        <strong>Making a start/sit decision?</strong> The Stadium Weather tool shows live conditions
+        at every outdoor MLB ballpark so you can factor in wind, temperature, and precipitation into
+        your lineup. Historically, warm temperatures and wind blowing out to the outfield correlate
+        with higher run environments and more home runs — factors that matter when choosing between
+        two similar starting pitchers or hitters.
+      </p>
+      <p>
+        <strong>Tracking a prospect?</strong> Depth charts show the entire organizational ladder for
+        each of the 30 teams, letting you monitor when a top prospect gets promoted from Double-A to
+        Triple-A and when they might be on the verge of a major league call-up.
+      </p>
+    </section>
+
+    <!-- FAQ Teaser -->
+    <section class="home-section card">
+      <h2>Frequently Asked Questions</h2>
+
+      <div class="faq-item">
+        <h3>Is Baseball Nerd free to use?</h3>
+        <p>
+          Yes. Baseball Nerd is completely free for all users. The site is supported by Google AdSense
+          advertisements, which keeps it free while covering hosting, domain, and development costs.
+          If you want to support the project without ads, you can
+          <a href="https://buymeacoffee.com/baseballnerd" target="_blank" rel="noopener">buy the creator a coffee</a>.
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <h3>How accurate is the data?</h3>
+        <p>
+          All data comes directly from the official MLB Stats API. During live games, scores and
+          play-by-play are updated in near-real time. Season statistics are updated after each game
+          ends and reflect official MLB records.
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Is there a mobile app?</h3>
+        <p>
+          Yes — the Baseball Nerd Android app is available on Google Play. Search "Baseball Nerd"
+          in the Play Store, or visit the
+          <a routerLink="/about">About page</a> for a direct link. The web app is also fully
+          responsive and works well on any mobile browser.
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Does Baseball Nerd require an account?</h3>
+        <p>
+          No registration or account is required. All features — scores, standings, player stats,
+          depth charts, and weather — are available without signing in. Your team preferences and
+          color theme are saved locally in your browser.
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <h3>How do I report a bug or request a feature?</h3>
+        <p>
+          Use the <a routerLink="/feedback">Feedback page</a> to send a message directly to the
+          developer. All feedback is read and considered for future updates.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- CTA -->
+    <section class="home-section card home-cta">
+      <h2>Ready to Get Started?</h2>
+      <p>Jump straight into today's MLB action:</p>
+      <nav class="home-cta__nav" aria-label="Start navigation">
+        <a routerLink="/scores" class="home-hero__btn">Today's Scores</a>
+        <a routerLink="/standings" class="home-hero__btn home-hero__btn--secondary">View Standings</a>
+        <a routerLink="/stats" class="home-hero__btn home-hero__btn--secondary">Leaderboards</a>
+      </nav>
+    </section>
+
+  </div>
+</div>
