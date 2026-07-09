@@ -8,10 +8,11 @@
 
 /* Hero */
 .home-hero {
-  background: var(--color-surface, #1a1a2e);
-  border-bottom: 1px solid var(--color-border, rgba(255,255,255,0.08));
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
   padding: 3rem 1.5rem 2.5rem;
   text-align: center;
+  color: var(--text);
 
   &__inner {
     max-width: 640px;
@@ -23,12 +24,13 @@
     font-weight: 800;
     letter-spacing: -0.02em;
     margin: 0 0 0.75rem;
+    color: var(--text);
   }
 
   &__sub {
     font-size: 1rem;
     line-height: 1.6;
-    opacity: 0.8;
+    color: var(--text2);
     margin: 0 0 1.75rem;
   }
 
@@ -46,7 +48,7 @@
     font-weight: 600;
     font-size: 0.9rem;
     text-decoration: none;
-    background: var(--color-accent, #e55039);
+    background: var(--red);
     color: #fff;
     transition: opacity 0.15s;
 
@@ -54,8 +56,8 @@
 
     &--secondary {
       background: transparent;
-      border: 1px solid var(--color-border, rgba(255,255,255,0.25));
-      color: inherit;
+      border: 1px solid var(--border2);
+      color: var(--text);
     }
   }
 }
@@ -85,8 +87,8 @@
     &:last-child { margin-bottom: 0; }
   }
 
-  a {
-    color: var(--color-accent, #e55039);
+  p a {
+    color: var(--red);
     text-decoration: none;
     &:hover { text-decoration: underline; }
   }
@@ -118,7 +120,7 @@
       margin: 0 0 0.4rem;
       a {
         color: inherit;
-        &:hover { color: var(--color-accent, #e55039); }
+        &:hover { color: var(--red); }
       }
     }
     p {
@@ -155,7 +157,7 @@
     li {
       font-size: 0.88rem;
       padding: 0.2rem 0;
-      border-bottom: 1px solid var(--color-border, rgba(255,255,255,0.06));
+      border-bottom: 1px solid var(--border);
       &:last-child { border-bottom: none; }
     }
   }
@@ -165,7 +167,7 @@
 .faq-item {
   margin-bottom: 1.25rem;
   padding-bottom: 1.25rem;
-  border-bottom: 1px solid var(--color-border, rgba(255,255,255,0.08));
+  border-bottom: 1px solid var(--border);
 
   &:last-child {
     margin-bottom: 0;

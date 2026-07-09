@@ -7,6 +7,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import * as L from 'leaflet';
 import * as protomapsL from 'protomaps-leaflet';
+import { SeoService } from '../../shared/seo.service';
 
 export interface Stadium {
   team: string; abbr: string; teamId: number;
@@ -137,10 +138,15 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
-    private zone: NgZone
+    private zone: NgZone,
+    private seo: SeoService
   ) {}
 
   ngOnInit() {
+    this.seo.update(
+      'Live MLB Stadium Weather | Baseball Nerd',
+      'Live weather conditions at all 30 MLB ballparks, including temperature, wind speed and direction, and precipitation chance, to help with start/sit decisions.'
+    );
     this.isLightModeLocal = localStorage.getItem('theme') === 'light';
     // radar frames are populated dynamically from RainViewer API in loadRadar()
   }

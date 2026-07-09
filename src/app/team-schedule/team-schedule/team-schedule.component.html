@@ -35,6 +35,12 @@
     </div>
   </header>
 
+  <p class="page-intro">
+    Every regular season game on the schedule, with final scores for games already played and
+    probable starting pitchers for what's ahead. Use the tabs above to filter down to just the
+    upcoming or completed portion of the slate.
+  </p>
+
   <div *ngIf="loading" class="spinner-wrap">
     <div class="spinner"></div>
     <span>Loading schedule…</span>
@@ -106,5 +112,19 @@
       </tbody>
     </table>
   </div>
+
+  <section class="page-explainer">
+    <h2>How the Schedule Works</h2>
+    <p>
+      The MLB regular season runs 162 games per team, mostly against divisional and league
+      opponents, with a set slate of interleague games mixed in throughout the year.
+    </p>
+    <p>
+      A row marked <strong>PPD</strong> or <strong>CANC</strong> means that game was postponed or
+      canceled, most often for weather. Postponed games are typically made up on the next mutual
+      off day or folded into a later series against the same opponent as part of a
+      single-admission doubleheader.
+    </p>
+  </section>
 </div>
 

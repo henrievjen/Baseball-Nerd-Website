@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { MlbApiService } from '../../shared/mlb-api.service';
 import { TeamDataService } from '../../shared/team-data.service';
 import { PlayerService } from '../../shared/player.service';
+import { SeoService } from '../../shared/seo.service';
 import { Subscription } from 'rxjs';
 
 interface StatCat { label: string; key: string; group: string; }
@@ -50,7 +51,8 @@ export class StatsComponent implements OnInit, OnDestroy {
   constructor(
     private api: MlbApiService,
     public teams: TeamDataService,
-    private playerSvc: PlayerService
+    private playerSvc: PlayerService,
+    private seo: SeoService
   ) {
     const currentYear = new Date().getFullYear();
     for (let y = currentYear; y >= 1900; y--) {
@@ -59,7 +61,13 @@ export class StatsComponent implements OnInit, OnDestroy {
     this.teamList = this.teams.allTeams();
   }
 
-  ngOnInit() { this.loadCat(this.activeCat); }
+  ngOnInit() {
+    this.seo.update(
+      'MLB Player & Team Stat Leaders | Baseball Nerd',
+      'MLB statistical leaderboards for batting and pitching, including AVG, HR, RBI, OPS, ERA, WHIP, strikeouts, and saves, filterable by team and season.'
+    );
+    this.loadCat(this.activeCat);
+  }
 
   ngOnDestroy() {
     this.cleanup();

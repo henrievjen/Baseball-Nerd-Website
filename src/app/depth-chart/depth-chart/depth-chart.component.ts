@@ -5,6 +5,7 @@ import { MlbApiService } from '../../shared/mlb-api.service';
 import { TeamDataService } from '../../shared/team-data.service';
 import { PlayerService } from '../../shared/player.service';
 import { FavoriteTeamsService } from '../../shared/favorite-teams.service';
+import { SeoService } from '../../shared/seo.service';
 
 interface DcPlayer {
   playerId: number;
@@ -58,12 +59,17 @@ export class DepthChartComponent implements OnInit {
     private playerSvc: PlayerService,
     public favorites: FavoriteTeamsService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private seo: SeoService
   ) {
     this.generateYears();
   }
 
   ngOnInit() {
+    this.seo.update(
+      'MLB Depth Charts by Position | Baseball Nerd',
+      'MLB depth charts for all 30 teams, ranking players at every position by games started this season, so you can see the starter and every backup behind them.'
+    );
     this.route.paramMap.subscribe(pm => {
       const id = Number(pm.get('teamId'));
       if (id && !Number.isNaN(id)) {

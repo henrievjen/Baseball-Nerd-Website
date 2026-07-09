@@ -18,6 +18,13 @@
     </div>
   </header>
 
+  <p class="page-intro">
+    MLB standings track every team's progress across the 162-game regular season, updated after each
+    night's games. Switch between the <strong>Division</strong> tab for a traditional look at each
+    of the six divisions and the <strong>Wild Card</strong> tab to see the separate race for the
+    three wild card spots per league.
+  </p>
+
   <div *ngIf="loading" class="spinner-wrap">
     <div class="spinner"></div>
     <span>Loading {{ season }} standings…</span>
@@ -200,5 +207,25 @@
     </div>
 
   </div>
+
+  <section class="page-explainer">
+    <h2>How to Read the Standings</h2>
+    <p>
+      <strong>PCT</strong> (winning percentage) is wins divided by total games played — it's what
+      determines a division's rank, not raw win total, since teams play an uneven number of games
+      at any given point in the season.
+    </p>
+    <p>
+      <strong>GB</strong> (games behind) measures the gap to the leader. It moves in half-game
+      increments: a team one full game behind has one fewer win and one more loss than the leader,
+      while a half-game gap means the two teams have played an uneven number of games.
+    </p>
+    <p>
+      Since the 2022 postseason expansion, each league sends its three division winners plus three
+      wild card teams to the playoffs — twelve teams total. Wild card seeding is based purely on
+      overall record, regardless of division, and ties for the final spots are broken using
+      head-to-head results first, followed by intra-division and intra-league record.
+    </p>
+  </section>
 </div>
 

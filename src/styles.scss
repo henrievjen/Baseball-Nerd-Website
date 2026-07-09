@@ -243,7 +243,6 @@ img { max-width: 100%; }
   display: flex; align-items: center; justify-content: center;
   color: var(--text2); font-size: 20px; line-height:1;
   transition: var(--transition); z-index: 2;
-  backdrop-filter: blur(8px);
   &:hover { color: var(--text); background: var(--surface2); transform: rotate(90deg); }
 }
 

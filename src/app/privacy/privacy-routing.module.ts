@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { PrivacyComponent } from './privacy/privacy.component';
 
-const routes: Routes = [{ path: '', component: PrivacyComponent }];
+const routes: Routes = [{ path: '', component: PrivacyComponent, title: 'Privacy Policy | Baseball Nerd' }];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],

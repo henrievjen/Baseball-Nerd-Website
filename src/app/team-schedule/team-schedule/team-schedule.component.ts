@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { MlbApiService } from '../../shared/mlb-api.service';
 import { TeamDataService } from '../../shared/team-data.service';
+import { SeoService } from '../../shared/seo.service';
 
 interface ScheduleGame {
   gamePk: number;
@@ -52,7 +53,8 @@ export class TeamScheduleComponent implements OnInit, OnDestroy {
     private api: MlbApiService,
     public teams: TeamDataService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private seo: SeoService
   ) {
     const cur = new Date().getFullYear();
     for (let y = cur; y >= 1901; y--) this.years.push(y);
@@ -60,6 +62,10 @@ export class TeamScheduleComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.seo.update(
+      'MLB Team Schedules | Baseball Nerd',
+      "Full season schedules for all 30 MLB teams, including upcoming games with probable starting pitchers and past results with final scores."
+    );
     this.routeSub = this.route.paramMap.subscribe(params => {
       const id = Number(params.get('teamId') ?? 0);
       // Default to Yankees (147) if none picked, just so the page isn't empty.

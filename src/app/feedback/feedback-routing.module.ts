@@ -3,7 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { FeedbackComponent } from './feedback.component';
 
 const routes: Routes = [
-  { path: '', component: FeedbackComponent }
+  { path: '', component: FeedbackComponent, title: 'Feedback & Feature Requests | Baseball Nerd' }
 ];
 
 @NgModule({

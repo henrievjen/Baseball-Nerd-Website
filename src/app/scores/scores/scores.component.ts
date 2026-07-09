@@ -2,6 +2,7 @@ import {AfterViewInit, Component, HostListener, OnDestroy, OnInit} from "@angula
 import { ActivatedRoute } from '@angular/router';
 import { MlbApiService } from '../../shared/mlb-api.service';
 import { FavoriteTeamsService } from '../../shared/favorite-teams.service';
+import { SeoService } from '../../shared/seo.service';
 import { Subscription, timer, of } from 'rxjs';
 import { switchMap, catchError } from 'rxjs/operators';
 
@@ -145,11 +146,15 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
   private daysNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   private monthsNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-  constructor(private api: MlbApiService, private route: ActivatedRoute, public favorites: FavoriteTeamsService) {}
+  constructor(private api: MlbApiService, private route: ActivatedRoute, public favorites: FavoriteTeamsService, private seo: SeoService) {}
 
   private pendingGamePk?: number;
 
   ngOnInit() {
+    this.seo.update(
+      "Today's MLB Scores & Live Box Scores | Baseball Nerd",
+      "Live MLB scores for today's games with inning-by-inning updates, starting pitcher matchups, and final results, sourced directly from the official MLB Stats API."
+    );
     const qp = this.route.snapshot.queryParamMap;
     const dateStr = qp.get('date');
     const gp = qp.get('gamePk');

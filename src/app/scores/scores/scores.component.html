@@ -3,6 +3,12 @@
     <h1 class="page-title">SCORES &amp; GAMES</h1>
   </header>
 
+  <p class="page-intro">
+    Every MLB game for the selected date, live during play and updated to a final box score once
+    the last out is recorded. Use the date strip or calendar below to jump between yesterday's
+    results and the rest of the week's schedule.
+  </p>
+
   <!-- Date Navigation -->
   <div class="date-nav-wrapper">
 
@@ -102,6 +108,16 @@
             (gameSelected)="openGame($event)">
     </app-score-card>
   </div>
+
+  <section class="page-explainer">
+    <h2>Reading a Game Card</h2>
+    <p>
+      A game not yet underway shows first pitch time and each team's probable starting pitcher.
+      Once a game is live, the card switches to the current score, inning, and count. After the
+      final out, tap or click the card to open the full box score, linescore by inning, and
+      play-by-play for that game.
+    </p>
+  </section>
 </div>
 
 <!-- Game Detail Modal -->

@@ -16,6 +16,12 @@
     <p class="page-sub">Games started by position for the {{ season }} season</p>
   </header>
 
+  <p class="page-intro">
+    See who's earned the most starts at each position for any MLB team this season. The player
+    ranked first at a position is the primary starter; everyone below has taken a share of the
+    starts as a backup, platoon partner, or injury replacement.
+  </p>
+
   <!-- Team selector -->
   <div class="team-selector-wrap" [class.is-expanded]="isTeamBarExpanded">
     <div class="team-selector-header" (click)="toggleTeamBar()">
@@ -104,4 +110,18 @@
       </div>
     </div>
   </div>
+
+  <section class="page-explainer">
+    <h2>GS vs. G — What's the Difference</h2>
+    <p>
+      <strong>GS</strong> counts games started at that specific position, which is what determines
+      the ranking. <strong>G</strong> counts every game played there, including appearances off the
+      bench. A player can lead in G without leading in GS if they're used mainly as a late-inning
+      substitute rather than the regular starter.
+    </p>
+    <p>
+      The bar under each name shows that player's share of the position's total starts, so you can
+      see a near-even timeshare at a glance versus a spot with one clear everyday starter.
+    </p>
+  </section>
 </div>

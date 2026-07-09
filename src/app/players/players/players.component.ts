@@ -4,6 +4,7 @@ import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/
 import { MlbApiService } from '../../shared/mlb-api.service';
 import { TeamDataService } from '../../shared/team-data.service';
 import { PlayerService } from '../../shared/player.service';
+import { SeoService } from '../../shared/seo.service';
 
 interface PlayerRow {
   id: number;
@@ -38,10 +39,15 @@ export class PlayersComponent implements OnInit, OnDestroy {
   constructor(
     private api: MlbApiService,
     public teams: TeamDataService,
-    private playerSvc: PlayerService
+    private playerSvc: PlayerService,
+    private seo: SeoService
   ) {}
 
   ngOnInit() {
+    this.seo.update(
+      'MLB Player Search & Profiles | Baseball Nerd',
+      'Search the complete MLB player database by name to view full profiles, career batting and pitching stats, and current team information.'
+    );
     this.sub = this.input$.pipe(
       debounceTime(180),
       distinctUntilChanged(),

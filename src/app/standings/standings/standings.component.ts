@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { MlbApiService } from '../../shared/mlb-api.service';
 import { TeamDataService } from '../../shared/team-data.service';
+import { SeoService } from '../../shared/seo.service';
 
 interface TeamRow {
   teamId: number; teamName: string;
@@ -41,9 +42,15 @@ export class StandingsComponent implements OnInit {
     return out;
   })();
 
-  constructor(private api: MlbApiService, public teams: TeamDataService, private router: Router) {}
+  constructor(private api: MlbApiService, public teams: TeamDataService, private router: Router, private seo: SeoService) {}
 
-  ngOnInit() { this.loadStandings(); }
+  ngOnInit() {
+    this.seo.update(
+      'MLB Standings — AL & NL Division and Wild Card Standings | Baseball Nerd',
+      'Current MLB standings for the American and National League, updated daily with wins, losses, games behind, run differential, and separate wild card tracking.'
+    );
+    this.loadStandings();
+  }
 
   goToTeam(teamId: number) {
     if (teamId) this.router.navigate(['/team-schedule', teamId]);
