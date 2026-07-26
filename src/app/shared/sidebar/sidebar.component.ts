@@ -27,6 +27,7 @@ export class SidebarComponent implements AfterViewInit {
     { label: 'Team Schedule',    route: '/team-schedule',    icon: 'schedule' },
     { label: 'Depth Chart',      route: '/depth-chart',      icon: 'depth'    },
     { label: 'Stadium Weather',  route: '/stadium-weather',  icon: 'stadium'  },
+    { label: 'Guides',           route: '/blog/',            icon: 'blog'     },
     { label: 'Feedback',         route: '/feedback',         icon: 'feedback' },
     { label: 'About',            route: '/about',            icon: 'about'    },
   ];
@@ -54,6 +55,17 @@ export class SidebarComponent implements AfterViewInit {
   navigate(route: string) {
     this.router.navigate([route]);
     this.isMoreOpen = false;
+  }
+
+  onNavItemClick(event: MouseEvent, route: string) {
+    if (route.startsWith('/blog')) {
+      // External static route — let the browser navigate normally
+      this.isMoreOpen = false;
+      return;
+    }
+    // SPA route — prevent full page reload and use the Angular router
+    event.preventDefault();
+    this.navigate(route);
   }
 
   toggleCollapsed() { this.collapsed = !this.collapsed; }

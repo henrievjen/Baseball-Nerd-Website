@@ -51,8 +51,48 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://baseballnerd.app/about.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://baseballnerd.app/privacy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://baseballnerd.app/privacy.html</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://baseballnerd.app/blog/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://baseballnerd.app/blog/baseball-statistics-guide.html</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://baseballnerd.app/blog/how-to-read-box-scores.html</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://baseballnerd.app/blog/fantasy-baseball-stats.html</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://baseballnerd.app/blog/mlb-stadiums-guide.html</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://baseballnerd.app/blog/mlb-playoff-format.html</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.9</priority>
   </url>
 </urlset>

@@ -189,6 +189,61 @@
   }
 }
 
+/* Guides grid */
+.guides-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.guide-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface, rgba(255,255,255,0.04));
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+  border-radius: 8px;
+  padding: 1.1rem;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, transform 0.15s;
+
+  &:hover {
+    border-color: rgba(255,255,255,0.2);
+    transform: translateY(-2px);
+  }
+
+  &__tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-accent, #e55039);
+    margin-bottom: 0.45rem;
+  }
+
+  &__title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0 0 0.45rem;
+    line-height: 1.35;
+  }
+
+  &__desc {
+    font-size: 0.83rem;
+    opacity: 0.7;
+    line-height: 1.5;
+    margin: 0 0 0.75rem;
+    flex: 1;
+  }
+
+  &__cta {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-accent, #e55039);
+  }
+}
+
 /* CTA */
 .home-cta {
   text-align: center;
