@@ -58,8 +58,7 @@
               "src/sitemap.xml",
               "src/blog",
               "src/privacy.html",
-              "src/about.html",
-              "src/_redirects"
+              "src/about.html"
             ],
             "styles": [
               "src/styles.scss",
