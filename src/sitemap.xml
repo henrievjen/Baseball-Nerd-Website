@@ -1,97 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://baseballnerd.app/</loc>
+    <loc>https://baseballnerdsite.com/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://baseballnerd.app/scores</loc>
+    <loc>https://baseballnerdsite.com/scores</loc>
     <changefreq>hourly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://baseballnerd.app/standings</loc>
+    <loc>https://baseballnerdsite.com/standings</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://baseballnerd.app/stats</loc>
+    <loc>https://baseballnerdsite.com/stats</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://baseballnerd.app/players</loc>
+    <loc>https://baseballnerdsite.com/players</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://baseballnerd.app/team-schedule</loc>
+    <loc>https://baseballnerdsite.com/team-schedule</loc>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://baseballnerd.app/depth-chart</loc>
+    <loc>https://baseballnerdsite.com/depth-chart</loc>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://baseballnerd.app/stadium-weather</loc>
+    <loc>https://baseballnerdsite.com/stadium-weather</loc>
     <changefreq>hourly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://baseballnerd.app/games</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <loc>https://baseballnerdsite.com/feedback</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://baseballnerd.app/about</loc>
+    <loc>https://baseballnerdsite.com/about</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://baseballnerd.app/about.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://baseballnerd.app/privacy</loc>
+    <loc>https://baseballnerdsite.com/privacy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://baseballnerd.app/privacy.html</loc>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://baseballnerd.app/blog/</loc>
+    <loc>https://baseballnerdsite.com/blog</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://baseballnerd.app/blog/baseball-statistics-guide.html</loc>
+    <loc>https://baseballnerdsite.com/blog/baseball-statistics-guide</loc>
     <changefreq>yearly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://baseballnerd.app/blog/how-to-read-box-scores.html</loc>
+    <loc>https://baseballnerdsite.com/blog/how-to-read-box-scores</loc>
     <changefreq>yearly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://baseballnerd.app/blog/fantasy-baseball-stats.html</loc>
+    <loc>https://baseballnerdsite.com/blog/fantasy-baseball-stats</loc>
     <changefreq>yearly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://baseballnerd.app/blog/mlb-stadiums-guide.html</loc>
+    <loc>https://baseballnerdsite.com/blog/mlb-stadiums-guide</loc>
     <changefreq>yearly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://baseballnerd.app/blog/mlb-playoff-format.html</loc>
+    <loc>https://baseballnerdsite.com/blog/mlb-playoff-format</loc>
     <changefreq>yearly</changefreq>
     <priority>0.9</priority>
   </url>
