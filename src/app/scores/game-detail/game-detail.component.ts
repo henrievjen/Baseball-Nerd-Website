@@ -232,7 +232,11 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
 
   get state(): 'live' | 'final' | 'upcoming' {
     const s = this.game?.status?.abstractGameState;
-    if (s === 'Live') return 'live';
+    const d = this.game?.status?.detailedState || '';
+    // The MLB API sometimes flags a game "Live" a few minutes before first
+    // pitch while it's still in Warmup — treat it as upcoming so we don't
+    // show a fake 0-0 live scoreboard before the game has actually started.
+    if (s === 'Live' && d !== 'Warmup') return 'live';
     if (s === 'Final') return 'final';
     return 'upcoming';
   }

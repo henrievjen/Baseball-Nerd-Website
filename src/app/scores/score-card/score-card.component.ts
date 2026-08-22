@@ -37,7 +37,10 @@ export class ScoreCardComponent {
   get state(): 'live' | 'final' | 'upcoming' {
     const s = this.game?.status?.abstractGameState;
     const d = this.game?.status?.detailedState || '';
-    if (s === 'Live') return 'live';
+    // The MLB API sometimes flags a game "Live" a few minutes before first
+    // pitch while it's still in Warmup — treat it as upcoming so we don't
+    // show a fake 0-0 live scoreboard before the game has actually started.
+    if (s === 'Live' && d !== 'Warmup') return 'live';
     if (s === 'Final' || d.startsWith('Final')) return 'final';
     return 'upcoming';
   }
@@ -85,8 +88,16 @@ export class ScoreCardComponent {
     if (d === 'Cancelled') return 'CANCELLED';
     if (d.includes('Delay') || d.includes('Delayed')) return 'DELAYED';
     if (d === 'Suspended') return 'SUSPENDED';
+    if (d === 'Warmup') {
+      return this.formattedStartTime ? `Warmup (${this.formattedStartTime} start time)` : 'Warmup';
+    }
 
     if (status?.startTimeTBD) return 'TBD';
+    return this.formattedStartTime;
+  }
+
+  /** Scheduled first-pitch time formatted like "7:05 PM", or '' if unavailable. */
+  private get formattedStartTime(): string {
     const date = this.game?.gameDate ? new Date(this.game.gameDate) : null;
     return date ? date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
   }
