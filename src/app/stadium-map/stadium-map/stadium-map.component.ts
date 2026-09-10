@@ -1,12 +1,17 @@
 import {
   Component, OnInit, OnDestroy, AfterViewInit,
-  ChangeDetectorRef, NgZone, ElementRef, ViewChild
+  ChangeDetectorRef, NgZone, ElementRef, ViewChild, Inject, PLATFORM_ID
 } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import * as L from 'leaflet';
-import * as protomapsL from 'protomaps-leaflet';
+// Type-only import: erased at compile time, so it carries no runtime
+// dependency on the leaflet package. The actual library is loaded with a
+// dynamic import() inside initMap(), which only ever runs in the browser —
+// leaflet touches `window` as soon as it's evaluated, which crashes
+// server-side prerendering if it's imported eagerly at the top of the file.
+import type * as L from 'leaflet';
 import { SeoService } from '../../shared/seo.service';
 
 export interface Stadium {
@@ -111,6 +116,7 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef;
 
   toggleThemeLocal() {
+    if (!this.isBrowser) return;
     this.isLightModeLocal = !this.isLightModeLocal;
     localStorage.setItem('theme', this.isLightModeLocal ? 'light' : 'dark');
     if (this.isLightModeLocal) {
@@ -126,6 +132,8 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   // Works on any domain — no per-domain whitelist configuration needed.
   private readonly PROTOMAPS_API_KEY = 'f7cae4d570f34795';
 
+  /** Populated by a dynamic import('leaflet') the first time initMap() runs in the browser. */
+  private leafletLib!:       typeof L;
   private map!:              L.Map;
   private markers:           L.Marker[] = [];
   private radarLayer:        L.TileLayer | null = null;
@@ -135,22 +143,32 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   frameIndex         = 0;
   private animationInterval: any = null;
 
+  private readonly isBrowser: boolean;
+
   constructor(
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
     private zone: NgZone,
-    private seo: SeoService
-  ) {}
+    private seo: SeoService,
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit() {
     this.seo.update(
       'Live MLB Stadium Weather | Baseball Nerd',
       'Live weather conditions at all 30 MLB ballparks, including temperature, wind speed and direction, and precipitation chance, to help with start/sit decisions.'
     );
-    this.isLightModeLocal = localStorage.getItem('theme') === 'light';
+    if (this.isBrowser) {
+      this.isLightModeLocal = localStorage.getItem('theme') === 'light';
+    }
     // radar frames are populated dynamically from RainViewer API in loadRadar()
   }
   ngAfterViewInit() {
+    // The Leaflet map needs a real browser DOM/canvas and reaches for
+    // `window` internally — skip entirely during server-side prerendering.
+    if (!this.isBrowser) return;
     this.zone.runOutsideAngular(() => {
       setTimeout(() => this.initMap(), 50);
     });
@@ -217,7 +235,7 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
     // RainViewer — free, no API key required
     const urlTemplate = `${this.rvHost}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`;
 
-    this.radarLayer = L.tileLayer(urlTemplate, {
+    this.radarLayer = this.leafletLib.tileLayer(urlTemplate, {
       opacity,
       pane,
       tileSize:       256,
@@ -269,7 +287,11 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.zone.runOutsideAngular(() => this.applyRadarFrame());
   }
 
-  private initMap() {
+  private async initMap() {
+    const L = await import('leaflet');
+    const protomapsL = await import('protomaps-leaflet');
+    this.leafletLib = L;
+
     const usBounds: L.LatLngBoundsExpression = [
       [24.5, -125.0],
       [49.5, -66.5]
@@ -338,7 +360,7 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   private addStadiumMarkers() {
     this.markers = [];
     this.stadiums.forEach(s => {
-      const m = L.marker([s.lat, s.lng], {
+      const m = this.leafletLib.marker([s.lat, s.lng], {
         icon: this.createStadiumIcon(s), zIndexOffset: 100,
       });
       m.on('click', () => this.zone.run(() => { this.selectedStadium = s; this.cdr.detectChanges(); }));
@@ -348,7 +370,7 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private createStadiumIcon(s: Stadium): L.DivIcon {
-    return L.divIcon({
+    return this.leafletLib.divIcon({
       html: `<div class="stadium-pin">
                <div class="pin-inner">
                  <img class="pin-logo" src="https://www.mlbstatic.com/team-logos/${s.teamId}.svg" alt="${s.abbr}"

@@ -8,7 +8,13 @@
   "assets": {
     "directory": "dist/baseball-nerd/browser",
     "html_handling": "drop-trailing-slash",
-    "not_found_handling": "single-page-application"
+    // Every route is now a real, prerendered index.html file (see the
+    // Angular "prerender" build option), so a genuinely nonexistent URL
+    // should 404 instead of silently serving the homepage. That silent
+    // 200-for-everything behavior is what "single-page-application" did,
+    // and it's what produced the soft-404 / duplicate-content problem
+    // AdSense flagged. "404-page" serves src/404.html with a real HTTP 404.
+    "not_found_handling": "404-page"
   },
   "compatibility_flags": [
     "nodejs_compat"

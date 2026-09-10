@@ -51,6 +51,11 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://baseballnerdsite.com/author/henri-evjen</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
     <loc>https://baseballnerdsite.com/privacy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
@@ -82,6 +87,21 @@
   </url>
   <url>
     <loc>https://baseballnerdsite.com/blog/mlb-playoff-format</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://baseballnerdsite.com/blog/coors-field-altitude-effect</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://baseballnerdsite.com/blog/how-to-evaluate-a-starting-pitcher</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://baseballnerdsite.com/blog/reading-a-depth-chart</loc>
     <changefreq>yearly</changefreq>
     <priority>0.9</priority>
   </url>

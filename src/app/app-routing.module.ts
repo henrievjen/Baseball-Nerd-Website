@@ -45,6 +45,10 @@ const routes: Routes = [
   {
     path: 'stadium-weather',
     loadChildren: () => import('./stadium-map/stadium-map.module').then(m => m.StadiumMapModule)
+  },
+  {
+    path: 'author',
+    loadChildren: () => import('./author/author.module').then(m => m.AuthorModule)
   }
 ];
 

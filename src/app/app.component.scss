@@ -28,10 +28,10 @@ $ad-breakpoint: 1200px;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 
-  // Reserve space for the ad rail on wide screens
-  @media (min-width: $ad-breakpoint) {
-    padding-right: $ad-rail-w;
-  }
+  // Ad rail is unmounted until AdSense approval (see app.component.html) —
+  // no reserved gutter for it either, or wide screens get an unexplained
+  // 200px empty margin on the right. Restore this padding-right rule
+  // together with the <aside class="ad-rail"> markup once ads are back.
 }
 
 // ── Right-rail ad ─────────────────────────────────────────────────────────────

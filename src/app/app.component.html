@@ -28,18 +28,11 @@
     <router-outlet></router-outlet>
   </main>
 
-  <!-- Right-rail ad — shown only when viewport is wide enough -->
-  <aside class="ad-rail" aria-label="Advertisement">
-    <p class="ad-rail__label">Advertisement</p>
-    <div class="ad-rail__unit">
-      <ins class="adsbygoogle"
-           style="display:block;width:160px;height:600px"
-           data-ad-client="ca-pub-8890032903923645"
-           data-ad-slot="8659700167"
-           data-ad-format="vertical"
-           data-full-width-responsive="false"></ins>
-    </div>
-  </aside>
+  <!-- Ad slot intentionally removed until AdSense approval is granted.
+       Running live ad units on an unapproved site is itself a negative
+       signal during review. Re-add the <ins class="adsbygoogle"> unit
+       here (data-ad-client/data-ad-slot as before) once approved — the
+       adsbygoogle.js loader script stays in index.html either way. -->
 
   <app-player-modal></app-player-modal>
 </div>

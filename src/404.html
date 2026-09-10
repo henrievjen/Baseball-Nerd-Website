@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Page Not Found — Baseball Nerd</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, follow">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :root {
+      --bg: #0f1117; --surface: #1a1d27; --border: rgba(255,255,255,0.08);
+      --text: #e2e2e2; --muted: #8a8fa8; --accent: #e55039;
+    }
+    body { margin: 0; background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh; display: flex; flex-direction: column; }
+    .site-header { background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem; display: flex; align-items: center; gap: 1.5rem;
+      height: 56px; }
+    .site-header__brand { display: flex; align-items: center; gap: 0.6rem;
+      text-decoration: none; color: var(--text); font-weight: 800; font-size: 1.05rem; }
+    .site-header__brand img { width: 28px; height: 28px; border-radius: 4px; }
+    .wrap { flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 3rem 1.5rem; text-align: center; }
+    .code { font-size: 5rem; font-weight: 800; color: var(--accent); margin: 0;
+      line-height: 1; }
+    h1 { font-size: 1.4rem; margin: 0.75rem 0 0.5rem; }
+    p { color: var(--muted); max-width: 440px; margin: 0 auto 1.75rem; line-height: 1.6; }
+    .links { display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center; }
+    .links a { color: var(--text); text-decoration: none; border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.55rem 1rem; font-size: 0.9rem; }
+    .links a:hover { border-color: var(--accent); color: var(--accent); }
+    .links a.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <a class="site-header__brand" href="/">
+    <img src="assets/logo.png" alt="Baseball Nerd logo">
+    Baseball <strong>Nerd</strong>
+  </a>
+</header>
+
+<main class="wrap">
+  <div>
+    <p class="code">404</p>
+    <h1>That page doesn't exist</h1>
+    <p>The link might be old or mistyped. Here's where you probably meant to go:</p>
+    <div class="links">
+      <a class="primary" href="/">Home</a>
+      <a href="/scores">Scores</a>
+      <a href="/standings">Standings</a>
+      <a href="/stats">Stats</a>
+      <a href="/blog/">Guides</a>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,10 @@
+# Legacy static-file URLs from before /about and /privacy were prerendered
+# Angular routes. Kept as explicit 301s (not a catch-all) so any old
+# bookmarks or indexed links land on the real, current page instead of a
+# 404. Do not add a "/* ... 200" catch-all here again — that's what made
+# every nonexistent URL return a soft-200 in the first place. Cloudflare's
+# not_found_handling ("404-page" in wrangler.jsonc) is what returns a real
+# 404 for anything not covered by a real file or one of the rules below.
+/about.html    /about    301
+/privacy.html  /privacy  301
+/author        /author/henri-evjen  301

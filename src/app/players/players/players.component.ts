@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Subject, Subscription, of } from 'rxjs';
+import { Subject, Subscription, of, forkJoin } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
 import { MlbApiService } from '../../shared/mlb-api.service';
 import { TeamDataService } from '../../shared/team-data.service';
@@ -16,6 +16,14 @@ interface PlayerRow {
   isActive: boolean;
 }
 
+interface LeaderRow {
+  id: number;
+  name: string;
+  teamId: number;
+  teamName: string;
+  value: string;
+}
+
 @Component({
   selector: 'app-players',
   templateUrl: './players.component.html',
@@ -27,6 +35,12 @@ export class PlayersComponent implements OnInit, OnDestroy {
   loading = false;
   hasSearched = false;
   results: PlayerRow[] = [];
+
+  /** Shown by default, before any search — real content instead of an empty box. */
+  featuredLoading = true;
+  featuredHitters: LeaderRow[] = [];
+  featuredPitchers: LeaderRow[] = [];
+  private readonly season = new Date().getFullYear();
 
   /** Full roster cache for the current season — populated lazily on first search */
   private roster: PlayerRow[] | null = null;
@@ -48,6 +62,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
       'MLB Player Search & Profiles | Baseball Nerd',
       'Search the complete MLB player database by name to view full profiles, career batting and pitching stats, and current team information.'
     );
+    this.loadFeaturedLeaders();
     this.sub = this.input$.pipe(
       debounceTime(180),
       distinctUntilChanged(),
@@ -99,6 +114,35 @@ export class PlayersComponent implements OnInit, OnDestroy {
   photoError(ev: Event) { (ev.target as HTMLImageElement).style.opacity = '0'; }
 
   // ── internals ───────────────────────────────────────────────
+  /** Populates the "This Season's Leaders" panel shown before any search —
+   *  real, populated content instead of an empty search box on first load. */
+  private loadFeaturedLeaders() {
+    this.featuredLoading = true;
+    forkJoin({
+      hitters: this.api.getStatsLeaders('onBasePlusSlugging', 'hitting', this.season).pipe(
+        catchError(() => of({ leagueLeaders: [] }))
+      ),
+      pitchers: this.api.getStatsLeaders('earnedRunAverage', 'pitching', this.season).pipe(
+        catchError(() => of({ leagueLeaders: [] }))
+      )
+    }).subscribe(({ hitters, pitchers }: any) => {
+      this.featuredHitters = this.toLeaderRows(hitters, 5);
+      this.featuredPitchers = this.toLeaderRows(pitchers, 5);
+      this.featuredLoading = false;
+    });
+  }
+
+  private toLeaderRows(data: any, limit: number): LeaderRow[] {
+    const leaders = (data?.leagueLeaders ?? []).flatMap((l: any) => l.leaders ?? []);
+    return leaders.slice(0, limit).map((l: any) => ({
+      id: l.person?.id,
+      name: l.person?.fullName ?? '',
+      teamId: l.team?.id ?? 0,
+      teamName: l.team?.name ?? '',
+      value: l.value ?? ''
+    }));
+  }
+
   private ensureRoster() {
     if (this.roster || this.rosterLoading) return;
     this.rosterLoading = true;

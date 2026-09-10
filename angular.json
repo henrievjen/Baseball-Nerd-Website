@@ -57,8 +57,8 @@
               "src/robots.txt",
               "src/sitemap.xml",
               "src/blog",
-              "src/privacy.html",
-              "src/about.html"
+              "src/404.html",
+              "src/_redirects"
             ],
             "styles": [
               "src/styles.scss",
@@ -67,6 +67,14 @@
             "scripts": [],
             "optimization": {
               "fonts": false
+            },
+            "server": "src/main.server.ts",
+            "security": {
+              "allowedHosts": []
+            },
+            "prerender": true,
+            "ssr": {
+              "entry": "src/server.ts"
             }
           },
           "configurations": {
@@ -140,5 +148,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }

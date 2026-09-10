@@ -1,4 +1,5 @@
-import {AfterViewInit, Component, HostListener, OnDestroy, OnInit} from "@angular/core";
+import {AfterViewInit, Component, HostListener, Inject, OnDestroy, OnInit, PLATFORM_ID} from "@angular/core";
+import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { MlbApiService } from '../../shared/mlb-api.service';
 import { FavoriteTeamsService } from '../../shared/favorite-teams.service';
@@ -146,7 +147,17 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
   private daysNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   private monthsNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-  constructor(private api: MlbApiService, private route: ActivatedRoute, public favorites: FavoriteTeamsService, private seo: SeoService) {}
+  private readonly isBrowser: boolean;
+
+  constructor(
+    private api: MlbApiService,
+    private route: ActivatedRoute,
+    public favorites: FavoriteTeamsService,
+    private seo: SeoService,
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   private pendingGamePk?: number;
 
@@ -210,6 +221,7 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private centerActiveTab(behavior: 'auto' | 'smooth' = 'smooth') {
+    if (!this.isBrowser) return;
     setTimeout(() => {
       const activeEl = document.querySelector('.date-tab.active');
       if (activeEl) {
@@ -274,11 +286,30 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
     const isToday = selectedDate.getTime() === today.getTime();
     const interval = isToday ? 15000 : 300000;
 
+    const fetchOnce = () => {
+      const tab = this.dateTabs[this.activeDateIdx];
+      return this.api.getSchedule({ date: tab.dateStr }).pipe(catchError(() => of({ dates: [] })));
+    };
+
+    if (!this.isBrowser) {
+      // Server-side prerendering: fetch the schedule exactly once so the
+      // crawler-visible HTML shows real games instead of an empty shell.
+      // A repeating timer() subscription here would never be torn down
+      // (ngOnDestroy only runs after the render is captured), which keeps
+      // the zone "unstable" indefinitely and stalls the whole build.
+      this.pollSub = fetchOnce().subscribe({
+        next: (data) => {
+          const newGames = (data.dates ?? []).flatMap((d: any) => d.games ?? []);
+          this.updateGames(newGames);
+          this.loading = false;
+        },
+        error: () => { this.loading = false; }
+      });
+      return;
+    }
+
     this.pollSub = timer(0, interval).pipe(
-      switchMap(() => {
-        const tab = this.dateTabs[this.activeDateIdx];
-        return this.api.getSchedule({ date: tab.dateStr }).pipe(catchError(() => of({ dates: [] })));
-      })
+      switchMap(fetchOnce)
     ).subscribe({
       next: (data) => {
         const newGames = (data.dates ?? []).flatMap((d: any) => d.games ?? []);
