@@ -354,7 +354,15 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
       if (match) {
         this.pendingGamePk = undefined;
         this.openGame(match);
-        history.replaceState(null, '', '/scores');
+        // Scores now lives at "/", not "/scores" — read the actual current
+        // path instead of hardcoding the old one, so this doesn't silently
+        // rewrite the address bar to a URL that just redirects right back.
+        // Browser-only: `history`/`window` don't exist during prerendering
+        // (this branch is unreachable there anyway, since prerendering never
+        // visits a route with a gamePk query param, but guard it regardless).
+        if (this.isBrowser) {
+          history.replaceState(null, '', window.location.pathname);
+        }
       }
     }
   }

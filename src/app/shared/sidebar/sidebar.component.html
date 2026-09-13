@@ -13,8 +13,7 @@
   <nav class="nav">
     <!-- Desktop: all items; Mobile: first 3 only via CSS -->
     <!-- All items get a real href (crawlable by Google).
-         SPA routes prevent default and use the Angular router.
-         External routes (/blog/) let the browser navigate naturally. -->
+         Click handler prevents default and uses the Angular router. -->
     <a class="nav-item" *ngFor="let item of navItems; let i = index"
        [class.active]="isActive(item.route)"
        [class.secondary-nav-item]="i > 2"
@@ -129,12 +128,6 @@
     <circle cx="12" cy="12" r="10"/>
     <line x1="12" y1="16" x2="12" y2="12"/>
     <line x1="12" y1="8" x2="12.01" y2="8"/>
-  </svg>
-
-  <!-- Blog / Guides icon (open book) -->
-  <svg *ngIf="icon === 'blog'" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
   </svg>
 
   <!-- Games icon (controller) -->

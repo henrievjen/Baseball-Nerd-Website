@@ -75,34 +75,6 @@
   }
 }
 
-.author-article-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-
-  a {
-    color: var(--text);
-    font-weight: 600;
-    font-size: 0.92rem;
-    line-height: 1.5;
-    display: block;
-    padding: 10px 14px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    transition: background var(--transition), border-color var(--transition);
-
-    &:hover {
-      background: var(--surface2);
-      border-color: var(--red);
-      color: var(--red);
-    }
-  }
-}
-
 .author-links-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));

@@ -20,14 +20,13 @@ export class SidebarComponent implements AfterViewInit {
   isMoreOpen = false;
 
   navItems: NavItem[] = [
-    { label: 'Scores',           route: '/scores',           icon: 'scores'   },
+    { label: 'Scores',           route: '/',                 icon: 'scores'   },
     { label: 'Standings',        route: '/standings',        icon: 'standings'},
     { label: 'Stats',            route: '/stats',            icon: 'stats'    },
     { label: 'Players',          route: '/players',          icon: 'players'  },
     { label: 'Team Schedule',    route: '/team-schedule',    icon: 'schedule' },
     { label: 'Depth Chart',      route: '/depth-chart',      icon: 'depth'    },
     { label: 'Stadium Weather',  route: '/stadium-weather',  icon: 'stadium'  },
-    { label: 'Guides',           route: '/blog/',            icon: 'blog'     },
     { label: 'Feedback',         route: '/feedback',         icon: 'feedback' },
     { label: 'About',            route: '/about',            icon: 'about'    },
   ];
@@ -46,7 +45,13 @@ export class SidebarComponent implements AfterViewInit {
     } catch (e) {}
   }
 
-  isActive(route: string) { return this.currentRoute.startsWith(route); }
+  isActive(route: string) {
+    // Scores now lives at the root path. Without this special case,
+    // startsWith('/') would match every route, leaving Scores permanently
+    // highlighted no matter what page is actually open.
+    if (route === '/') return this.currentRoute === '/' || this.currentRoute === '';
+    return this.currentRoute.startsWith(route);
+  }
 
   isSecondaryActive() {
     return this.navItems.slice(3).some(item => this.isActive(item.route));
@@ -58,12 +63,6 @@ export class SidebarComponent implements AfterViewInit {
   }
 
   onNavItemClick(event: MouseEvent, route: string) {
-    if (route.startsWith('/blog')) {
-      // External static route — let the browser navigate normally
-      this.isMoreOpen = false;
-      return;
-    }
-    // SPA route — prevent full page reload and use the Angular router
     event.preventDefault();
     this.navigate(route);
   }

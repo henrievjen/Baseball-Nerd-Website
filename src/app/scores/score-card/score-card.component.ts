@@ -159,6 +159,22 @@ export class ScoreCardComponent {
 
   get venueName() { return this.game?.venue?.name; }
 
+  /** True when this game is part of a doubleheader (straight 'Y' or split-admission 'S'). */
+  get isDoubleHeader(): boolean {
+    const dh = this.game?.doubleHeader;
+    return dh === 'Y' || dh === 'S';
+  }
+
+  /** "Game 1" / "Game 2" label — MLB's API sets gameNumber to 1 for every
+   *  non-doubleheader game too, so this only means something once paired
+   *  with isDoubleHeader. Without this, two doubleheader cards for the
+   *  same two teams are visually identical. */
+  get gameNumberLabel(): string | null {
+    if (!this.isDoubleHeader) return null;
+    const n = this.game?.gameNumber;
+    return n ? `Game ${n}` : null;
+  }
+
   get homeTv() {
     return this.game?.broadcasts
       ?.filter((b: any) => b.type === 'TV' && b.homeAway === 'home')

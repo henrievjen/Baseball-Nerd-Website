@@ -13,7 +13,7 @@ export class AuthorComponent implements OnInit {
   ngOnInit() {
     this.seo.update(
       'Henri Evjen — Creator of Baseball Nerd',
-      'Henri Evjen is the creator and sole developer of Baseball Nerd, a lifelong baseball fan and card collector who builds and writes every feature and guide on the site.'
+      'Henri Evjen is the creator and sole developer of Baseball Nerd, a lifelong baseball fan and card collector who builds and maintains every feature on the site.'
     );
   }
 }

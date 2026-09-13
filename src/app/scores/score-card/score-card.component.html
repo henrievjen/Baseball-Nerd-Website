@@ -7,7 +7,9 @@
 
   <!-- Card Header -->
   <div class="card-header">
-    <span class="series-label">{{ game?.seriesDescription || '' }}</span>
+    <span class="series-label">
+      {{ game?.seriesDescription || '' }}<span *ngIf="gameNumberLabel" class="dh-badge">{{ gameNumberLabel }}</span>
+    </span>
 
     <span *ngIf="hasNoHitter" class="nohit-badge"
           [class.nohit-badge--perfect]="hasPerfectGame"

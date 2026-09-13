@@ -288,7 +288,15 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private async initMap() {
-    const L = await import('leaflet');
+    // leaflet is a CommonJS package — under a dynamic import(), esbuild
+    // resolves its exports onto `.default` rather than the namespace
+    // object directly (confirmed empirically; static `import * as L`
+    // exposes them directly, which is what the old code relied on before
+    // this became a dynamic import for SSR-safety). protomaps-leaflet is
+    // real ESM and does NOT need `.default`. Falling back to the bare
+    // module if `.default` isn't present keeps this correct either way.
+    const leafletModule = await import('leaflet');
+    const L: typeof import('leaflet') = (leafletModule as any).default ?? leafletModule;
     const protomapsL = await import('protomaps-leaflet');
     this.leafletLib = L;
 
@@ -464,6 +472,11 @@ export class StadiumMapComponent implements OnInit, AfterViewInit, OnDestroy {
   // ── UI helpers ────────────────────────────────────────────────────────────
   flyToStadium(s: Stadium) {
     this.selectedStadium = s;
+    // The map loads asynchronously (dynamic import + init); a fast click
+    // right after the page appears could beat it. Still show the weather
+    // panel either way — just skip the fly-to animation if there's no
+    // map yet.
+    if (!this.map) return;
     this.zone.runOutsideAngular(() => this.map.flyTo([s.lat, s.lng], 13, { duration: 1.2 }));
   }
   closePanel() { this.selectedStadium = null; }

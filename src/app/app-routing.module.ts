@@ -4,11 +4,16 @@ import { RouterModule, Routes } from '@angular/router';
 const routes: Routes = [
   {
     path: '',
-    loadChildren: () => import('./home/home.module').then(m => m.HomeModule)
+    loadChildren: () => import('./scores/scores.module').then(m => m.ScoresModule)
   },
   {
+    // Scores now lives at the root ("/") — redirect the old URL there
+    // instead of rendering the same content at two different addresses,
+    // which would recreate exactly the duplicate-content problem the
+    // canonical-URL cleanup was meant to fix.
     path: 'scores',
-    loadChildren: () => import('./scores/scores.module').then(m => m.ScoresModule)
+    redirectTo: '',
+    pathMatch: 'full'
   },
   {
     path: 'standings',

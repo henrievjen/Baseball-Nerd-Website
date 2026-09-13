@@ -136,6 +136,17 @@
 
 .series-label { color: var(--text3); }
 
+.dh-badge {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--surface2);
+  color: var(--text2);
+  font-weight: 700;
+  font-size: 0.65rem;
+  letter-spacing: 0.3px;
+}
+
 .nohit-badge { margin-left: auto; }
 
 .status-live {

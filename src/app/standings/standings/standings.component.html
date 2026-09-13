@@ -14,16 +14,10 @@
       <div class="tabs">
         <button class="tab-btn" [class.active]="activeTab === 'DIV'" (click)="activeTab = 'DIV'">Division</button>
         <button class="tab-btn" [class.active]="activeTab === 'WC'" (click)="activeTab = 'WC'">Wild Card</button>
+        <button class="tab-btn" [class.active]="activeTab === 'BRACKET'" (click)="activeTab = 'BRACKET'">Postseason Bracket</button>
       </div>
     </div>
   </header>
-
-  <p class="page-intro">
-    MLB standings track every team's progress across the 162-game regular season, updated after each
-    night's games. Switch between the <strong>Division</strong> tab for a traditional look at each
-    of the six divisions and the <strong>Wild Card</strong> tab to see the separate race for the
-    three wild card spots per league.
-  </p>
 
   <div *ngIf="loading" class="spinner-wrap">
     <div class="spinner"></div>
@@ -208,26 +202,181 @@
 
   </div>
 
-  <section class="page-explainer">
-    <h2>How to Read the Standings</h2>
-    <p>
-      <strong>PCT</strong> (winning percentage) is wins divided by total games played — it's what
-      determines a division's rank, not raw win total, since teams play an uneven number of games
-      at any given point in the season.
-    </p>
-    <p>
-      <strong>GB</strong> (games behind) measures the gap to the leader. It moves in half-game
-      increments: a team one full game behind has one fewer win and one more loss than the leader,
-      while a half-game gap means the two teams have played an uneven number of games.
-    </p>
-    <p>
-      Since the 2022 postseason expansion, each league sends its three division winners plus three
-      wild card teams to the playoffs — twelve teams total. Wild card seeding is based purely on
-      overall record, regardless of division, and ties for the final spots are broken using
-      head-to-head results first, followed by intra-division and intra-league record. For exactly
-      how those seeds translate into playoff matchups and byes, see
-      <a href="/blog/mlb-playoff-format">how the MLB playoffs work</a>.
-    </p>
-  </section>
+  <!-- Postseason Bracket Tab -->
+  <div *ngIf="!loading && activeTab === 'BRACKET'" class="bracket-tab">
+    <ng-container *ngIf="usesBracketFormat">
+
+      <!-- AL Bracket -->
+      <div class="league-section" *ngIf="alSeeds.length === 6; else alBracketPending">
+        <h2 class="league-header">American League</h2>
+        <div class="bracket-league">
+
+          <div class="bracket-round">
+            <h3 class="bracket-round-title">Wild Card Series <span class="bracket-round-sub">Best-of-3 · higher seed hosts every game</span></h3>
+            <div class="bracket-cards">
+              <div class="bracket-bye-card" *ngFor="let s of alSeeds.slice(0, 2)" (click)="goToTeam(s.teamId)">
+                <span class="seed-num">{{ s.seed }}</span>
+                <span class="st-logo-wrap"><img [src]="teams.logo(s.teamId)" class="st-logo" [alt]="s.teamName" (error)="logoError($event)"/></span>
+                <div class="team-name-stack">
+                  <span class="team-name-text">{{ s.teamName }}</span>
+                  <span class="div-name-sub">{{ s.wins }}-{{ s.losses }}</span>
+                </div>
+                <span class="bracket-bye-tag">BYE</span>
+              </div>
+
+              <div class="bracket-matchup-card" *ngFor="let m of alWildCardMatchups">
+                <div class="bracket-matchup-team"
+                     *ngFor="let slot of m"
+                     [class.bracket-slot--tbd]="!slot.team"
+                     (click)="slot.team && goToTeam(slot.team.teamId)">
+                  <ng-container *ngIf="slot.team; else tbd">
+                    <span class="seed-num">{{ slot.team.seed }}</span>
+                    <span class="st-logo-wrap"><img [src]="teams.logo(slot.team.teamId)" class="st-logo" [alt]="slot.team.teamName" (error)="logoError($event)"/></span>
+                    <div class="team-name-stack">
+                      <span class="team-name-text">{{ slot.team.teamName }}</span>
+                      <span class="div-name-sub">{{ slot.team.wins }}-{{ slot.team.losses }}</span>
+                    </div>
+                  </ng-container>
+                  <ng-template #tbd><span class="bracket-tbd-label">{{ slot.label }}</span></ng-template>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bracket-round">
+            <h3 class="bracket-round-title">Division Series <span class="bracket-round-sub">Best-of-5 · fixed, no reseeding</span></h3>
+            <div class="bracket-cards">
+              <div class="bracket-matchup-card" *ngFor="let m of alDivisionSeries">
+                <div class="bracket-matchup-team"
+                     *ngFor="let slot of m"
+                     [class.bracket-slot--tbd]="!slot.team"
+                     (click)="slot.team && goToTeam(slot.team.teamId)">
+                  <ng-container *ngIf="slot.team; else tbd">
+                    <span class="seed-num">{{ slot.team.seed }}</span>
+                    <span class="st-logo-wrap"><img [src]="teams.logo(slot.team.teamId)" class="st-logo" [alt]="slot.team.teamName" (error)="logoError($event)"/></span>
+                    <div class="team-name-stack">
+                      <span class="team-name-text">{{ slot.team.teamName }}</span>
+                      <span class="div-name-sub">{{ slot.team.wins }}-{{ slot.team.losses }}</span>
+                    </div>
+                  </ng-container>
+                  <ng-template #tbd><span class="bracket-tbd-label">{{ slot.label }}</span></ng-template>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bracket-round">
+            <h3 class="bracket-round-title">ALCS <span class="bracket-round-sub">Best-of-7</span></h3>
+            <div class="bracket-cards">
+              <div class="bracket-matchup-card" *ngFor="let m of alChampionshipSeries">
+                <div class="bracket-matchup-team bracket-slot--tbd" *ngFor="let slot of m">
+                  <span class="bracket-tbd-label">{{ slot.label }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <ng-template #alBracketPending>
+        <div class="league-section">
+          <h2 class="league-header">American League</h2>
+          <p class="bracket-pending">Not enough of the {{ season }} season is complete to seed a bracket yet.</p>
+        </div>
+      </ng-template>
+
+      <!-- NL Bracket -->
+      <div class="league-section" *ngIf="nlSeeds.length === 6; else nlBracketPending">
+        <h2 class="league-header">National League</h2>
+        <div class="bracket-league">
+
+          <div class="bracket-round">
+            <h3 class="bracket-round-title">Wild Card Series <span class="bracket-round-sub">Best-of-3 · higher seed hosts every game</span></h3>
+            <div class="bracket-cards">
+              <div class="bracket-bye-card" *ngFor="let s of nlSeeds.slice(0, 2)" (click)="goToTeam(s.teamId)">
+                <span class="seed-num">{{ s.seed }}</span>
+                <span class="st-logo-wrap"><img [src]="teams.logo(s.teamId)" class="st-logo" [alt]="s.teamName" (error)="logoError($event)"/></span>
+                <div class="team-name-stack">
+                  <span class="team-name-text">{{ s.teamName }}</span>
+                  <span class="div-name-sub">{{ s.wins }}-{{ s.losses }}</span>
+                </div>
+                <span class="bracket-bye-tag">BYE</span>
+              </div>
+
+              <div class="bracket-matchup-card" *ngFor="let m of nlWildCardMatchups">
+                <div class="bracket-matchup-team"
+                     *ngFor="let slot of m"
+                     [class.bracket-slot--tbd]="!slot.team"
+                     (click)="slot.team && goToTeam(slot.team.teamId)">
+                  <ng-container *ngIf="slot.team; else tbd">
+                    <span class="seed-num">{{ slot.team.seed }}</span>
+                    <span class="st-logo-wrap"><img [src]="teams.logo(slot.team.teamId)" class="st-logo" [alt]="slot.team.teamName" (error)="logoError($event)"/></span>
+                    <div class="team-name-stack">
+                      <span class="team-name-text">{{ slot.team.teamName }}</span>
+                      <span class="div-name-sub">{{ slot.team.wins }}-{{ slot.team.losses }}</span>
+                    </div>
+                  </ng-container>
+                  <ng-template #tbd><span class="bracket-tbd-label">{{ slot.label }}</span></ng-template>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bracket-round">
+            <h3 class="bracket-round-title">Division Series <span class="bracket-round-sub">Best-of-5 · fixed, no reseeding</span></h3>
+            <div class="bracket-cards">
+              <div class="bracket-matchup-card" *ngFor="let m of nlDivisionSeries">
+                <div class="bracket-matchup-team"
+                     *ngFor="let slot of m"
+                     [class.bracket-slot--tbd]="!slot.team"
+                     (click)="slot.team && goToTeam(slot.team.teamId)">
+                  <ng-container *ngIf="slot.team; else tbd">
+                    <span class="seed-num">{{ slot.team.seed }}</span>
+                    <span class="st-logo-wrap"><img [src]="teams.logo(slot.team.teamId)" class="st-logo" [alt]="slot.team.teamName" (error)="logoError($event)"/></span>
+                    <div class="team-name-stack">
+                      <span class="team-name-text">{{ slot.team.teamName }}</span>
+                      <span class="div-name-sub">{{ slot.team.wins }}-{{ slot.team.losses }}</span>
+                    </div>
+                  </ng-container>
+                  <ng-template #tbd><span class="bracket-tbd-label">{{ slot.label }}</span></ng-template>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bracket-round">
+            <h3 class="bracket-round-title">NLCS <span class="bracket-round-sub">Best-of-7</span></h3>
+            <div class="bracket-cards">
+              <div class="bracket-matchup-card" *ngFor="let m of nlChampionshipSeries">
+                <div class="bracket-matchup-team bracket-slot--tbd" *ngFor="let slot of m">
+                  <span class="bracket-tbd-label">{{ slot.label }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <ng-template #nlBracketPending>
+        <div class="league-section">
+          <h2 class="league-header">National League</h2>
+          <p class="bracket-pending">Not enough of the {{ season }} season is complete to seed a bracket yet.</p>
+        </div>
+      </ng-template>
+
+      <!-- World Series -->
+      <div class="league-section" *ngIf="worldSeries.length">
+        <h2 class="league-header">World Series <span class="bracket-round-sub">Best-of-7 · home field to the better regular-season record</span></h2>
+        <div class="bracket-cards bracket-cards--ws">
+          <div class="bracket-matchup-card" *ngFor="let m of worldSeries">
+            <div class="bracket-matchup-team bracket-slot--tbd" *ngFor="let slot of m">
+              <span class="bracket-tbd-label">{{ slot.label }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </ng-container>
+  </div>
 </div>
 
