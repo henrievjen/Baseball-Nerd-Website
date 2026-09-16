@@ -352,3 +352,58 @@ a guess — nothing past the Wild Card round is actually decided yet, so the
 bracket says so instead of pretending otherwise. Also linked MLB's format
 page directly in the projection note, since that's a better source of
 truth than my own explanation if a reader wants the full rules.
+
+---
+
+# Round 7 (urgent): Live site showing stale, mismatched game data
+
+You reported seeing box scores and linescores for games that hadn't
+started yet, showing what looked like a different day's games entirely.
+Confirmed this against MLB's actual schedule: the team matchups, records,
+and pitcher info shown (Skubal for the Dodgers, White Sox @ Guardians,
+etc.) were 100% correct for today — the bug wasn't wrong data from the
+API, it was **stale data left over from build time**.
+
+## Root cause
+
+The Scores page is prerendered once at build time and served as a static
+file to every visitor until the next manual `npm run build && wrangler
+deploy` — but "today" and "live" only mean something relative to the
+moment someone actually opens the page. The page was baking in whatever
+games happened to be scheduled/live/final at the exact moment the build
+ran, using the build machine's own clock. If a visitor loads the page
+hours or days after that build, the client-side app is supposed to
+immediately overwrite that snapshot with a fresh fetch — but any gap in
+how cleanly the browser reconciles the server-rendered DOM against that
+fresh client render can leave old fragments on screen alongside new ones,
+which is exactly the "right teams in the header, wrong linescore below"
+pattern you saw.
+
+Static prerendering is fine for content that doesn't change minute to
+minute (About, Privacy, even Standings to a much smaller degree) — it was
+never a safe fit for live, in-progress game data specifically, and this is
+on me for not catching that mismatch back when SSR was first added.
+
+## Fix
+
+The Scores page (`/`) no longer fetches or bakes in any game data during
+the build. The server now renders an honest "Loading games…" state (not a
+false "no games scheduled" message, and not frozen build-time data), and
+the browser does 100% of the real fetching immediately on load — both the
+date tabs and the actual games. This trades a small amount of prerendered
+SEO content on this one page for the correctness that actually matters
+here: showing real users real, current information.
+
+**This requires an actual rebuild and redeploy to take effect on the live
+site** — the currently-deployed build still has the old behavior baked in
+regardless of this source fix.
+
+## Worth knowing, not yet changed
+
+Standings and Stats prerender with live data the same way, and carry a
+smaller version of the same risk (a stale win-loss record or leaderboard
+number, not a wrong team's linescore mixed in) — much less jarring since
+neither shows minute-to-minute detail the way a live scoreboard does, but
+the underlying mechanism is the same. Didn't touch those since they weren't
+what was reported broken — flagging it in case you want the same fix
+applied there.

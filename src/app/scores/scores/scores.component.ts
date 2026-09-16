@@ -166,6 +166,21 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
       "Today's MLB Scores & Live Box Scores | Baseball Nerd",
       "Live MLB scores for today's games with inning-by-inning updates, starting pitcher matchups, and final results, sourced directly from the official MLB Stats API."
     );
+
+    if (!this.isBrowser) {
+      // Live scores are the most time-sensitive content on the site, and
+      // this page is prerendered ONCE at build time, then served
+      // unchanged to every visitor until the next manual deploy. "Today"
+      // and "live" only mean something relative to when someone actually
+      // opens the page — baking in whatever game data happened to be
+      // current at build time risks showing a real visitor, hours or
+      // days later, a frozen, unrelated game's score under today's date.
+      // Render an honest loading shell here; the browser branch below
+      // does the real fetch immediately on hydration.
+      this.loading = true;
+      return;
+    }
+
     const qp = this.route.snapshot.queryParamMap;
     const dateStr = qp.get('date');
     const gp = qp.get('gamePk');
@@ -278,6 +293,13 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   startPolling(initial: boolean = false) {
+    // ngOnInit only ever calls this in the browser now (see ngOnInit) — the
+    // scores page no longer fetches or bakes in game data during
+    // prerendering at all, so there's no server branch to handle here
+    // anymore. Kept as a plain assertion rather than silently trusting
+    // the caller, in case that ever changes.
+    if (!this.isBrowser) return;
+
     this.stopPolling();
     if (initial) { this.loading = true; this.games = []; }
 
@@ -290,23 +312,6 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
       const tab = this.dateTabs[this.activeDateIdx];
       return this.api.getSchedule({ date: tab.dateStr }).pipe(catchError(() => of({ dates: [] })));
     };
-
-    if (!this.isBrowser) {
-      // Server-side prerendering: fetch the schedule exactly once so the
-      // crawler-visible HTML shows real games instead of an empty shell.
-      // A repeating timer() subscription here would never be torn down
-      // (ngOnDestroy only runs after the render is captured), which keeps
-      // the zone "unstable" indefinitely and stalls the whole build.
-      this.pollSub = fetchOnce().subscribe({
-        next: (data) => {
-          const newGames = (data.dates ?? []).flatMap((d: any) => d.games ?? []);
-          this.updateGames(newGames);
-          this.loading = false;
-        },
-        error: () => { this.loading = false; }
-      });
-      return;
-    }
 
     this.pollSub = timer(0, interval).pipe(
       switchMap(fetchOnce)

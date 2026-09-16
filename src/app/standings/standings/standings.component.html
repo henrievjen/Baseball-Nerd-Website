@@ -204,6 +204,21 @@
 
   <!-- Postseason Bracket Tab -->
   <div *ngIf="!loading && activeTab === 'BRACKET'" class="bracket-tab">
+
+    <div class="bracket-note" *ngIf="usesBracketFormat">
+      Seeded from the {{ season }} standings as they stand right now — this is a projection, not a
+      final bracket, and will keep shifting until the regular season ends. Seeds 1 and 2 bye into
+      the Division Series; MLB does not reseed after the Wild Card Series, so the No. 1 seed always
+      faces the winner of (4)/(5), and the No. 2 seed always faces the winner of (3)/(6).
+      (<a href="https://www.mlb.com/news/mlb-playoff-format-faq" target="_blank" rel="noopener">MLB's official format explainer</a>)
+    </div>
+    <div class="bracket-note" *ngIf="!usesBracketFormat">
+      The bracket shown here reflects the current postseason format (top two seeds bye into the
+      Division Series), which took effect in {{ bracketFormatStartYear }}. Earlier seasons —
+      including {{ season }} — used different postseason structures, so a bracket isn't shown for
+      this year.
+    </div>
+
     <ng-container *ngIf="usesBracketFormat">
 
       <!-- AL Bracket -->

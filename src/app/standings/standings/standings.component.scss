@@ -217,6 +217,19 @@
 }
 
 /* ── Postseason Bracket tab ── */
+.bracket-note {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text2);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--red);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  margin-bottom: 28px;
+  max-width: 900px;
+}
+
 .bracket-pending {
   color: var(--text3);
   font-size: 0.88rem;
