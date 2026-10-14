@@ -294,7 +294,24 @@ export class ScoreCardComponent {
     return null;
   }
 
+  /** Set when a team's logo 404s — common for winter-league / minor-league ids on the MLB CDN. */
+  awayLogoFailed = false;
+  homeLogoFailed = false;
+
   logoError(ev: Event, teamId: number) {
     (ev.target as HTMLImageElement).style.display = 'none';
+    if (teamId === this.awayId) this.awayLogoFailed = true;
+    if (teamId === this.homeId) this.homeLogoFailed = true;
+  }
+
+  /** Stable per-team colour for the initials badge shown when there is no logo. */
+  fallbackColor(teamId: number | undefined): string {
+    return `hsl(${((teamId ?? 0) * 47) % 360}, 48%, 34%)`;
+  }
+
+  fallbackText(side: 'away' | 'home'): string {
+    const t = side === 'away' ? this.away?.team : this.home?.team;
+    const id = side === 'away' ? this.awayId : this.homeId;
+    return (t?.abbreviation || this.teams.abbr(id) || t?.name || '?').slice(0, 3).toUpperCase();
   }
 }

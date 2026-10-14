@@ -48,11 +48,12 @@
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
           </svg>
         </button>
-        <div class="team-logo-wrap">
+        <div class="team-logo-wrap" [class.team-logo-wrap--fallback]="awayLogoFailed" [style.background]="awayLogoFailed ? fallbackColor(awayId) : null">
           <img class="team-logo team-logo--card"
                [src]="teams.logo(awayId)"
                [alt]="away?.team?.name"
                (error)="logoError($event, awayId)"/>
+          <span class="team-logo-initials" *ngIf="awayLogoFailed" aria-hidden="true">{{ fallbackText('away') }}</span>
         </div>
         <div class="team-info">
           <div class="team-name" [class.dim]="homeWin">{{ away?.team?.name }}</div>
@@ -81,11 +82,12 @@
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
           </svg>
         </button>
-        <div class="team-logo-wrap">
+        <div class="team-logo-wrap" [class.team-logo-wrap--fallback]="homeLogoFailed" [style.background]="homeLogoFailed ? fallbackColor(homeId) : null">
           <img class="team-logo team-logo--card"
                [src]="teams.logo(homeId)"
                [alt]="home?.team?.name"
                (error)="logoError($event, homeId)"/>
+          <span class="team-logo-initials" *ngIf="homeLogoFailed" aria-hidden="true">{{ fallbackText('home') }}</span>
         </div>
         <div class="team-info">
           <div class="team-name" [class.dim]="awayWin">{{ home?.team?.name }}</div>

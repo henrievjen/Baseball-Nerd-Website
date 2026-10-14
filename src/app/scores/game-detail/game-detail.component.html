@@ -6,8 +6,8 @@
     <div class="gd-header">
       <div class="gd-scoreboard">
         <div class="gd-team">
-          <div class="gd-team-logo-wrap gd-team-logo-wrap--link" (click)="goToTeam(awayId)"><img class="gd-team-logo" [src]="teams.logo(awayId)" [alt]="away?.team?.name" (error)="logoError($event)"/></div>
-          <div class="gd-team-name gd-team-name--link" (click)="goToTeam(awayId)">{{ away?.team?.name }}</div>
+          <div class="gd-team-logo-wrap" [class.gd-team-logo-wrap--link]="teamLinksEnabled" [class.gd-team-logo-wrap--fallback]="awayLogoFailed" [style.background]="awayLogoFailed ? fallbackColor(awayId) : null" (click)="goToTeam(awayId)"><img class="gd-team-logo" [src]="teams.logo(awayId)" [alt]="away?.team?.name" (error)="teamLogoError($event, 'away')"/><span class="gd-team-logo-initials" *ngIf="awayLogoFailed" aria-hidden="true">{{ fallbackText('away') }}</span></div>
+          <div class="gd-team-name" [class.gd-team-name--link]="teamLinksEnabled" (click)="goToTeam(awayId)">{{ away?.team?.name }}</div>
           <div class="gd-score" [style.color]="teams.color(awayId)">{{ state !== 'upcoming' && !isPostponed ? awayLineR : '' }}</div>
           <div class="gd-record" *ngIf="away?.leagueRecord">{{ away.leagueRecord.wins }}-{{ away.leagueRecord.losses }}</div>
         </div>
@@ -19,8 +19,8 @@
           <div class="gd-venue">{{ game?.venue?.name }}</div>
         </div>
         <div class="gd-team">
-          <div class="gd-team-logo-wrap gd-team-logo-wrap--link" (click)="goToTeam(homeId)"><img class="gd-team-logo" [src]="teams.logo(homeId)" [alt]="home?.team?.name" (error)="logoError($event)"/></div>
-          <div class="gd-team-name gd-team-name--link" (click)="goToTeam(homeId)">{{ home?.team?.name }}</div>
+          <div class="gd-team-logo-wrap" [class.gd-team-logo-wrap--link]="teamLinksEnabled" [class.gd-team-logo-wrap--fallback]="homeLogoFailed" [style.background]="homeLogoFailed ? fallbackColor(homeId) : null" (click)="goToTeam(homeId)"><img class="gd-team-logo" [src]="teams.logo(homeId)" [alt]="home?.team?.name" (error)="teamLogoError($event, 'home')"/><span class="gd-team-logo-initials" *ngIf="homeLogoFailed" aria-hidden="true">{{ fallbackText('home') }}</span></div>
+          <div class="gd-team-name" [class.gd-team-name--link]="teamLinksEnabled" (click)="goToTeam(homeId)">{{ home?.team?.name }}</div>
           <div class="gd-score" [style.color]="teams.color(homeId)">{{ state !== 'upcoming' && !isPostponed ? homeLineR : '' }}</div>
           <div class="gd-record" *ngIf="home?.leagueRecord">{{ home.leagueRecord.wins }}-{{ home.leagueRecord.losses }}</div>
         </div>

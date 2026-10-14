@@ -76,6 +76,8 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
   @Input() loadingPlays = false;
   @Input() liveFeed: any = null;
   @Input() makeupGame: any = null;
+  /** Which league the game belongs to (see shared/leagues.ts). */
+  @Input() leagueId = 'mlb';
   @Output() closed = new EventEmitter<void>();
 
   mainTab: 'lineups' | 'plays' = 'lineups';
@@ -133,8 +135,30 @@ export class GameDetailComponent implements OnInit, OnDestroy, OnChanges {
     private router: Router
   ) {}
 
+  /** Set when a team's logo 404s (winter / minor league ids aren't on the MLB CDN) — shows an initials badge instead. */
+  awayLogoFailed = false;
+  homeLogoFailed = false;
+
+  teamLogoError(ev: Event, side: 'away' | 'home') {
+    (ev.target as HTMLImageElement).style.display = 'none';
+    if (side === 'away') this.awayLogoFailed = true; else this.homeLogoFailed = true;
+  }
+
+  fallbackColor(teamId: number | undefined): string {
+    return `hsl(${((teamId ?? 0) * 47) % 360}, 48%, 34%)`;
+  }
+
+  fallbackText(side: 'away' | 'home'): string {
+    const t = side === 'away' ? this.away?.team : this.home?.team;
+    const id = side === 'away' ? this.awayId : this.homeId;
+    return (t?.abbreviation || this.teams.abbr(id) || t?.name || '?').slice(0, 3).toUpperCase();
+  }
+
+  /** The team-schedule page only knows MLB clubs, so other leagues don't get team links. */
+  get teamLinksEnabled(): boolean { return this.leagueId === 'mlb'; }
+
   goToTeam(teamId?: number) {
-    if (!teamId) return;
+    if (!teamId || !this.teamLinksEnabled) return;
     this.closed.emit();
     this.router.navigate(['/team-schedule', teamId]);
   }

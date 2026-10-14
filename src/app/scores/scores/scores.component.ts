@@ -2,10 +2,14 @@ import {AfterViewInit, Component, HostListener, Inject, OnDestroy, OnInit, PLATF
 import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { MlbApiService } from '../../shared/mlb-api.service';
+import { LeagueScoresService, LeagueGamesResult } from '../../shared/league-scores.service';
+import { LEAGUES, DEFAULT_LEAGUE_IDS, LeagueDef, LeagueGroup, leagueById, leagueGroups, sanitizeLeagueIds } from '../../shared/leagues';
 import { FavoriteTeamsService } from '../../shared/favorite-teams.service';
 import { SeoService } from '../../shared/seo.service';
 import { Subscription, timer, of } from 'rxjs';
 import { switchMap, catchError } from 'rxjs/operators';
+
+const LEAGUES_STORAGE_KEY = 'bn.scoreLeagues';
 
 export interface DateTab {
   date: Date;
@@ -23,6 +27,13 @@ export interface CalendarDay {
   isOtherMonth: boolean;
 }
 
+/** One league's games on the selected date, rendered as its own block. */
+export interface LeagueSection {
+  league: LeagueDef;
+  games: any[];
+  liveCount: number;
+}
+
 @Component({
   selector: 'app-scores',
   templateUrl: './scores.component.html',
@@ -33,6 +44,15 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
   dateTabs: DateTab[] = [];
   activeDateIdx = 0;
   games: any[] = [];
+
+  // ── League selection ─────────────────────────────────
+  readonly leagueGroups: LeagueGroup[] = leagueGroups();
+  selectedLeagueIds: string[] = [...DEFAULT_LEAGUE_IDS];
+  leagueSections: LeagueSection[] = [];
+  /** Leagues whose last request failed (their previous games are kept on screen). */
+  failedLeagueIds: string[] = [];
+  private leagueCounts: Record<string, number> = {};
+
   loading = false;
   selectedGame: any = null;
   boxscore: any = null;
@@ -151,6 +171,7 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor(
     private api: MlbApiService,
+    private leagueScores: LeagueScoresService,
     private route: ActivatedRoute,
     public favorites: FavoriteTeamsService,
     private seo: SeoService,
@@ -185,6 +206,17 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
     const dateStr = qp.get('date');
     const gp = qp.get('gamePk');
     if (gp) this.pendingGamePk = Number(gp);
+
+    // ?leagues=mlb,afl wins, then the visitor's last choice. A bare ?gamePk=
+    // link predates multi-league and always means an MLB game.
+    const leaguesParam = qp.get('leagues');
+    if (leaguesParam) {
+      this.selectedLeagueIds = sanitizeLeagueIds(leaguesParam.split(','));
+    } else if (gp) {
+      this.selectedLeagueIds = [...DEFAULT_LEAGUE_IDS];
+    } else {
+      this.selectedLeagueIds = sanitizeLeagueIds(this.loadStoredLeagues());
+    }
 
     if (dateStr) {
       const [y, m, d] = dateStr.split('-').map(Number);
@@ -306,19 +338,28 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
     const selectedDate = this.dateTabs[this.activeDateIdx].date;
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const isToday = selectedDate.getTime() === today.getTime();
-    const interval = isToday ? 15000 : 300000;
+    // MLB-only keeps the original 15s cadence. Every extra league is another
+    // request per poll, so multi-league views refresh a little less often.
+    const mlbOnly = this.selectedLeagueIds.length === 1 && this.selectedLeagueIds[0] === 'mlb';
+    const interval = isToday ? (mlbOnly ? 15000 : 20000) : 300000;
 
+    const leagueIds = [...this.selectedLeagueIds];
     const fetchOnce = () => {
       const tab = this.dateTabs[this.activeDateIdx];
-      return this.api.getSchedule({ date: tab.dateStr }).pipe(catchError(() => of({ dates: [] })));
+      return this.leagueScores.getGames(leagueIds, tab.dateStr).pipe(
+        catchError(() => of<LeagueGamesResult>({ games: [], failed: leagueIds }))
+      );
     };
 
     this.pollSub = timer(0, interval).pipe(
       switchMap(fetchOnce)
     ).subscribe({
-      next: (data) => {
-        const newGames = (data.dates ?? []).flatMap((d: any) => d.games ?? []);
-        this.updateGames(newGames);
+      next: (res) => {
+        // A league that failed this round keeps whatever it showed last time,
+        // instead of blanking out on one bad request.
+        const kept = res.failed.length ? this.games.filter(g => res.failed.includes(g._leagueId)) : [];
+        this.failedLeagueIds = res.failed;
+        this.updateGames([...res.games, ...kept]);
         this.loading = false;
       },
       error: () => { this.loading = false; }
@@ -346,6 +387,7 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
     });
 
     this.games = this.sortGamesByFavorite(filteredGames);
+    this.rebuildSections();
 
     if (this.selectedGame) {
       const updated = this.findBestGameMatch(this.selectedGame, newGames);
@@ -366,7 +408,7 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
         // (this branch is unreachable there anyway, since prerendering never
         // visits a route with a gamePk query param, but guard it regardless).
         if (this.isBrowser) {
-          history.replaceState(null, '', window.location.pathname);
+          this.syncUrl(true);
         }
       }
     }
@@ -429,10 +471,12 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
     const tab = this.dateTabs[this.activeDateIdx];
     // Fetch the full day's schedule rather than by gamePk alone — querying by
     // gamePk can return the original postponed entry instead of the makeup game.
-    this.api.getSchedule({ date: tab.dateStr })
+    // Only the open game's own league is requested.
+    const leagueId = this.selectedGame._leagueId ?? 'mlb';
+    this.leagueScores.getGames([leagueId], tab.dateStr)
       .pipe(catchError(() => of(null)))
       .subscribe(data => {
-        const allGames = (data?.dates?.[0]?.games ?? []);
+        const allGames = data?.games ?? [];
         // First try exact PK match among non-postponed games
         const updated = this.findBestGameMatch(this.selectedGame, allGames);
         if (updated) {
@@ -457,6 +501,104 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   trackByGamePk(_index: number, game: any) { return game.gamePk; }
+  trackBySection(_index: number, section: LeagueSection) { return section.league.id; }
+
+  // ── League selection ─────────────────────────────────
+
+  isLeagueSelected(id: string): boolean { return this.selectedLeagueIds.includes(id); }
+
+  get allLeaguesSelected(): boolean { return this.selectedLeagueIds.length === LEAGUES.length; }
+
+  /** Section headers only earn their space when more than one league is on screen. */
+  get showLeagueHeaders(): boolean { return this.selectedLeagueIds.length > 1; }
+
+  get selectedLeagueNames(): string {
+    return this.selectedLeagueIds.map(id => leagueById(id)?.short ?? id).join(', ');
+  }
+
+  get failedLeagueNames(): string {
+    return this.failedLeagueIds.map(id => leagueById(id)?.short ?? id).join(', ');
+  }
+
+  /** Games on the selected date for a chip — only known for leagues that are on and loaded. */
+  chipCount(id: string): number | null {
+    if (this.loading || !this.isLeagueSelected(id)) return null;
+    return this.leagueCounts[id] ?? 0;
+  }
+
+  toggleLeague(id: string) {
+    if (this.isLeagueSelected(id)) {
+      // Always keep at least one league on.
+      if (this.selectedLeagueIds.length === 1) return;
+      this.setLeagues(this.selectedLeagueIds.filter(x => x !== id));
+    } else {
+      this.setLeagues([...this.selectedLeagueIds, id]);
+    }
+  }
+
+  /** "All" turns every league on; pressing it again drops back to MLB only. */
+  toggleAllLeagues() {
+    this.setLeagues(this.allLeaguesSelected ? [...DEFAULT_LEAGUE_IDS] : LEAGUES.map(l => l.id));
+  }
+
+  private setLeagues(ids: string[]) {
+    const next = sanitizeLeagueIds(ids);
+    if (next.length === this.selectedLeagueIds.length && next.every((id, i) => id === this.selectedLeagueIds[i])) return;
+
+    this.selectedLeagueIds = next;
+    this.failedLeagueIds = [];
+    this.persistLeagues();
+    this.syncUrl();
+    if (this.selectedGame && !next.includes(this.selectedGame._leagueId ?? 'mlb')) this.closeGame();
+    this.startPolling(true);
+  }
+
+  private rebuildSections() {
+    const isLive = (g: any) => g?.status?.abstractGameState === 'Live' && g?.status?.detailedState !== 'Warmup';
+    const counts: Record<string, number> = {};
+    const sections: LeagueSection[] = [];
+
+    for (const id of this.selectedLeagueIds) {
+      const league = leagueById(id);
+      if (!league) continue;
+      const games = this.games.filter(g => g._leagueId === id);
+      counts[id] = games.length;
+      if (games.length) sections.push({ league, games, liveCount: games.filter(isLive).length });
+    }
+    this.leagueCounts = counts;
+    this.leagueSections = sections;
+  }
+
+  private loadStoredLeagues(): string[] | null {
+    try {
+      const raw = localStorage.getItem(LEAGUES_STORAGE_KEY);
+      const arr = raw ? JSON.parse(raw) : null;
+      return Array.isArray(arr) ? arr.filter((x: any) => typeof x === 'string') : null;
+    } catch { return null; }
+  }
+
+  private persistLeagues() {
+    try { localStorage.setItem(LEAGUES_STORAGE_KEY, JSON.stringify(this.selectedLeagueIds)); }
+    catch { /* private mode / quota — the selection just won't be remembered */ }
+  }
+
+  /**
+   * Mirrors the selection into the address bar (?leagues=mlb,afl) so a view can
+   * be shared. `dropDeepLinkParams` also clears ?gamePk= and ?date= once a deep
+   * link has been consumed, matching what the page did before leagues existed.
+   * Keeps history.state intact — the Angular router stores its own there.
+   */
+  private syncUrl(dropDeepLinkParams = false) {
+    if (!this.isBrowser) return;
+    try {
+      const url = new URL(window.location.href);
+      const isDefault = this.selectedLeagueIds.length === 1 && this.selectedLeagueIds[0] === DEFAULT_LEAGUE_IDS[0];
+      if (isDefault) url.searchParams.delete('leagues');
+      else url.searchParams.set('leagues', this.selectedLeagueIds.join(','));
+      if (dropDeepLinkParams) { url.searchParams.delete('gamePk'); url.searchParams.delete('date'); }
+      history.replaceState(history.state, '', url.pathname + url.search + url.hash);
+    } catch { /* non-critical */ }
+  }
 
   private sortGamesByFavorite(games: any[]): any[] {
     if (!games?.length) return games;

@@ -3,6 +3,31 @@
     <h1 class="page-title">SCORES &amp; GAMES</h1>
   </header>
 
+  <!-- League picker: any number of leagues can be on at once -->
+  <div class="league-bar" role="group" aria-label="Leagues to show">
+    <button type="button"
+            class="league-chip league-chip--all"
+            [class.active]="allLeaguesSelected"
+            [attr.aria-pressed]="allLeaguesSelected"
+            title="Show every league (press again to go back to MLB only)"
+            (click)="toggleAllLeagues()">
+      All
+    </button>
+    <ng-container *ngFor="let group of leagueGroups">
+      <span class="league-sep" aria-hidden="true"></span>
+      <button *ngFor="let league of group.leagues"
+              type="button"
+              class="league-chip"
+              [class.active]="isLeagueSelected(league.id)"
+              [attr.aria-pressed]="isLeagueSelected(league.id)"
+              [attr.title]="league.name + ' · ' + league.region"
+              (click)="toggleLeague(league.id)">
+        {{ league.short }}
+        <span class="league-chip-count" *ngIf="chipCount(league.id) !== null">{{ chipCount(league.id) }}</span>
+      </button>
+    </ng-container>
+  </div>
+
   <!-- Date Navigation -->
   <div class="date-nav-wrapper">
 
@@ -87,24 +112,42 @@
     <span>Loading games…</span>
   </div>
 
+  <!-- A league's request failed; its last-known games stay on screen -->
+  <div *ngIf="!loading && failedLeagueIds.length" class="league-notice" role="status">
+    Couldn't refresh {{ failedLeagueNames }} right now. Retrying automatically.
+  </div>
+
   <!-- Empty -->
   <div *ngIf="!loading && games.length === 0" class="empty-state">
     <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <circle cx="12" cy="12" r="10"/>
       <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
     </svg>
-    <p>No games scheduled for this date</p>
+    <p *ngIf="!showLeagueHeaders">No games scheduled for this date</p>
+    <p *ngIf="showLeagueHeaders">No games scheduled for this date in {{ selectedLeagueNames }}</p>
   </div>
 
-  <!-- Games Grid -->
-  <div *ngIf="!loading && games.length > 0" class="games-grid">
-    <app-score-card
-            *ngFor="let game of games; trackBy: trackByGamePk"
-            [game]="game"
-            [hasLiveGames]="hasLiveGames"
-            (gameSelected)="openGame($event)">
-    </app-score-card>
-  </div>
+  <!-- Games, one block per league -->
+  <ng-container *ngIf="!loading && games.length > 0">
+    <section class="league-section" *ngFor="let section of leagueSections; trackBy: trackBySection">
+      <header class="league-section-head" *ngIf="showLeagueHeaders">
+        <h2 class="league-section-title">{{ section.league.name }}</h2>
+        <span class="league-section-region">{{ section.league.region }}</span>
+        <span class="league-section-live" *ngIf="section.liveCount">
+          <span class="live-dot"></span>{{ section.liveCount }} live
+        </span>
+        <span class="league-section-count">{{ section.games.length }} {{ section.games.length === 1 ? 'game' : 'games' }}</span>
+      </header>
+      <div class="games-grid">
+        <app-score-card
+                *ngFor="let game of section.games; trackBy: trackByGamePk"
+                [game]="game"
+                [hasLiveGames]="hasLiveGames"
+                (gameSelected)="openGame($event)">
+        </app-score-card>
+      </div>
+    </section>
+  </ng-container>
 </div>
 
 <!-- Game Detail Modal -->
@@ -117,5 +160,6 @@
         [loadingPlays]="loadingPlays"
         [liveFeed]="liveFeed"
         [makeupGame]="makeupGame"
+        [leagueId]="selectedGame._leagueId || 'mlb'"
         (closed)="closeGame()">
 </app-game-detail>

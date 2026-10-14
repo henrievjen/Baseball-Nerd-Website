@@ -184,6 +184,15 @@
   object-fit: contain;
 }
 
+/* Initials badge when a team has no logo on the MLB CDN (winter / minor leagues) */
+.team-logo-wrap--fallback { box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25); }
+.team-logo-initials {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  color: #fff;
+}
+
 .team-info {}
 
 .team-name {

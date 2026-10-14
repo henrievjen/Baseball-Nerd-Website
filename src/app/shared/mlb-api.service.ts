@@ -15,7 +15,15 @@ export class MlbApiService {
     return this.http.get<T>(`${BASE}${path}`, { params: p });
   }
 
-  getSchedule(opts: { date?: string; teamId?: number; startDate?: string; endDate?: string; gamePks?: string } = {}) {
+  /**
+   * `sportId` / `leagueId` / `hydrate` are optional overrides (they win over the
+   * MLB defaults below) so the same endpoint can serve the other leagues the
+   * MLB Stats API carries — see shared/leagues.ts.
+   */
+  getSchedule(opts: {
+    date?: string; teamId?: number; startDate?: string; endDate?: string; gamePks?: string;
+    sportId?: number | string; leagueId?: string; hydrate?: string;
+  } = {}) {
     return this.get<any>('v1/schedule', {
       sportId: 1,
       hydrate: 'linescore,team,broadcasts,decisions(person(stats(group=[pitching],type=[season],gameType=R))),probablePitcher(stats(group=[pitching],type=[season],gameType=R)),reschedule',
