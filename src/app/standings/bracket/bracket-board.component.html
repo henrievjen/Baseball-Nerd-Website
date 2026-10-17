@@ -1,0 +1,99 @@
+<section class="bk" *ngIf="model" [attr.data-kind]="model.kind">
+
+  <header class="bk-head">
+    <h2 class="bk-title">Postseason Picture <em>{{ model.season }}</em></h2>
+    <p class="bk-headline">{{ model.format.headline }}<span class="bk-flag" *ngIf="model.projected">Projected</span></p>
+    <p class="bk-note">{{ model.format.note }}</p>
+    <p class="bk-note bk-note--projected" *ngIf="model.projected">
+      The field below is projected from the current standings and will keep changing until the regular
+      season ends. Real series, scores and results replace it as soon as MLB schedules the postseason.
+    </p>
+  </header>
+
+  <ng-template #slotTpl let-s>
+    <div class="bk-at bk-slot"
+         [class.is-lost]="s.slot.state === 'lost'"
+         [class.is-tbd]="!s.slot.team"
+         [class.is-empty]="!s.slot.team && !s.slot.label"
+         [style.--x]="s.x" [style.--y]="s.y"
+         [style.--tc]="s.slot.team ? s.slot.team.color : null">
+      <button type="button" class="bk-diamond"
+              [disabled]="!s.slot.team || !s.slot.team.clickable"
+              [attr.aria-label]="slotTitle(s)" [attr.title]="slotTitle(s)"
+              (click)="open(s.slot.team)">
+        <span class="bk-ring"></span>
+        <span class="bk-face"></span>
+        <ng-container *ngIf="s.slot.team; else tbd">
+          <img *ngIf="showLogo(s.slot.team)" class="bk-logo" [src]="s.slot.team.logo" alt=""
+               (error)="logoError(s.slot.team)"/>
+          <span *ngIf="!showLogo(s.slot.team)" class="bk-initials">{{ s.slot.team.abbr }}</span>
+        </ng-container>
+        <ng-template #tbd>
+          <span class="bk-tbd" *ngIf="s.slot.label"><b>TBD</b><i>{{ s.slot.label }}</i></span>
+        </ng-template>
+      </button>
+      <span class="bk-seed" *ngIf="s.slot.seed && s.entering" [class.bk-seed--tag]="!isNumeric(s.slot.seed)">{{ s.slot.seed }}</span>
+    </div>
+  </ng-template>
+
+  <div class="bk-frame" *ngIf="layout; else noBracket"
+       [attr.data-cols]="layout.columns"
+       [style.--W]="layout.width" [style.--H]="layout.height" [style.--R]="layout.R"
+       [style.--SU]="layout.stackUnits" [style.--CT]="layout.center.top" [style.--CH]="layout.center.height">
+    <div class="bk-canvas">
+
+      <div *ngFor="let lg of leagues" class="bk-league"
+           [class.bk-league--al]="lg.key === 'AL'" [class.bk-league--nl]="lg.key === 'NL'">
+        <svg class="bk-lines" [attr.viewBox]="'0 0 ' + layout.R + ' ' + layout.height" preserveAspectRatio="none" aria-hidden="true">
+          <path *ngFor="let d of lg.layout.paths" [attr.d]="d"/>
+        </svg>
+
+        <div *ngFor="let l of lg.layout.labels" class="bk-at bk-round" [style.--x]="l.x" [style.--y]="l.y">
+          <span class="bk-round-title" [class.bk-round-title--long]="l.text.length > 10">{{ l.text }}</span>
+          <span class="bk-round-sub">{{ l.sub }}</span>
+        </div>
+
+        <div *ngFor="let st of lg.layout.statuses" class="bk-at bk-status" [class.bk-status--wide]="st.wide"
+             [style.--x]="st.x" [style.--y]="st.y"><span *ngFor="let ln of statusLines(st.text)">{{ ln }}</span></div>
+
+        <ng-container *ngFor="let s of lg.layout.slots; trackBy: trackSlot">
+          <ng-container *ngTemplateOutlet="slotTpl; context: { $implicit: s }"></ng-container>
+        </ng-container>
+
+        <div *ngFor="let p of lg.layout.pills" class="bk-at bk-pill" [style.--x]="p.x" [style.--y]="p.y">{{ p.text }}</div>
+      </div>
+
+      <div class="bk-center">
+        <svg class="bk-lines" [attr.viewBox]="'0 0 256 ' + layout.center.height" preserveAspectRatio="none" aria-hidden="true">
+          <path [attr.d]="layout.center.path"/>
+        </svg>
+
+        <div *ngIf="layout.center.championLabel as cl" class="bk-at bk-champion-label"
+             [style.--x]="cl.x" [style.--y]="cl.y">{{ cl.text }}</div>
+
+        <ng-container *ngIf="champion">
+          <div class="bk-champion-wrap" [class.is-champ]="!!champion.slot.team">
+            <ng-container *ngTemplateOutlet="slotTpl; context: { $implicit: champion }"></ng-container>
+          </div>
+        </ng-container>
+
+        <ng-container *ngFor="let s of layout.center.slots; trackBy: trackSlot">
+          <ng-container *ngTemplateOutlet="slotTpl; context: { $implicit: s }"></ng-container>
+        </ng-container>
+
+        <div *ngIf="layout.center.status as st" class="bk-at bk-status bk-status--wide"
+             [style.--x]="st.x" [style.--y]="st.y"><span *ngFor="let ln of statusLines(st.text)">{{ ln }}</span></div>
+        <div class="bk-at bk-wordmark" [style.--x]="layout.center.wordmark.x" [style.--y]="layout.center.wordmark.y">
+          <span *ngFor="let w of layout.center.wordmark.text.split(' ')">{{ w }}</span>
+        </div>
+        <div class="bk-at bk-pill" [style.--x]="layout.center.pill.x" [style.--y]="layout.center.pill.y">{{ layout.center.pill.text }}</div>
+      </div>
+
+    </div>
+  </div>
+
+  <ng-template #noBracket>
+    <div class="bk-empty">No bracket to show for {{ model.season }}.</div>
+  </ng-template>
+
+</section>

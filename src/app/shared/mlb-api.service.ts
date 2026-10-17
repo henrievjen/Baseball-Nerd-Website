@@ -56,6 +56,16 @@ export class MlbApiService {
     });
   }
 
+  /**
+   * Every postseason series MLB played in a season (Wild Card, Division, League
+   * Championship, World Series) with its games. The feed reaches back to 1903 and
+   * is empty for years without a postseason (1904, 1994). Undecided slots in an
+   * in-progress postseason show up as placeholder teams ("AL Champion").
+   */
+  getPostseasonSeries(season: number) {
+    return this.get<any>('v1/schedule/postseason/series', { season, sportId: 1 });
+  }
+
   getWildCard(season: number) {
     return this.get<any>('v1/standings', {
       leagueId: '103,104', season,

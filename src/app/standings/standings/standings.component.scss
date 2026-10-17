@@ -211,152 +211,91 @@
 /* WC spot vs bubble rows */
 .wc-spot-row td   { }
 .wc-bubble-row td { opacity: 0.65; }
+/* line under the last Wild Card spot */
+.wc-cut-row td { border-top: 1px dashed var(--border2, var(--border)); }
+
+.wc-badge--ru { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+
+/* Season's Wild Card format (headline + one-paragraph explanation) */
+.wc-format {
+  margin: 0 0 26px;
+  padding: 14px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--radius, 10px);
+
+  &--none { border-left-color: var(--text3); }
+}
+.wc-format__headline {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin: 0 0 6px;
+}
+.wc-format__note {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: var(--text2);
+}
+
+/* Empty state: no Wild Card that season */
+.wc-none {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  padding: 34px 20px;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius, 10px);
+  color: var(--text3);
+  font-size: 0.84rem;
+  line-height: 1.5;
+
+  strong { color: var(--text2); font-size: 0.95rem; }
+  &--page { margin-top: 12px; }
+}
+.wc-none__icon { font-size: 1.8rem; line-height: 1; opacity: 0.6; }
+
+/* leaders (and, in 2020, the runners-up) stack in one column beside the Wild Card table */
+.wc-col { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
 
 @media (max-width: 860px) {
   .wc-layout { grid-template-columns: 1fr; }
 }
 
-/* ── Postseason Bracket tab ── */
-.bracket-note {
-  font-size: 0.85rem;
-  line-height: 1.6;
-  color: var(--text2);
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--red);
-  border-radius: var(--radius-sm);
-  padding: 14px 18px;
-  margin-bottom: 28px;
-  max-width: 900px;
+/* ── Postseason Bracket tab ── (the board itself lives in standings/bracket) */
+.standings-page--wide {
+  max-width: 1400px;
+  /* the header keeps its original width so the tabs stay clear of the floating Support button */
+  .page-header { max-width: 1044px; margin-left: auto; margin-right: auto; }
 }
 
 .bracket-pending {
-  color: var(--text3);
-  font-size: 0.88rem;
-  font-style: italic;
-}
-
-.bracket-league {
-  display: flex;
-  flex-direction: column;
-  gap: 26px;
-}
-
-.bracket-round-title {
-  font-family: var(--font-head);
-  font-size: 1.1rem;
-  letter-spacing: 0.5px;
+  font-size: 0.9rem;
+  line-height: 1.6;
   color: var(--text2);
-  margin-bottom: 14px;
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  flex-wrap: wrap;
+  text-align: center;
+  padding: 28px 16px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius, 10px);
 }
 
-.bracket-round-sub {
-  font-family: var(--font-body, inherit);
-  font-size: 0.7rem;
-  font-weight: 400;
-  letter-spacing: 0.2px;
-  color: var(--text3);
-  text-transform: none;
-}
-
-.bracket-cards {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-}
-
-.bracket-bye-card,
-.bracket-matchup-card {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  flex: 1 1 240px;
-  min-width: 220px;
-}
-
-.bracket-bye-card {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  border-left: 3px solid gold;
-}
-
-.bracket-bye-tag {
-  margin-left: auto;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: var(--text3);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 2px 7px;
-  flex-shrink: 0;
-}
-
-.bracket-matchup-card {
-  padding: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.bracket-matchup-team {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: background var(--transition);
-
-  &:hover { background: var(--surface2); }
-  &:first-child { border-bottom: 1px dashed var(--border); border-radius: var(--radius-sm) var(--radius-sm) 0 0; }
-}
-
-.seed-num {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  font-weight: 700;
+.bracket-retry {
+  margin-left: 10px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
   color: var(--text);
-  min-width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-/* TBD slots (Division Series onward, before those teams are decided) */
-.bracket-slot--tbd {
-  cursor: default;
-  opacity: 0.75;
-  &:hover { background: none; }
-}
-
-.bracket-tbd-label {
-  font-size: 0.8rem;
-  color: var(--text3);
-  font-style: italic;
-  padding-left: 2px;
-}
-
-.bracket-cards--ws {
-  max-width: 480px;
-}
-
-.bracket-round + .bracket-round { margin-top: 4px; }
-
-@media (max-width: 640px) {
-  .bracket-cards { flex-direction: column; }
-  .bracket-bye-card, .bracket-matchup-card { flex-basis: auto; }
+  font: inherit;
+  cursor: pointer;
+  &:hover { border-color: var(--gold); }
 }
 
 @media (max-width: 600px) {
@@ -417,4 +356,10 @@
 
 @media (max-width: 768px) {
   .page-explainer { padding: 20px 18px; margin-top: 32px; }
+}
+
+/* Small phones: the three tabs are a little wider than the screen at 360px, which pushed the page sideways */
+@media (max-width: 400px) {
+  .standings-controls .tabs { max-width: 100%; overflow-x: auto; }
+  .standings-controls .tab-btn { padding: 8px 12px; }
 }
