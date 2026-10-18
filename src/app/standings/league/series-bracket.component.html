@@ -1,0 +1,50 @@
+<div class="ps">
+  <section class="ps-robin" *ngFor="let r of view.robins">
+    <h3 class="ps-heading">{{ r.name }}<span class="ps-pool" *ngIf="r.pool"> · {{ r.pool }}</span></h3>
+    <p class="ps-sub" *ngIf="r.finished < r.games">{{ r.finished }} of {{ r.games }} games played</p>
+    <table class="ps-table">
+      <thead><tr><th class="ps-th-team">Team</th><th>W</th><th>L</th><th>PCT</th><th>GB</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let t of r.rows" [class.ps-lead]="t.rank === 1 && r.finished > 0">
+          <td class="ps-td-team">
+            <span class="ps-rank">{{ t.rank }}</span>
+            <span class="ps-badge" [style.background]="badgeColor(t.team)" aria-hidden="true">{{ t.team.abbr }}</span>
+            <span class="ps-name">{{ t.team.name }}</span>
+          </td>
+          <td class="ps-num">{{ t.wins }}</td>
+          <td class="ps-num">{{ t.losses }}</td>
+          <td class="ps-num ps-pct">{{ t.pct }}</td>
+          <td class="ps-num">{{ t.gb }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="ps-bracket" *ngFor="let b of view.brackets; trackBy: trackBracket">
+    <h3 class="ps-heading" *ngIf="b.title">{{ b.title }}</h3>
+
+    <div class="ps-champion" *ngIf="b.champion">
+      <span aria-hidden="true">🏆</span>
+      <span class="ps-champion__name">{{ b.champion.name }}</span>
+      <span class="ps-champion__label">champions</span>
+    </div>
+
+    <div class="ps-rounds">
+      <div class="ps-round" *ngFor="let rd of b.rounds">
+        <h4 class="ps-round-name">{{ rd.name }}</h4>
+        <div class="ps-round-list">
+          <div class="ps-series" *ngFor="let s of rd.series; trackBy: trackSeries"
+               [class.ps-series--live]="s.status === 'live'" [class.ps-series--upcoming]="s.status === 'upcoming'">
+            <div class="ps-team" *ngFor="let t of s.teams; let i = index"
+                 [class.ps-team--win]="s.winner === i" [class.ps-team--lose]="s.winner !== null && s.winner !== i">
+              <span class="ps-badge" [style.background]="badgeColor(t)" aria-hidden="true">{{ t.abbr }}</span>
+              <span class="ps-name">{{ t.name }}</span>
+              <span class="ps-score" *ngIf="s.status !== 'upcoming'">{{ s.score[i] }}</span>
+            </div>
+            <div class="ps-meta">{{ format(s) }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

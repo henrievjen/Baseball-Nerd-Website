@@ -1,0 +1,109 @@
+:host { display: block; }
+
+.ps { display: flex; flex-direction: column; gap: 36px; }
+
+.ps-heading {
+  font-family: var(--font-display, inherit);
+  font-size: 1.25rem;
+  letter-spacing: 0.5px;
+  color: var(--text);
+  margin: 0 0 10px;
+}
+.ps-pool { color: var(--text3); font-weight: 500; }
+.ps-sub { margin: -4px 0 10px; font-size: 0.75rem; color: var(--text3); font-family: var(--font-mono); }
+
+/* ── round robin ── */
+.ps-robin { max-width: 560px; }
+.ps-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 0.85rem;
+  th {
+    text-align: right; padding: 8px 10px;
+    font-family: var(--font-mono); font-size: 0.66rem; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--text3); border-bottom: 1px solid var(--border);
+  }
+  th.ps-th-team { text-align: left; }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: 0; }
+}
+.ps-td-team { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ps-num { text-align: right; font-variant-numeric: tabular-nums; width: 46px; }
+.ps-pct { font-weight: 600; color: var(--text); }
+.ps-rank { width: 14px; font-size: 0.72rem; color: var(--text3); text-align: center; }
+.ps-lead td { background: rgba(255, 215, 0, 0.04); }
+
+.ps-badge {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 30px; height: 22px; padding: 0 5px;
+  border-radius: 6px;
+  font-size: 0.62rem; font-weight: 800; letter-spacing: 0.3px; color: #fff;
+}
+.ps-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-weight: 500; }
+
+/* ── bracket ── */
+.ps-champion {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-bottom: 14px; padding: 8px 14px;
+  background: rgba(255, 215, 0, 0.07);
+  border: 1px solid rgba(255, 215, 0, 0.35);
+  border-radius: 999px;
+  font-size: 0.9rem;
+}
+.ps-champion__name { font-weight: 700; color: var(--text); }
+.ps-champion__label { color: var(--text3); font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; }
+
+.ps-rounds { display: flex; gap: 32px; align-items: stretch; overflow-x: auto; padding-bottom: 6px; }
+.ps-round { flex: 0 0 290px; display: flex; flex-direction: column; min-width: 0; }
+.ps-round-name {
+  margin: 0 0 10px;
+  font-family: var(--font-mono); font-size: 0.68rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1px; color: var(--text3);
+}
+.ps-round-list { flex: 1; display: flex; flex-direction: column; justify-content: space-around; gap: 14px; }
+
+.ps-series {
+  position: relative;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px 0 0;
+  overflow: visible;
+
+  &--live { border-color: var(--red); box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.25); }
+  &--upcoming { opacity: 0.85; }
+}
+/* connector stubs between rounds */
+.ps-round:not(:last-child) .ps-series::after,
+.ps-round:not(:first-child) .ps-series::before {
+  content: ''; position: absolute; top: 50%; width: 16px; border-top: 1px solid var(--border2, var(--border));
+}
+.ps-round:not(:last-child) .ps-series::after { right: -17px; }
+.ps-round:not(:first-child) .ps-series::before { left: -17px; }
+
+.ps-team {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px;
+  min-width: 0;
+  &--lose .ps-name, &--lose .ps-score { color: var(--text3); font-weight: 400; }
+  &--win .ps-name, &--win .ps-score { color: var(--text); font-weight: 700; }
+  &--lose .ps-badge { opacity: 0.55; }
+}
+.ps-score { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 600; font-family: var(--font-mono); color: var(--text2); }
+.ps-meta {
+  padding: 5px 10px 7px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.4px; color: var(--text3);
+}
+
+@media (max-width: 760px) {
+  .ps-rounds { flex-direction: column; gap: 22px; overflow: visible; }
+  .ps-round { flex: none; }
+  .ps-round-list { justify-content: flex-start; }
+  .ps-round .ps-series::before, .ps-round .ps-series::after { display: none; }
+}

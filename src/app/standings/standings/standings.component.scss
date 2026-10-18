@@ -363,3 +363,30 @@
   .standings-controls .tabs { max-width: 100%; overflow-x: auto; }
   .standings-controls .tab-btn { padding: 8px 12px; }
 }
+
+/* ── league selector + non-MLB leagues ── */
+.league-select {
+  width: 300px;
+  max-width: 100%;
+  text-overflow: ellipsis;
+}
+
+/* Initials badge — logos for non-MLB clubs aren't on the MLB CDN. */
+.st-badge {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 30px; height: 22px; padding: 0 5px;
+  border-radius: 6px;
+  font-size: 0.62rem; font-weight: 800; letter-spacing: 0.3px; color: #fff;
+}
+
+.divisions-grid--single { grid-template-columns: minmax(0, 620px); }
+
+.lg-periods { margin-bottom: 22px; max-width: 100%; overflow-x: auto; }
+
+@media (max-width: 600px) {
+  .standings-controls { gap: 10px; }
+  .season-picker-wrap { max-width: 100%; }
+  .league-select { width: min(300px, 62vw); }
+  .st-badge { min-width: 26px; height: 18px; font-size: 0.56rem; }
+}

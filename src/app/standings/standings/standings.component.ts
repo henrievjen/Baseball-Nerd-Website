@@ -1,10 +1,19 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { MlbApiService } from '../../shared/mlb-api.service';
+import { LeagueDef, LeagueGroup, leagueById, leagueGroups } from '../../shared/leagues';
 import { TeamDataService } from '../../shared/team-data.service';
 import { SeoService } from '../../shared/seo.service';
 import { BracketModel, ProjectedSeeds, TeamInfo, TeamResolver, buildBracket, makeTeamResolver } from '../bracket/bracket-model';
 import { WcView, buildWildCardView, wildCardFormat } from './wild-card-format';
+import { LeagueTable, NoDivisionsNotice, buildLeagueTables, noDivisionsNotice } from './division-format';
+import { LeagueProfile, latestSeason, leagueProfile, seasonLabel, seasonsFor } from '../league/league-profile';
+import { LeagueBundle, LeagueStandingsService, Period } from '../league/league-standings.service';
+import { LgStandingsView } from '../league/league-standings-model';
+
+/** Tabs for every league except MLB — each is offered only when the league has that data. */
+type LgTab = 'TABLE' | 'DIV' | 'POST';
 
 interface TeamRow {
   teamId: number; teamName: string;
@@ -37,6 +46,10 @@ export class StandingsComponent implements OnInit, OnDestroy {
   alWildCard: TeamRow[] = [];
   nlWildCard: TeamRow[] = [];
 
+  /** Division tab for seasons before divisions existed (1901–1968): a notice and one table per league. */
+  divNotice: NoDivisionsNotice | null = null;
+  leagueTables: LeagueTable[] = [];
+
   /** Wild Card tab: what that season's format was (0–3 Wild Cards per league) and the rows to draw. */
   wcView: WcView | null = null;
 
@@ -65,21 +78,218 @@ export class StandingsComponent implements OnInit, OnDestroy {
     return out;
   })();
 
-  constructor(private api: MlbApiService, public teams: TeamDataService, private router: Router, private seo: SeoService) {
+  /* ───────── league selector ───────── */
+
+  readonly leagueGroups: LeagueGroup[] = leagueGroups();
+  /** The league on show. MLB keeps its own page (above); every other league is drawn from its feed (below). */
+  league: LeagueDef = leagueById('mlb')!;
+  /** What the season picker lists for the selected league. */
+  seasonOptions: number[] = this.years;
+  private profile: LeagueProfile | null = null;
+  /** Each league remembers the season the visitor last looked at. */
+  private seasonMemory = new Map<string, number>();
+
+  lg: LeagueBundle | null = null;
+  lgLoading = false;
+  lgError = false;
+  lgTab: LgTab = 'TABLE';
+  lgTabs: Array<{ id: LgTab; label: string }> = [];
+  lgPeriod: Period = 'full';
+  private lgSub: Subscription | null = null;
+  private lgTimer: ReturnType<typeof setTimeout> | null = null;
+  /** The season was picked automatically (newest) — step back if it has no data yet. */
+  private autoSeason = false;
+  private fallbacksLeft = 0;
+
+  constructor(
+    private api: MlbApiService,
+    public teams: TeamDataService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private seo: SeoService,
+    private leagues: LeagueStandingsService
+  ) {
     this.resolveTeam = makeTeamResolver(this.teams);
   }
 
+  get isMlb(): boolean { return this.league.id === 'mlb'; }
+
+  /** The standings table set for the selected half (or full season). */
+  get lgView(): LgStandingsView | null {
+    return this.lg ? (this.lg.views[this.lgPeriod] ?? this.lg.views.full ?? null) : null;
+  }
+
   ngOnInit() {
-    this.seo.update(
-      'MLB Standings — AL & NL Division and Wild Card Standings | Baseball Nerd',
-      'Current MLB standings for the American and National League, updated daily with wins, losses, games behind, run differential, and separate wild card tracking.'
-    );
-    this.loadStandings();
+    const wanted = leagueById(this.route.snapshot.queryParamMap.get('league') ?? '');
+    if (wanted) this.league = wanted;
+    this.applyLeague();
   }
 
   ngOnDestroy() {
     this.stopBracketRefresh();
+    this.stopLeagueRefresh();
+    this.lgSub?.unsubscribe();
   }
+
+  selectLeague(id: string) {
+    const next = leagueById(id);
+    if (!next || next.id === this.league.id) return;
+    this.seasonMemory.set(this.league.id, this.season);
+    this.league = next;
+    this.syncUrl();
+    this.applyLeague();
+  }
+
+  /** Switches the page to `this.league`: picks its seasons and loads it. */
+  private applyLeague() {
+    this.stopBracketRefresh();
+    this.stopLeagueRefresh();
+    this.lgSub?.unsubscribe();
+    this.profile = leagueProfile(this.league.id);
+    const remembered = this.seasonMemory.get(this.league.id);
+
+    if (!this.profile) {
+      this.seo.update(
+        'MLB Standings — AL & NL Division and Wild Card Standings | Baseball Nerd',
+        'Current MLB standings for the American and National League, updated daily with wins, losses, games behind, run differential, and separate wild card tracking.'
+      );
+      this.seasonOptions = this.years;
+      this.season = remembered ?? new Date().getFullYear();
+      this.resetMlbData();
+      this.loadStandings();
+      return;
+    }
+
+    this.seo.update(
+      `${this.league.name} Standings | Baseball Nerd`,
+      `${this.league.name} (${this.league.region}) standings with wins, losses and games behind by season, plus divisions and the postseason bracket where the league has them.`
+    );
+    const now = new Date();
+    this.seasonOptions = seasonsFor(this.profile, now);
+    this.season = remembered ?? latestSeason(this.profile, now);
+    this.autoSeason = remembered == null;
+    this.fallbacksLeft = this.autoSeason ? 2 : 0;
+    this.lg = null;
+    this.lgTabs = [];
+    this.lgPeriod = 'full';
+    this.loadLeague();
+  }
+
+  private syncUrl() {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { league: this.isMlb ? null : this.league.id },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
+  }
+
+  /** "2025" — or "2025–26" for the winter leagues. */
+  seasonText(year: number): string {
+    return this.profile ? seasonLabel(this.profile, year) : String(year);
+  }
+
+  loadLeague() {
+    const p = this.profile;
+    if (!p) return;
+    const season = this.season;
+    const leagueId = this.league.id;
+    this.stopLeagueRefresh();
+    this.lgSub?.unsubscribe();
+    this.lgLoading = true;
+    this.lgError = false;
+    this.lgSub = this.leagues.load(p, season).subscribe({
+      next: (bundle) => {
+        if (season !== this.season || leagueId !== this.league.id) return;
+        this.applyBundle(bundle, p);
+      },
+      error: () => {
+        if (season !== this.season || leagueId !== this.league.id) return;
+        this.lgLoading = false;
+        this.lgError = true;
+      }
+    });
+  }
+
+  private applyBundle(bundle: LeagueBundle, p: LeagueProfile) {
+    const standings = bundle.views.full!;
+    const hasPostseason = !!bundle.postseason && bundle.postseason.games > 0;
+
+    // The newest season may not have started (or the league may be between seasons): step back once or twice.
+    if (!standings.blocks.length && !hasPostseason && this.autoSeason && this.fallbacksLeft > 0 && this.season > p.firstSeason) {
+      this.fallbacksLeft--;
+      this.season--;
+      this.loadLeague();
+      return;
+    }
+    this.autoSeason = false;
+
+    this.lg = bundle;
+    this.lgLoading = false;
+    if (!bundle.periods.includes(this.lgPeriod)) this.lgPeriod = 'full';
+    this.refreshLgTabs();
+    this.scheduleLeagueRefresh();
+  }
+
+  private refreshLgTabs() {
+    const b = this.lg;
+    const tabs: Array<{ id: LgTab; label: string }> = [];
+    if (b) {
+      const v = b.views.full!;
+      if (v.blocks.length) tabs.push({ id: 'TABLE', label: 'Standings' });
+      if (v.hasDivisions) tabs.push({ id: 'DIV', label: 'Divisions' });
+      if (b.postseason && b.postseason.games > 0) tabs.push({ id: 'POST', label: 'Postseason' });
+    }
+    this.lgTabs = tabs;
+    if (tabs.length && !tabs.some(t => t.id === this.lgTab)) this.lgTab = tabs[0].id;
+  }
+
+  setLgTab(tab: LgTab) {
+    this.lgTab = tab;
+    this.scheduleLeagueRefresh();
+  }
+
+  setPeriod(period: Period) {
+    this.lgPeriod = period;
+  }
+
+  periodLabel(p: Period): string {
+    return p === 'first' ? 'First half' : p === 'second' ? 'Second half' : 'Full season';
+  }
+
+  /** Keeps an unfinished postseason fresh while it's on screen. */
+  private scheduleLeagueRefresh() {
+    this.stopLeagueRefresh();
+    const p = this.profile;
+    const b = this.lg;
+    if (typeof window === 'undefined' || !p || !b || this.lgTab !== 'POST' || !b.postseason?.pending) return;
+    if (this.season < latestSeason(p, new Date())) return;
+    const season = this.season;
+    this.lgTimer = setTimeout(() => {
+      this.leagues.postseason(p, season, b.leagueIds).subscribe(view => {
+        if (season !== this.season || this.lg !== b || !view) { if (this.lg === b) this.scheduleLeagueRefresh(); return; }
+        this.lg = { ...b, postseason: view };
+        this.refreshLgTabs();
+        this.scheduleLeagueRefresh();
+      });
+    }, 60_000);
+  }
+
+  private stopLeagueRefresh() {
+    if (this.lgTimer) { clearTimeout(this.lgTimer); this.lgTimer = null; }
+  }
+
+  /** Stable per-team colour for the initials badge (these clubs' logos aren't on the MLB CDN). */
+  badgeColor(teamId: number): string {
+    return `hsl(${((teamId ?? 0) * 47) % 360}, 48%, 34%)`;
+  }
+
+  lgTeamCount(v: LgStandingsView): number {
+    return v.blocks.reduce((n, b) => n + b.table.length, 0);
+  }
+
+  trackByTeam(_: number, t: { teamId: number }) { return t.teamId; }
+  trackByLeague(_: number, b: { leagueId: number; name: string }) { return `${b.leagueId}:${b.name}`; }
 
   goToTeam(teamId: number) {
     if (teamId) this.router.navigate(['/team-schedule', teamId]);
@@ -94,7 +304,14 @@ export class StandingsComponent implements OnInit, OnDestroy {
   selectSeason(year: number) {
     if (this.season === year) return;
     this.season = year;
-    // Reset previous data so the old standings don't flash while loading.
+    this.autoSeason = false;
+    if (!this.isMlb) { this.loadLeague(); return; }
+    this.resetMlbData();
+    this.loadStandings();
+  }
+
+  /** Clears the MLB tabs' data so the old standings don't flash while loading. */
+  private resetMlbData() {
     this.alDivisions = [];
     this.nlDivisions = [];
     this.alDivisionLeaders = [];
@@ -102,12 +319,13 @@ export class StandingsComponent implements OnInit, OnDestroy {
     this.alWildCard = [];
     this.nlWildCard = [];
     this.wcView = null;
+    this.divNotice = null;
+    this.leagueTables = [];
     this.alSeeds = [];
     this.nlSeeds = [];
     this.bracketModel = null;
     this.bracketError = false;
     this.stopBracketRefresh();
-    this.loadStandings();
   }
 
   trackByYear(_: number, y: number) { return y; }
@@ -121,6 +339,8 @@ export class StandingsComponent implements OnInit, OnDestroy {
         const records = data.records || [];
         this.collectTeamInfo(records);
         this.buildDivisions(records);
+        this.divNotice = noDivisionsNotice(season);
+        this.leagueTables = this.divNotice ? buildLeagueTables(records) : [];
 
         // Seasons without a Wild Card have nothing to fetch — the tab just says so.
         if (wildCardFormat(season).spots === 0) {

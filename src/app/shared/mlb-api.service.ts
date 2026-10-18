@@ -66,6 +66,37 @@ export class MlbApiService {
     return this.get<any>('v1/schedule/postseason/series', { season, sportId: 1 });
   }
 
+  /**
+   * Standings for any league(s) the Stats API carries (minors, fall/winter, …).
+   * `type` is regularSeason, or firstHalf / secondHalf for split-season leagues.
+   */
+  getLeagueStandings(leagueIds: readonly number[], season: number, type: 'regularSeason' | 'firstHalf' | 'secondHalf' = 'regularSeason') {
+    return this.get<any>('v1/standings', {
+      leagueId: leagueIds.join(','), season,
+      standingsTypes: type,
+      hydrate: 'division,league,team'
+    });
+  }
+
+  /** The leagues a sport (minor-league level) contained in a given season — they change from year to year. */
+  getSportLeagues(sportId: number, season: number) {
+    return this.get<any>('v1/leagues', { sportId, season });
+  }
+
+  /**
+   * Every postseason game of a league's season. `v1/schedule/postseason/series`
+   * only ever returns MLB, so other leagues' series are rebuilt from these games.
+   */
+  getLeaguePostseasonGames(sportId: number, leagueIds: readonly number[], season: number) {
+    return this.get<any>('v1/schedule', {
+      sportId,
+      leagueId: leagueIds.length ? leagueIds.join(',') : undefined,
+      season,
+      gameTypes: 'F,D,L,W,P,C',
+      hydrate: 'team'
+    });
+  }
+
   getWildCard(season: number) {
     return this.get<any>('v1/standings', {
       leagueId: '103,104', season,
