@@ -1,6 +1,6 @@
 import { of, throwError } from 'rxjs';
 import { LeagueScoresService, matchLeague, planRequests } from './league-scores.service';
-import { LEAGUES, leagueById, sanitizeLeagueIds } from './leagues';
+import { LEAGUES, leagueById, leagueGroups, sanitizeLeagueIds, scoreLeagues } from './leagues';
 
 const defs = (...ids: string[]) => ids.map(id => leagueById(id)!);
 
@@ -22,7 +22,7 @@ describe('planRequests', () => {
   });
 
   it('keeps "All leagues" to three requests', () => {
-    const plans = planRequests(LEAGUES);
+    const plans = planRequests(scoreLeagues());
     expect(plans.length).toBe(3);
     expect(plans[0].sportId).toBe('1');
     expect(plans[1].sportId).toBe('17');
@@ -33,6 +33,11 @@ describe('planRequests', () => {
 
   it('returns nothing for an empty selection', () => {
     expect(planRequests([])).toEqual([]);
+  });
+
+  it('never sends a league from another provider (NPB) to the MLB Stats API', () => {
+    expect(planRequests(defs('npb'))).toEqual([]);
+    expect(planRequests(defs('mlb', 'npb', 'aaa')).map(p => p.sportId)).toEqual(['1', '11']);
   });
 });
 
@@ -62,6 +67,11 @@ describe('matchLeague', () => {
 describe('sanitizeLeagueIds', () => {
   it('drops unknown ids and duplicates and uses registry order', () => {
     expect(sanitizeLeagueIds(['lvbp', 'nope', 'mlb', 'lvbp'])).toEqual(['mlb', 'lvbp']);
+  });
+
+  it('leaves out NPB, which only has standings', () => {
+    expect(sanitizeLeagueIds(['npb', 'afl'])).toEqual(['afl']);
+    expect(sanitizeLeagueIds(['npb'])).toEqual(['mlb']);
   });
 
   it('falls back to MLB when nothing valid is left', () => {
@@ -116,5 +126,17 @@ describe('LeagueScoresService.getGames', () => {
       expect(res).toEqual({ games: [], failed: [] });
       done();
     });
+  });
+});
+
+describe('league registry pages', () => {
+  it('the Scores page offers every league except NPB; the Standings page offers all of them', () => {
+    expect(scoreLeagues().map(l => l.id)).not.toContain('npb');
+    expect(scoreLeagues().length).toBe(LEAGUES.length - 1);
+    const onScores = leagueGroups(true);
+    expect(onScores.map(g => g.id)).toEqual(['majors', 'fall-winter', 'minors', 'international']);
+    const onStandings = leagueGroups();
+    expect(onStandings.map(g => g.id)).toEqual(['majors', 'asia', 'fall-winter', 'minors', 'international']);
+    expect(onStandings.find(g => g.id === 'asia')!.leagues.map(l => l.id)).toEqual(['npb']);
   });
 });

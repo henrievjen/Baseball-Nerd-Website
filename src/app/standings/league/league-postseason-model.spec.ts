@@ -37,7 +37,7 @@ function series(desc: string, type: string, bestOf: number, a: number, b: number
 
 describe('buildLeaguePostseason', () => {
   it('returns an empty view when there are no games', () => {
-    expect(buildLeaguePostseason([])).toEqual({ robins: [], brackets: [], pending: false, games: 0 });
+    expect(buildLeaguePostseason([])).toEqual({ robins: [], brackets: [], pending: false, games: 0, teams: [], champions: [] });
     expect(buildLeaguePostseason(null).games).toBe(0);
   });
 
@@ -208,5 +208,115 @@ describe('buildLeaguePostseason', () => {
   it('names rounds from the game type when the feed gives no description', () => {
     const v = buildLeaguePostseason([game(undefined, 'D', 3, 1, 2, [1, 2]), game(undefined, 'W', 3, 2, 3, [1, 2], { date: '2025-12-30' })]);
     expect(v.brackets[0].rounds.map(r => r.name)).toEqual(['Division Series', 'Finals']);
+  });
+});
+
+describe('buildLeaguePostseason — qualifiers, champions and format edge cases', () => {
+  it('lists every club that played a postseason game, and the champion of each decided bracket', () => {
+    const v = buildLeaguePostseason([
+      ...series('LMP Semifinals', 'L', 7, 1, 5, 4, 1, '2026-01-11'),
+      ...series('LMP Semifinals', 'L', 7, 2, 3, 2, 4, '2026-01-11'),
+      ...series('LMP Championship', 'W', 7, 1, 3, 4, 2, '2026-01-21')
+    ]);
+    expect(v.teams.map(t => t.id).sort()).toEqual([1, 2, 3, 5]);
+    expect(v.champions.map(t => t.id)).toEqual([1]);
+  });
+
+  it('has no champion until the final is decided', () => {
+    const v = buildLeaguePostseason([
+      ...series('Finals', 'W', 7, 1, 2, 2, 1, '2026-01-21')
+    ]);
+    expect(v.champions).toEqual([]);
+    expect(v.teams.length).toBe(2);
+  });
+
+  it('round-robin clubs count as qualifiers', () => {
+    const rr: any[] = [];
+    for (let i = 1; i <= 4; i++) for (let j = i + 1; j <= 4; j++) rr.push(game('Round Robin', 'P', 18, i, j, [1, 0], '2026-01-02'));
+    expect(buildLeaguePostseason(rr).teams.map(t => t.id)).toEqual([1, 2, 3, 4]);
+  });
+
+  it('Triple-A: both league championship series and the one-game National Championship make one bracket with one champion', () => {
+    const v = buildLeaguePostseason([
+      ...series('IL Championship Series', 'L', 3, 1, 2, 2, 0, '2025-09-16'),
+      ...series('PCL Championship Series', 'L', 3, 11, 12, 2, 1, '2025-09-16'),
+      game('Triple-A National Championship Game', 'W', 1, 11, 1, [3, 4], '2025-09-23')
+    ]);
+    expect(v.brackets.length).toBe(1);
+    // the two league series are one stage, so they share a column ahead of the one-game final
+    expect(v.brackets[0].rounds.map(r => `${r.name}:${r.series.length}`)).toEqual([
+      'IL / PCL Championship Series:2', 'Triple-A National Championship Game:1'
+    ]);
+    const last = v.brackets[0].rounds[v.brackets[0].rounds.length - 1];
+    expect(last.name).toBe('Triple-A National Championship Game');
+    expect(last.series[0].scoreKind).toBe('runs');
+    expect(v.champions.map(t => t.id)).toEqual([1]);
+  });
+
+  it('a final named like a final counts even when the feed types it as an ordinary playoff game', () => {
+    const v = buildLeaguePostseason([
+      ...series('Championship Series', 'P', 3, 1, 2, 2, 0, '2026-01-21')
+    ]);
+    expect(v.champions.map(t => t.id)).toEqual([1]);
+  });
+
+  it('a Division Series that split 1–1 shows the club that went on as its winner', () => {
+    const v = buildLeaguePostseason([
+      game('LBPRC Division Series', 'D', 2, 1, 2, [1, 0], '2025-12-29'),
+      game('LBPRC Division Series', 'D', 2, 1, 2, [0, 1], '2025-12-30'),
+      ...series('LBPRC Semifinals', 'L', 7, 2, 3, 4, 2, '2026-01-05')
+    ]);
+    const first = v.brackets[0].rounds[0].series[0];
+    expect(first.score).toEqual([1, 1]);
+    expect(first.advanced).toBeTrue();
+    expect(first.teams[first.winner!].id).toBe(2);
+  });
+
+  it('a split round with nothing after it keeps no winner', () => {
+    const v = buildLeaguePostseason([
+      game('LBPRC Division Series', 'D', 2, 1, 2, [1, 0], '2025-12-29'),
+      game('LBPRC Division Series', 'D', 2, 1, 2, [0, 1], '2025-12-30')
+    ]);
+    const s = v.brackets[0].rounds[0].series[0];
+    expect(s.winner).toBeNull();
+    expect(s.advanced).toBeUndefined();
+  });
+
+  it('a split first round whose winner then plays the round robin takes the club that went on', () => {
+    const rr: any[] = [];
+    for (const [a, b] of [[2, 3], [2, 4], [2, 5], [3, 4], [3, 5], [4, 5]]) rr.push(game('Round Robin', 'P', 16, a, b, [2, 1], '2026-01-02'));
+    const v = buildLeaguePostseason([
+      game('LVBP First Round', 'D', 2, 1, 2, [1, 0], '2025-12-29'),
+      game('LVBP First Round', 'D', 2, 1, 2, [0, 1], '2025-12-30'),
+      ...rr
+    ]);
+    expect(v.robins.length).toBe(1);
+    const s = v.brackets[0].rounds[0].series[0];
+    expect(s.advanced).toBeTrue();
+    expect(s.teams[s.winner!].id).toBe(2);
+  });
+
+  it('keeps a postponed round-robin game out of the table when it is listed again as played', () => {
+    const rr = [
+      game('Round Robin', 'P', 18, 1, 2, [3, 2], '2026-01-02'),
+      game('Round Robin', 'P', 18, 1, 3, [3, 2], '2026-01-03'),
+      game('Round Robin', 'P', 18, 2, 3, [3, 2], '2026-01-04')
+    ];
+    const postponed = { ...rr[0], gamePk: 777, status: { abstractGameState: 'Preview', detailedState: 'Postponed' } };
+    const v = buildLeaguePostseason([postponed, ...rr]);
+    expect(v.robins[0].games).toBe(3);
+    expect(v.robins[0].finished).toBe(3);
+  });
+
+  it('DSL Cup style pool play splits into separate pools, each its own table', () => {
+    const pool = (ids: number[], date: string) => {
+      const out: any[] = [];
+      for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) out.push(game('DSL Cup Pool Play', 'F', 3, ids[i], ids[j], [2, 1], date));
+      return out;
+    };
+    const v = buildLeaguePostseason([...pool([1, 2, 3], '2025-08-20'), ...pool([4, 5, 6], '2025-08-20'), ...pool([7, 8, 9], '2025-08-20')]);
+    expect(v.robins.map(r => r.pool)).toEqual(['Pool A', 'Pool B', 'Pool C']);
+    expect(v.robins.every(r => r.rows.length === 3)).toBeTrue();
+    expect(v.teams.length).toBe(9);
   });
 });

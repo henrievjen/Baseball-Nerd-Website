@@ -22,6 +22,7 @@ export class SeriesBracketComponent {
 
   format(s: PsSeries): string {
     const kind = s.bestOf <= 1 ? 'Single game' : `Best of ${s.bestOf}`;
+    if (s.advanced) return `${kind} · Split ${s.score[0]}–${s.score[1]} · advanced`;
     return s.status === 'final' ? `${kind} · Final` : s.status === 'live' ? `${kind} · In progress` : `${kind} · Upcoming`;
   }
 

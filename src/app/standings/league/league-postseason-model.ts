@@ -30,6 +30,8 @@ export interface PsSeries {
   winner: 0 | 1 | null;
   status: 'upcoming' | 'live' | 'final';
   start: string;
+  /** The games finished level (a split two-game round) and the winner is the team that went on to play in a later round. */
+  advanced?: boolean;
 }
 
 export interface PsRound { name: string; series: PsSeries[] }
@@ -50,6 +52,8 @@ export interface PsRobin {
   rows: PsRobinRow[];
   games: number;
   finished: number;
+  /** Date (YYYY-MM-DD) of the first game. */
+  start: string;
 }
 
 export interface PsView {
@@ -58,12 +62,18 @@ export interface PsView {
   /** Some series or round-robin game is still to be played. */
   pending: boolean;
   games: number;
+  /** Every club that played a postseason game (round robins included) — i.e. the clubs that qualified. */
+  teams: PsTeam[];
+  /** The winner of each bracket that has been decided (one per league when the minors run several brackets). */
+  champions: PsTeam[];
 }
 
 const GAME_TYPE_NAME: Record<string, string> = {
   F: 'Wild Card', D: 'Division Series', L: 'League Championship', P: 'Playoffs', C: 'Championship', W: 'Finals'
 };
 const TYPE_RANK: Record<string, number> = { F: 0, D: 1, L: 2, P: 2, C: 3, W: 4 };
+/** A last round that is named like a final is one even when the feed types it as an ordinary playoff game. */
+const FINAL_ROUND = /\bchampionship\b|\bfinals?\b/i;
 
 interface G {
   pk: number;
@@ -120,6 +130,15 @@ function parseGames(raw: any[]): G[] {
     if (!prev || STATE_RANK[parsed.state] >= STATE_RANK[prev.state]) byPk.set(parsed.pk, parsed);
   }
   return [...byPk.values()];
+}
+
+/** "IL Championship Series" + "PCL Championship Series" → "IL / PCL Championship Series". */
+function joinNames(a: string, b: string): string {
+  const wa = a.split(/\s+/), wb = b.split(/\s+/);
+  let k = 0;
+  while (k < wa.length && k < wb.length && wa[wa.length - 1 - k] === wb[wb.length - 1 - k]) k++;
+  if (k === 0 || k >= Math.min(wa.length, wb.length)) return `${a} / ${b}`;
+  return `${wa.slice(0, wa.length - k).join(' ')} / ${wb.slice(0, wb.length - k).join(' ')} ${wa.slice(wa.length - k).join(' ')}`;
 }
 
 const pairKey = (a: number, b: number) => (a < b ? `${a}-${b}` : `${b}-${a}`);
@@ -206,6 +225,7 @@ function makeRobin(desc: string, pool: string | null, games: G[]): PsRobin {
     pool,
     games: games.length,
     finished,
+    start: minStr(games.map(g => g.date)),
     rows: ordered.map((r, i) => {
       const p = r.wins + r.losses ? (r.wins / (r.wins + r.losses)).toFixed(3) : '0.000';
       return {
@@ -220,7 +240,7 @@ function makeRobin(desc: string, pool: string | null, games: G[]): PsRobin {
 
 export function buildLeaguePostseason(rawGames: any[] | null | undefined): PsView {
   const games = parseGames(rawGames ?? []);
-  const empty: PsView = { robins: [], brackets: [], pending: false, games: 0 };
+  const empty: PsView = { robins: [], brackets: [], pending: false, games: 0, teams: [], champions: [] };
   if (!games.length) return empty;
 
   const byDesc = new Map<string, G[]>();
@@ -272,9 +292,19 @@ export function buildLeaguePostseason(rawGames: any[] | null | undefined): PsVie
   const brackets: PsBracket[] = groups.map(ids => {
     const set = new Set(ids);
     const mine = knockout.filter(s => set.has(s.teams[0].id));
-    const rounds: PsRound[] = roundOrder
+    const named: PsRound[] = roundOrder
       .map(name => ({ name, series: mine.filter(s => s.round === name) }))
       .filter(r => r.series.length);
+
+    // Rounds that are really one stage played side by side — Triple-A's two league championship series, which the
+    // feed names after their own leagues — share a column (same kind of game, same first day).
+    const stage = (r: PsRound) => `${Math.max(...r.series.map(s => TYPE_RANK[s.gameType] ?? 2))}|${minStr(r.series.map(s => s.start))}`;
+    const rounds: PsRound[] = [];
+    for (const r of named) {
+      const prev = rounds[rounds.length - 1];
+      if (prev && stage(prev) === stage(r)) rounds[rounds.length - 1] = { name: joinNames(prev.name, r.name), series: [...prev.series, ...r.series] };
+      else rounds.push({ name: r.name, series: r.series.slice() });
+    }
 
     // order each round to line up with the series its teams advance into
     const byDate = (a: PsSeries, b: PsSeries) => cmpStr(a.start, b.start) || a.key.localeCompare(b.key);
@@ -298,8 +328,21 @@ export function buildLeaguePostseason(rawGames: any[] | null | undefined): PsVie
       });
     }
 
+    // A round that finished level (a split two-game round) has no winner of its own. If one of its teams then
+    // turns up in a later round — or in a round robin that began after it — that team is the one that went through.
+    for (let i = 0; i < rounds.length; i++) {
+      const later = new Set<number>(rounds.slice(i + 1).flatMap(r => r.series.flatMap(teamOfSeries)));
+      rounds[i].series = rounds[i].series.map(ser => {
+        if (ser.winner != null || ser.status !== 'final') return ser;
+        const through = ser.teams.map(t =>
+          later.has(t.id) || robins.some(r => r.date >= ser.start && r.robin.rows.some(row => row.team.id === t.id)));
+        if (through[0] === through[1]) return ser;
+        return { ...ser, winner: through[0] ? 0 : 1, advanced: true };
+      });
+    }
+
     const last = rounds[rounds.length - 1];
-    const finale = last && last.series.length === 1 && ['W', 'C'].includes(last.series[0].gameType) ? last.series[0] : null;
+    const finale = last && last.series.length === 1 && (['W', 'C'].includes(last.series[0].gameType) || FINAL_ROUND.test(last.series[0].round)) ? last.series[0] : null;
     const champion = finale && finale.winner != null ? finale.teams[finale.winner] : null;
     return { title: null, rounds, champion };
   });
@@ -317,5 +360,15 @@ export function buildLeaguePostseason(rawGames: any[] | null | undefined): PsVie
     brackets.some(b => b.rounds.some(r => r.series.some(s => s.status !== 'final'))) ||
     robins.some(r => r.robin.finished < r.robin.games);
 
-  return { robins: robins.map(r => r.robin), brackets, pending, games: games.length };
+  const teamsById = new Map<number, PsTeam>();
+  for (const g of games) { teamsById.set(g.home.id, g.home); teamsById.set(g.away.id, g.away); }
+
+  return {
+    robins: robins.map(r => r.robin),
+    brackets,
+    pending,
+    games: games.length,
+    teams: [...teamsById.values()].sort((a, b) => a.name.localeCompare(b.name)),
+    champions: brackets.map(b => b.champion).filter((t): t is PsTeam => !!t)
+  };
 }

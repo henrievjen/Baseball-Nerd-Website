@@ -3,7 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { MlbApiService } from '../../shared/mlb-api.service';
 import { LeagueScoresService, LeagueGamesResult } from '../../shared/league-scores.service';
-import { LEAGUES, DEFAULT_LEAGUE_IDS, LeagueDef, LeagueGroup, leagueById, leagueGroups, sanitizeLeagueIds } from '../../shared/leagues';
+import { DEFAULT_LEAGUE_IDS, LeagueDef, LeagueGroup, leagueById, leagueGroups, sanitizeLeagueIds, scoreLeagues } from '../../shared/leagues';
 import { FavoriteTeamsService } from '../../shared/favorite-teams.service';
 import { SeoService } from '../../shared/seo.service';
 import { Subscription, timer, of } from 'rxjs';
@@ -46,7 +46,7 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
   games: any[] = [];
 
   // ── League selection ─────────────────────────────────
-  readonly leagueGroups: LeagueGroup[] = leagueGroups();
+  readonly leagueGroups: LeagueGroup[] = leagueGroups(true);
   selectedLeagueIds: string[] = [...DEFAULT_LEAGUE_IDS];
   leagueSections: LeagueSection[] = [];
   /** Leagues whose last request failed (their previous games are kept on screen). */
@@ -227,7 +227,10 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
     this.startPolling(true);
 
     this.favSub = this.favorites.favorites$.subscribe(() => {
-      if (this.games?.length) this.games = this.sortGamesByFavorite(this.games);
+      if (this.games?.length) {
+        this.games = this.sortGamesByFavorite(this.games);
+        this.rebuildSections();   // the cards are drawn from the sections, so a new favourite moves up straight away
+      }
     });
   }
 
@@ -507,7 +510,7 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
 
   isLeagueSelected(id: string): boolean { return this.selectedLeagueIds.includes(id); }
 
-  get allLeaguesSelected(): boolean { return this.selectedLeagueIds.length === LEAGUES.length; }
+  get allLeaguesSelected(): boolean { return this.selectedLeagueIds.length === scoreLeagues().length; }
 
   /** Section headers only earn their space when more than one league is on screen. */
   get showLeagueHeaders(): boolean { return this.selectedLeagueIds.length > 1; }
@@ -538,7 +541,7 @@ export class ScoresComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /** "All" turns every league on; pressing it again drops back to MLB only. */
   toggleAllLeagues() {
-    this.setLeagues(this.allLeaguesSelected ? [...DEFAULT_LEAGUE_IDS] : LEAGUES.map(l => l.id));
+    this.setLeagues(this.allLeaguesSelected ? [...DEFAULT_LEAGUE_IDS] : scoreLeagues().map(l => l.id));
   }
 
   private setLeagues(ids: string[]) {

@@ -28,7 +28,8 @@ const LIGHT_HYDRATE = 'linescore,team,broadcasts,decisions,probablePitcher,resch
  *   - MLB            → its own request (sportId 1, unchanged from before)
  *   - leagueId-scoped leagues (winter/fall) → one request per sport, leagueId=a,b,c
  *   - whole-sport leagues (MiLB levels, International) → one request, sportId=11,12,…
- * so even "All leagues" is at most three requests.
+ * so even "All leagues" is at most three requests. Only MLB Stats API leagues are
+ * planned — a league from another provider (NPB) is never sent to this API.
  */
 export function planRequests(defs: readonly LeagueDef[]): SchedulePlan[] {
   const plans: SchedulePlan[] = [];
@@ -36,7 +37,7 @@ export function planRequests(defs: readonly LeagueDef[]): SchedulePlan[] {
   const mlb = defs.filter(d => d.id === 'mlb');
   if (mlb.length) plans.push({ defs: mlb, sportId: '1', mlb: true });
 
-  const rest = defs.filter(d => d.id !== 'mlb');
+  const rest = defs.filter(d => d.id !== 'mlb' && d.provider === 'mlb-stats');
 
   const scoped = rest.filter(d => d.leagueIds?.length);
   const bySport = new Map<number, LeagueDef[]>();

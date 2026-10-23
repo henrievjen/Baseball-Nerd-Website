@@ -76,7 +76,9 @@ export class DepthChartComponent implements OnInit {
         this.selectTeam(id, false);
       } else {
         // Default to first favorite, else first team alphabetically
-        const firstFav = [...this.favorites.favorites][0];
+        // Only MLB clubs have a depth chart — a favourite from another league (NPB, minors, winter ball) is skipped.
+        const mlbIds = new Set(this.teams.allTeams().map(t => t.id));
+        const firstFav = [...this.favorites.favorites].find(id => mlbIds.has(id));
         const def = firstFav ?? this.teams.allTeams()[0]?.id;
         if (def) this.selectTeam(def, true);
       }

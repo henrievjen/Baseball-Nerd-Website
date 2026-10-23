@@ -86,8 +86,8 @@ describe('buildLgStandings', () => {
 
   it('sums games and tolerates empty or odd input', () => {
     expect(buildLgStandings(aaa).games).toBe(900);
-    expect(buildLgStandings([])).toEqual({ blocks: [], hasDivisions: false, games: 0 });
-    expect(buildLgStandings(null)).toEqual({ blocks: [], hasDivisions: false, games: 0 });
+    expect(buildLgStandings([])).toEqual({ blocks: [], hasDivisions: false, showTies: false, games: 0 });
+    expect(buildLgStandings(null)).toEqual({ blocks: [], hasDivisions: false, showTies: false, games: 0 });
     expect(buildLgStandings([{ league: { id: 1 }, teamRecords: [] }]).blocks).toEqual([]);
   });
 });

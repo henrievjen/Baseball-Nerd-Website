@@ -15,6 +15,8 @@ export interface LgRow {
   abbr: string;
   wins: number;
   losses: number;
+  /** Drawn games — only for leagues whose records include them (NPB). Not part of win %. */
+  ties?: number;
   pct: string;
   /** "—" for the leader. */
   gb: string;
@@ -43,6 +45,8 @@ export interface LgBlock {
 export interface LgStandingsView {
   blocks: LgBlock[];
   hasDivisions: boolean;
+  /** True when the tables carry a ties (T) column. */
+  showTies: boolean;
   /** Games played by all teams combined (wins + losses) — used to tell halves from the full season. */
   games: number;
 }
@@ -75,10 +79,10 @@ function abbrOf(team: any): string {
   return (words.length > 1 ? words.map(w => w[0]).join('') : (words[0] ?? '?')).slice(0, 3).toUpperCase();
 }
 
-interface Raw { tr: any; wins: number; losses: number }
+interface Raw { tr: any; wins: number; losses: number; ties?: number }
 
 function rawOf(tr: any): Raw {
-  return { tr, wins: toInt(tr.wins), losses: toInt(tr.losses) };
+  return { tr, wins: toInt(tr.wins), losses: toInt(tr.losses), ties: tr.ties == null ? undefined : toInt(tr.ties) };
 }
 
 /**
@@ -101,6 +105,7 @@ function toRows(ordered: Raw[]): LgRow[] {
     abbr: abbrOf(r.tr.team),
     wins: r.wins,
     losses: r.losses,
+    ties: r.ties,
     pct: pctText(r.wins, r.losses, r.tr.winningPercentage),
     gb: i === 0 ? '—' : gamesBack(leader, r),
     rank: i + 1
@@ -163,5 +168,10 @@ export function buildLgStandings(records: any[] | null | undefined): LgStandings
   }
   blocks.sort((a, b) => a.name.localeCompare(b.name));
 
-  return { blocks, hasDivisions: blocks.some(b => b.divisions.length > 0), games };
+  return {
+    blocks,
+    hasDivisions: blocks.some(b => b.divisions.length > 0),
+    showTies: blocks.some(b => b.table.some(r => r.ties != null)),
+    games
+  };
 }

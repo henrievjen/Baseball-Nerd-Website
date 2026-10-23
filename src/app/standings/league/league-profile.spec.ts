@@ -14,8 +14,18 @@ describe('leagueProfile', () => {
   });
 
   it('knows which levels split the season', () => {
-    expect(['aa', 'higha', 'a'].every(id => leagueProfile(id)!.halves)).toBeTrue();
-    expect(['aaa', 'rok', 'lmp', 'afl'].some(id => leagueProfile(id)!.halves)).toBeFalse();
+    // Triple-A and the Mexican Pacific League also play split seasons (first- and second-half winners reach the postseason)
+    expect(['aaa', 'aa', 'higha', 'a', 'lmp'].every(id => leagueProfile(id)!.halves)).toBeTrue();
+    expect(['rok', 'afl', 'lidom', 'lvbp', 'prwl', 'abl', 'cs', 'npb'].some(id => leagueProfile(id)!.halves)).toBeFalse();
+  });
+
+  it('NPB is a summer league from 2021 (the data set\'s first season) with no halves', () => {
+    const p = leagueProfile('npb')!;
+    expect(p.def.provider).toBe('npb-data');
+    expect(p.firstSeason).toBe(2021);
+    expect(p.winter).toBeFalse();
+    expect(p.halves).toBeFalse();
+    expect(seasonsFor(p, new Date(2026, 9, 20))).toEqual([2026, 2025, 2024, 2023, 2022, 2021]);
   });
 
   it('only the minor-league levels look their leagues up by season', () => {

@@ -28,14 +28,15 @@ export interface LeagueProfile {
 
 /** Everything but MLB. Seasons below are the earliest each feed was seen to return data. */
 const EXTRA: Record<string, Omit<LeagueProfile, 'def' | 'sportId' | 'leagueIds'>> = {
+  npb:   { firstSeason: 2021, winter: false, halves: false },   // community data set (shared/npb-data.ts) starts in 2021
   afl:   { firstSeason: 2006, winter: false, halves: false },
   lidom: { firstSeason: 2008, winter: true,  halves: false },
-  lmp:   { firstSeason: 2010, winter: true,  halves: false },
+  lmp:   { firstSeason: 2010, winter: true,  halves: true },
   lvbp:  { firstSeason: 2008, winter: true,  halves: false },
   prwl:  { firstSeason: 2010, winter: true,  halves: false },
   abl:   { firstSeason: 2010, winter: true,  halves: false },
   cs:    { firstSeason: 2010, winter: false, halves: false },
-  aaa:   { firstSeason: 2005, winter: false, halves: false },
+  aaa:   { firstSeason: 2005, winter: false, halves: true },
   aa:    { firstSeason: 2005, winter: false, halves: true },
   higha: { firstSeason: 2005, winter: false, halves: true },
   a:     { firstSeason: 2005, winter: false, halves: true },

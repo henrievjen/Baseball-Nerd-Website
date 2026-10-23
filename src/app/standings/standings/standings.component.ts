@@ -11,6 +11,7 @@ import { LeagueTable, NoDivisionsNotice, buildLeagueTables, noDivisionsNotice } 
 import { LeagueProfile, latestSeason, leagueProfile, seasonLabel, seasonsFor } from '../league/league-profile';
 import { LeagueBundle, LeagueStandingsService, Period } from '../league/league-standings.service';
 import { LgStandingsView } from '../league/league-standings-model';
+import { QualifyingCut, RulesNote, describePostseason, formatRules, qualifyingCut } from '../league/league-format';
 
 /** Tabs for every league except MLB — each is offered only when the league has that data. */
 type LgTab = 'TABLE' | 'DIV' | 'POST';
@@ -95,6 +96,15 @@ export class StandingsComponent implements OnInit, OnDestroy {
   lgTab: LgTab = 'TABLE';
   lgTabs: Array<{ id: LgTab; label: string }> = [];
   lgPeriod: Period = 'full';
+  /** Clubs that played in the league's postseason / won a bracket — marked in the tables. */
+  qualified = new Set<number>();
+  champs = new Set<number>();
+  /** NPB-style cut line (top N of the table reach the postseason by record alone). */
+  cut: QualifyingCut | null = null;
+  /** The league's confirmed postseason rules, and the outline of the postseason the feed actually played. */
+  rules: RulesNote | null = null;
+  outline: string[] = [];
+  legend: Array<{ badge: string; text: string; kind: 'champ' | 'po' | 'cut' }> = [];
   private lgSub: Subscription | null = null;
   private lgTimer: ReturnType<typeof setTimeout> | null = null;
   /** The season was picked automatically (newest) — step back if it has no data yet. */
@@ -172,6 +182,7 @@ export class StandingsComponent implements OnInit, OnDestroy {
     this.lg = null;
     this.lgTabs = [];
     this.lgPeriod = 'full';
+    this.syncPostseasonInfo();
     this.loadLeague();
   }
 
@@ -227,6 +238,7 @@ export class StandingsComponent implements OnInit, OnDestroy {
     this.lg = bundle;
     this.lgLoading = false;
     if (!bundle.periods.includes(this.lgPeriod)) this.lgPeriod = 'full';
+    this.syncPostseasonInfo();
     this.refreshLgTabs();
     this.scheduleLeagueRefresh();
   }
@@ -242,6 +254,27 @@ export class StandingsComponent implements OnInit, OnDestroy {
     }
     this.lgTabs = tabs;
     if (tabs.length && !tabs.some(t => t.id === this.lgTab)) this.lgTab = tabs[0].id;
+  }
+
+  /** Works out the markers, legend, rules note and postseason outline for the league and season on show. */
+  private syncPostseasonInfo() {
+    const ps = this.lg?.postseason ?? null;
+    this.qualified = new Set((ps?.teams ?? []).map(t => t.id));
+    this.champs = new Set((ps?.champions ?? []).map(t => t.id));
+    this.cut = this.profile ? qualifyingCut(this.league.id, this.season) : null;
+    this.rules = this.profile ? formatRules(this.league.id, this.season) : null;
+    this.outline = ps ? describePostseason(ps) : [];
+
+    const legend: Array<{ badge: string; text: string; kind: 'champ' | 'po' | 'cut' }> = [];
+    if (this.champs.size) legend.push({ badge: 'CHAMP', kind: 'champ', text: 'won its postseason bracket' });
+    if (this.qualified.size) legend.push({ badge: 'PO', kind: 'po', text: 'played in the postseason' });
+    if (this.cut) legend.push({ badge: this.cut.badge, kind: 'cut', text: this.cut.legend });
+    this.legend = legend;
+  }
+
+  /** True when the row's club is in a Climax Series-style place by record (rank within the cut). */
+  inCut(rank: number): boolean {
+    return !!this.cut && rank > 0 && rank <= this.cut.spots;
   }
 
   setLgTab(tab: LgTab) {
@@ -269,6 +302,7 @@ export class StandingsComponent implements OnInit, OnDestroy {
       this.leagues.postseason(p, season, b.leagueIds).subscribe(view => {
         if (season !== this.season || this.lg !== b || !view) { if (this.lg === b) this.scheduleLeagueRefresh(); return; }
         this.lg = { ...b, postseason: view };
+        this.syncPostseasonInfo();
         this.refreshLgTabs();
         this.scheduleLeagueRefresh();
       });
@@ -282,6 +316,13 @@ export class StandingsComponent implements OnInit, OnDestroy {
   /** Stable per-team colour for the initials badge (these clubs' logos aren't on the MLB CDN). */
   badgeColor(teamId: number): string {
     return `hsl(${((teamId ?? 0) * 47) % 360}, 48%, 34%)`;
+  }
+
+  /** "Oct 8, 2026" for a YYYY-MM-DD date (read as a calendar date, not shifted by the viewer's time zone). */
+  throughLabel(iso: string): string {
+    const [y, m, d] = iso.split('-').map(Number);
+    if (!y || !m || !d) return iso;
+    return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
   }
 
   lgTeamCount(v: LgStandingsView): number {

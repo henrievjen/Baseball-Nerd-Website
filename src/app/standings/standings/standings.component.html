@@ -272,6 +272,13 @@
   </div>
   <!-- ═════════ Every other league: drawn from whatever its feed provides ═════════ -->
   <ng-container *ngIf="!isMlb">
+    <!-- Not-live / incomplete-data notice (NPB) — always on screen for that league -->
+    <div class="lg-note" role="note" *ngIf="league.note">
+      <strong class="lg-note__label">{{ league.short }} · Not real-time</strong>
+      <span>{{ league.note }} {{ league.standingsNote }}</span>
+      <span class="lg-note__through" *ngIf="lg?.through && !lgLoading">Standings include results through {{ throughLabel(lg!.through!) }}.</span>
+    </div>
+
     <div *ngIf="lgLoading" class="spinner-wrap">
       <div class="spinner"></div>
       <span>Loading {{ league.short }} {{ seasonText(season) }}…</span>
@@ -294,15 +301,23 @@
         <div class="wc-format">
           <p class="wc-format__headline">{{ league.name }} · {{ seasonText(season) }}</p>
           <p class="wc-format__note">{{ league.region }}.
-            <ng-container *ngIf="lgTab === 'POST'">Series are built from the league's postseason games; a series is decided once a team reaches a majority of its games.</ng-container>
+            <ng-container *ngIf="lgTab === 'POST'">Built from the league's postseason games; a series is decided once a team reaches a majority of its games.</ng-container>
             <ng-container *ngIf="lgTab !== 'POST'">
               <ng-container *ngIf="lgView as v">
                 <ng-container *ngIf="v.blocks.length">
-                  {{ lgTeamCount(v) }} teams<ng-container *ngIf="v.hasDivisions"> in divisions</ng-container><ng-container *ngIf="!v.hasDivisions"> in a single table</ng-container>, ranked by winning percentage.
+                  {{ lgTeamCount(v) }} teams<ng-container *ngIf="v.hasDivisions"> in divisions</ng-container><ng-container *ngIf="!v.hasDivisions"> in {{ v.blocks.length > 1 ? v.blocks.length + ' league tables' : 'a single table' }}</ng-container>, ranked by winning percentage<ng-container *ngIf="v.showTies"> (ties are not counted)</ng-container>.
                 </ng-container>
               </ng-container>
               <ng-container *ngIf="lg.periods.length > 1"> The season was split into two halves — switch below.</ng-container>
             </ng-container>
+          </p>
+          <ul class="lg-outline" *ngIf="lgTab === 'POST' && outline.length">
+            <li *ngFor="let line of outline">{{ line }}</li>
+          </ul>
+          <p class="wc-format__note lg-rules" *ngIf="rules">
+            <strong>{{ rules.exact ? rules.confirmedFor + ' format' : 'Last confirmed format (' + rules.confirmedFor + ')' }}.</strong>
+            {{ rules.text }}
+            <ng-container *ngIf="!rules.exact"> Other seasons may have used a different format.</ng-container>
           </p>
         </div>
 
@@ -316,7 +331,7 @@
             <h2 class="league-header">{{ b.name }}</h2>
             <div class="divisions-grid divisions-grid--single">
               <div class="division-section">
-                <ng-container *ngTemplateOutlet="lgRows; context: { $implicit: b.table, leader: true }"></ng-container>
+                <ng-container *ngTemplateOutlet="lgRows; context: { $implicit: b.table, leader: true, ties: v.showTies }"></ng-container>
               </div>
             </div>
           </div>
@@ -333,11 +348,17 @@
             <div class="divisions-grid" *ngIf="b.divisions.length">
               <div *ngFor="let d of b.divisions" class="division-section">
                 <h2 class="div-title">{{ d.short }}</h2>
-                <ng-container *ngTemplateOutlet="lgRows; context: { $implicit: d.rows, leader: true }"></ng-container>
+                <ng-container *ngTemplateOutlet="lgRows; context: { $implicit: d.rows, leader: true, ties: v.showTies }"></ng-container>
               </div>
             </div>
           </div>
         </div>
+
+        <p class="lg-legend" *ngIf="legend.length && (lgTab === 'TABLE' || lgTab === 'DIV')">
+          <span class="lg-legend__item" *ngFor="let l of legend">
+            <span class="wc-badge" [class.wc-badge--ru]="l.kind === 'po'">{{ l.badge }}</span> {{ l.text }}
+          </span>
+        </p>
 
         <!-- Postseason -->
         <div *ngIf="lgTab === 'POST' && lg.postseason" class="bracket-tab">
@@ -347,18 +368,22 @@
     </ng-container>
   </ng-container>
 
-  <ng-template #lgRows let-rows let-leader="leader">
-    <table class="st-table">
-      <thead><tr><th class="th-team">Team</th><th>W</th><th>L</th><th>PCT</th><th>GB</th></tr></thead>
+  <ng-template #lgRows let-rows let-leader="leader" let-ties="ties">
+    <table class="st-table" [class.st-table--ties]="ties">
+      <thead><tr><th class="th-team">Team</th><th>W</th><th>L</th><th *ngIf="ties" title="Tied (drawn) games">T</th><th>PCT</th><th>GB</th></tr></thead>
       <tbody>
-      <tr *ngFor="let t of rows; trackBy: trackByTeam" [class.leader-row]="leader && t.rank === 1">
+      <tr *ngFor="let t of rows; trackBy: trackByTeam" [class.leader-row]="leader && t.rank === 1" [class.wc-cut-row]="cut && t.rank === cut.spots + 1">
         <td class="td-team">
           <span class="rank-num">{{ t.rank }}</span>
           <span class="st-badge" [style.background]="badgeColor(t.teamId)" aria-hidden="true">{{ t.abbr }}</span>
           <span class="team-name-text">{{ t.teamName }}</span>
+          <span *ngIf="champs.has(t.teamId)" class="wc-badge" title="Won its postseason bracket">CHAMP</span>
+          <span *ngIf="!champs.has(t.teamId) && qualified.has(t.teamId)" class="wc-badge wc-badge--ru" title="Played in the postseason">PO</span>
+          <span *ngIf="cut && inCut(t.rank)" class="wc-badge" [title]="cut.title">{{ cut.badge }}</span>
         </td>
         <td class="num-cell">{{ t.wins }}</td>
         <td class="num-cell">{{ t.losses }}</td>
+        <td class="num-cell" *ngIf="ties">{{ t.ties ?? 0 }}</td>
         <td class="num-cell pct-cell">{{ t.pct }}</td>
         <td class="num-cell gb-cell" [class.gb-leader]="t.gb === '—'">{{ t.gb }}</td>
       </tr>
