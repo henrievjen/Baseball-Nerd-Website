@@ -63,8 +63,8 @@ export const LEAGUES: LeagueDef[] = [
 
   { id: 'npb',   name: 'Nippon Professional Baseball',             short: 'NPB',   region: 'Japan',              group: 'asia',        provider: 'npb-data',  sportId: 31,
     onScores: false,
-    note: 'NPB data is not real-time and not fully complete. It comes from a community-maintained data set that is refreshed only a few times a day, so results can arrive hours late and a game can be missing. Regular-season games only — no Climax Series or Japan Series.',
-    standingsNote: 'Tables are worked out from the games in that data set, so a missing game means a missing win or loss.' },
+    note: 'NPB data is not real-time and not fully complete. It comes from a community-maintained data set that is refreshed only a few times a day, so results can arrive hours late and a game can be missing.',
+    standingsNote: 'Tables are worked out from the regular-season games in that data set, so a missing game means a missing win or loss. The data set has no playoff games: Climax Series and Japan Series results on the Postseason tab are entered by hand and may lag.' },
 
   { id: 'afl',   name: 'Arizona Fall League',                      short: 'AFL',   region: 'United States',      group: 'fall-winter', provider: 'mlb-stats', sportId: 17, leagueIds: [119] },
   { id: 'lidom', name: 'Liga de Béisbol Dominicano',               short: 'LIDOM', region: 'Dominican Republic', group: 'fall-winter', provider: 'mlb-stats', sportId: 17, leagueIds: [131] },

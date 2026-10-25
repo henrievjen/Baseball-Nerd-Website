@@ -19,10 +19,11 @@ export interface FormatRule {
 
 const RULES: Record<string, FormatRule[]> = {
   npb: [{
-    season: 2025,
-    text: 'The top three teams in each league (Central and Pacific) qualify for the Climax Series. Stage 1: 2nd vs 3rd, best of 3. ' +
-          'Final Stage: the league champion vs the Stage 1 winner, best of 6, with the league champion starting one win ahead. ' +
-          'The two Final Stage winners meet in the Japan Series, best of 7. This data set holds regular-season games only, so the Climax Series and Japan Series are not shown.'
+    season: 2026,
+    text: 'The top three teams in each league (Central and Pacific) qualify for the Climax Series. First Stage: 2nd vs 3rd, best of 3, every game at the higher seed. ' +
+          'Final Stage: the league champion vs the First Stage winner, every game at the champion\'s park. The champion starts one win ahead and the first to four wins advances (best of 7 counting the advantage). ' +
+          'New in 2026: if the champion finished 10 or more games ahead of that opponent, or the opponent had a losing record, it starts two wins ahead and the first to five wins advances (best of 9). ' +
+          'The two Final Stage winners meet in the Japan Series, best of 7.'
   }],
   afl: [{
     season: 2025,

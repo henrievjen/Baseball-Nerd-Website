@@ -32,6 +32,8 @@ export interface PsSeries {
   start: string;
   /** The games finished level (a split two-game round) and the winner is the team that went on to play in a later round. */
   advanced?: boolean;
+  /** Wins a team starts the series with (NPB's Climax Series Final Stage: the league champion's advantage). Already included in `score`. */
+  headStart?: [number, number];
 }
 
 export interface PsRound { name: string; series: PsSeries[] }
@@ -43,7 +45,11 @@ export interface PsBracket {
   champion: PsTeam | null;
 }
 
-export interface PsRobinRow { team: PsTeam; wins: number; losses: number; pct: string; gb: string; rank: number }
+export interface PsRobinRow {
+  team: PsTeam; wins: number; losses: number; pct: string; gb: string; rank: number;
+  /** The club went on to play in a later knockout round. */
+  advances?: boolean;
+}
 
 export interface PsRobin {
   name: string;
@@ -85,6 +91,8 @@ interface G {
   home: PsTeam; away: PsTeam;
   homeRuns: number; awayRuns: number;
   winner: 'home' | 'away' | null;
+  /** "Pool C" — the feed's own pool name on pool-play games (the WBC), or '' when it gives none. */
+  pool: string;
 }
 
 const STATE_RANK = { Preview: 0, Live: 1, Final: 2 } as const;
@@ -96,6 +104,12 @@ function teamOf(side: any): PsTeam | null {
   const words = name.split(/\s+/).filter(Boolean);
   const abbr = String(t.abbreviation ?? (words.length > 1 ? words.map(w => w[0]).join('') : name)).slice(0, 4).toUpperCase();
   return { id: t.id, name, abbr };
+}
+
+/** "Pool C" → "Pool C"; anything else (no description, "Game 7") → ''. */
+function poolName(description: unknown): string {
+  const m = /^pool\s+([A-Za-z0-9]+)$/i.exec(String(description ?? '').trim());
+  return m ? `Pool ${m[1].toUpperCase()}` : '';
 }
 
 function parseGames(raw: any[]): G[] {
@@ -123,7 +137,8 @@ function parseGames(raw: any[]): G[] {
       type,
       desc: String(g.seriesDescription || GAME_TYPE_NAME[type] || 'Postseason'),
       inSeries: Number(g.gamesInSeries) || 0,
-      state, home, away, homeRuns, awayRuns, winner
+      state, home, away, homeRuns, awayRuns, winner,
+      pool: poolName(g.description)
     };
     // a resumed or rescheduled game can appear twice — keep the most advanced copy
     const prev = byPk.get(parsed.pk);
@@ -139,6 +154,15 @@ function joinNames(a: string, b: string): string {
   while (k < wa.length && k < wb.length && wa[wa.length - 1 - k] === wb[wb.length - 1 - k]) k++;
   if (k === 0 || k >= Math.min(wa.length, wb.length)) return `${a} / ${b}`;
   return `${wa.slice(0, wa.length - k).join(' ')} / ${wb.slice(0, wb.length - k).join(' ')} ${wa.slice(wa.length - k).join(' ')}`;
+}
+
+/** The most frequent non-empty value (ties → the first seen), or '' when there is none. */
+function mostCommon(values: string[]): string {
+  const counts = new Map<string, number>();
+  for (const v of values) if (v) counts.set(v, (counts.get(v) ?? 0) + 1);
+  let best = '', n = 0;
+  for (const [v, c] of counts) if (c > n) { best = v; n = c; }
+  return best;
 }
 
 const pairKey = (a: number, b: number) => (a < b ? `${a}-${b}` : `${b}-${a}`);
@@ -258,13 +282,19 @@ export function buildLeaguePostseason(rawGames: any[] | null | undefined): PsVie
 
     if (isRobin) {
       const pools = components(gs.map(g => [g.home.id, g.away.id] as [number, number]));
-      pools
-        .map(ids => gs.filter(g => ids.includes(g.home.id)))
-        .sort((a, b) => b.length - a.length || a[0].home.name.localeCompare(b[0].home.name))
-        .forEach((pg, i) => {
-          const robin = makeRobin(desc, pools.length > 1 ? `Pool ${String.fromCharCode(65 + i)}` : null, pg);
-          robins.push({ rank: Math.min(...pg.map(g => TYPE_RANK[g.type] ?? 2)), date: minStr(pg.map(g => g.date)), robin });
-        });
+      // The feed names the pools on the games themselves ("Pool C"): use those, because a made-up letter
+      // would disagree with the tournament's own. Without names, fall back to letters in order of size.
+      const groups = pools.map(ids => gs.filter(g => ids.includes(g.home.id)));
+      const named = groups.map(pg => mostCommon(pg.map(g => g.pool)));
+      const useNames = named.every(n => n) && new Set(named).size === named.length;
+      const order = groups.map((pg, i) => ({ pg, name: named[i] }));
+      if (useNames) order.sort((a, b) => a.name.localeCompare(b.name));
+      else order.sort((a, b) => b.pg.length - a.pg.length || a.pg[0].home.name.localeCompare(b.pg[0].home.name));
+      order.forEach(({ pg, name }, i) => {
+        const label = pools.length > 1 ? (useNames ? name : `Pool ${String.fromCharCode(65 + i)}`) : (name || null);
+        const robin = makeRobin(desc, label, pg);
+        robins.push({ rank: Math.min(...pg.map(g => TYPE_RANK[g.type] ?? 2)), date: minStr(pg.map(g => g.date)), robin });
+      });
     } else {
       const pairs = new Map<string, G[]>();
       for (const g of gs) pairs.set(pairKey(g.home.id, g.away.id), [...(pairs.get(pairKey(g.home.id, g.away.id)) ?? []), g]);
@@ -359,6 +389,15 @@ export function buildLeaguePostseason(rawGames: any[] | null | undefined): PsVie
   const pending =
     brackets.some(b => b.rounds.some(r => r.series.some(s => s.status !== 'final'))) ||
     robins.some(r => r.robin.finished < r.robin.games);
+
+  // In a round robin or pool, mark the clubs that then played in a later knockout series.
+  for (const r of robins) {
+    const onward = new Set<number>();
+    for (const b of brackets) for (const rd of b.rounds) for (const s of rd.series) {
+      if (s.start >= r.robin.start) s.teams.forEach(t => onward.add(t.id));
+    }
+    r.robin.rows.forEach(row => { if (onward.has(row.team.id)) row.advances = true; });
+  }
 
   const teamsById = new Map<number, PsTeam>();
   for (const g of games) { teamsById.set(g.home.id, g.home); teamsById.set(g.away.id, g.away); }

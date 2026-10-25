@@ -102,8 +102,8 @@ describe('NPB tables', () => {
 });
 
 describe('buildNpbBundle', () => {
-  it('has the latest finished game date and no postseason or halves', () => {
-    const b = buildNpbBundle(2026, [
+  it('has the latest finished game date and, for a season with no postseason entered, no postseason or halves', () => {
+    const b = buildNpbBundle(2024, [
       g(CL(1), CL(2), 1, 0, { officialDate: '2026-05-01' }),
       g(CL(1), CL(2), 0, 3, { officialDate: '2026-09-30' }),
       g(CL(1), CL(2), null, null, { officialDate: '2026-10-20' })
@@ -111,6 +111,7 @@ describe('buildNpbBundle', () => {
     expect(b.through).toBe('2026-09-30');
     expect(b.periods).toEqual(['full']);
     expect(b.postseason!.games).toBe(0);
+    expect(b.postseasonSource).toBeUndefined();
     expect(latestResultDate([])).toBeNull();
   });
 });

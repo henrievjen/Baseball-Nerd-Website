@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
-import { PsBracket, PsSeries, PsTeam, PsView } from './league-postseason-model';
+import { PsBracket, PsRobin, PsSeries, PsTeam, PsView } from './league-postseason-model';
 
 /**
  * Postseason board for the non-MLB leagues: round-robin tables first, then one
@@ -22,9 +22,16 @@ export class SeriesBracketComponent {
 
   format(s: PsSeries): string {
     const kind = s.bestOf <= 1 ? 'Single game' : `Best of ${s.bestOf}`;
-    if (s.advanced) return `${kind} · Split ${s.score[0]}–${s.score[1]} · advanced`;
-    return s.status === 'final' ? `${kind} · Final` : s.status === 'live' ? `${kind} · In progress` : `${kind} · Upcoming`;
+    // a head start (NPB's pennant winner) is part of the score, so say so: "HAN +1 win"
+    const ahead = (s.headStart ?? [0, 0])
+      .map((n, i) => (n > 0 ? `${s.teams[i].abbr} +${n} win${n > 1 ? 's' : ''}` : ''))
+      .filter(Boolean).join(', ');
+    const head = ahead ? `${kind} · ${ahead}` : kind;
+    if (s.advanced) return `${head} · Split ${s.score[0]}–${s.score[1]} · advanced`;
+    return s.status === 'final' ? `${head} · Final` : s.status === 'live' ? `${head} · In progress` : `${head} · Upcoming`;
   }
+
+  hasAdvancers(r: PsRobin): boolean { return r.rows.some(x => x.advances); }
 
   trackSeries(_: number, s: PsSeries) { return s.key; }
   trackBracket(i: number, b: PsBracket) { return b.title ?? i; }

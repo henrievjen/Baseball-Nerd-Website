@@ -36,6 +36,12 @@
 .ps-pct { font-weight: 600; color: var(--text); }
 .ps-rank { width: 14px; font-size: 0.72rem; color: var(--text3); text-align: center; }
 .ps-lead td { background: rgba(255, 215, 0, 0.04); }
+.ps-adv {
+  flex: 0 0 auto;
+  padding: 1px 5px; border-radius: 3px;
+  background: var(--surface2, var(--bg3)); color: var(--text2); border: 1px solid var(--border);
+  font-size: 0.58rem; font-weight: 700; letter-spacing: 0.5px;
+}
 
 .ps-badge {
   flex: 0 0 auto;

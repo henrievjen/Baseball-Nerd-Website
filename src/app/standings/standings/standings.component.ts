@@ -259,22 +259,25 @@ export class StandingsComponent implements OnInit, OnDestroy {
   /** Works out the markers, legend, rules note and postseason outline for the league and season on show. */
   private syncPostseasonInfo() {
     const ps = this.lg?.postseason ?? null;
-    this.qualified = new Set((ps?.teams ?? []).map(t => t.id));
-    this.champs = new Set((ps?.champions ?? []).map(t => t.id));
+    // a projection hasn't been played: it marks nobody and has no outline of its own
+    const projected = this.lg?.postseasonSource?.kind === 'projected';
+    this.qualified = new Set(projected ? [] : (ps?.teams ?? []).map(t => t.id));
+    this.champs = new Set(projected ? [] : (ps?.champions ?? []).map(t => t.id));
     this.cut = this.profile ? qualifyingCut(this.league.id, this.season) : null;
     this.rules = this.profile ? formatRules(this.league.id, this.season) : null;
-    this.outline = ps ? describePostseason(ps) : [];
+    this.outline = ps && !projected ? describePostseason(ps) : [];
 
     const legend: Array<{ badge: string; text: string; kind: 'champ' | 'po' | 'cut' }> = [];
     if (this.champs.size) legend.push({ badge: 'CHAMP', kind: 'champ', text: 'won its postseason bracket' });
     if (this.qualified.size) legend.push({ badge: 'PO', kind: 'po', text: 'played in the postseason' });
-    if (this.cut) legend.push({ badge: this.cut.badge, kind: 'cut', text: this.cut.legend });
+    // once the postseason has been played, PO already says who qualified — the cut badge would only repeat it
+    if (this.cut && !this.qualified.size) legend.push({ badge: this.cut.badge, kind: 'cut', text: this.cut.legend });
     this.legend = legend;
   }
 
-  /** True when the row's club is in a Climax Series-style place by record (rank within the cut). */
-  inCut(rank: number): boolean {
-    return !!this.cut && rank > 0 && rank <= this.cut.spots;
+  /** True when the row's club is in a Climax Series-style place by record (rank within the cut) and hasn't yet been marked PO/CHAMP. */
+  inCut(rank: number, teamId: number): boolean {
+    return !!this.cut && rank > 0 && rank <= this.cut.spots && !this.qualified.has(teamId);
   }
 
   setLgTab(tab: LgTab) {
@@ -296,6 +299,7 @@ export class StandingsComponent implements OnInit, OnDestroy {
     const p = this.profile;
     const b = this.lg;
     if (typeof window === 'undefined' || !p || !b || this.lgTab !== 'POST' || !b.postseason?.pending) return;
+    if (b.postseasonSource) return;      // entered by hand or projected: there is no feed to poll
     if (this.season < latestSeason(p, new Date())) return;
     const season = this.season;
     this.lgTimer = setTimeout(() => {

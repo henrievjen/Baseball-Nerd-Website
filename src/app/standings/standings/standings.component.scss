@@ -7,7 +7,9 @@
 .page-header {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 28px; flex-wrap: wrap; gap: 14px;
-  padding-right: 210px;
+  /* clear of the floating Support button and theme toggle (about 265px from the window edge) — pages with no tab bar
+     put the League and Season pickers on the title row, where 210px let the button cover the Season picker */
+  padding-right: 290px;
 
   @media (max-width: 768px) {
     padding-right: 110px;
@@ -421,6 +423,10 @@
   color: var(--text3);
 }
 .lg-legend__item { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Other leagues' postseason boards are wide too, but their header keeps its full width: with no tab bar the
+   League and Season pickers sit at the right edge, where the floating Support button would cover them. */
+.standings-page--wide-lg { max-width: 1400px; }
 
 /* Initials badge — logos for non-MLB clubs aren't on the MLB CDN. */
 .st-badge {

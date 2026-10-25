@@ -2,6 +2,7 @@
   <section class="ps-robin" *ngFor="let r of view.robins">
     <h3 class="ps-heading">{{ r.name }}<span class="ps-pool" *ngIf="r.pool"> · {{ r.pool }}</span></h3>
     <p class="ps-sub" *ngIf="r.finished < r.games">{{ r.finished }} of {{ r.games }} games played</p>
+    <p class="ps-sub" *ngIf="hasAdvancers(r)">ADV — went on to play in a later round</p>
     <table class="ps-table">
       <thead><tr><th class="ps-th-team">Team</th><th>W</th><th>L</th><th>PCT</th><th>GB</th></tr></thead>
       <tbody>
@@ -10,6 +11,7 @@
             <span class="ps-rank">{{ t.rank }}</span>
             <span class="ps-badge" [style.background]="badgeColor(t.team)" aria-hidden="true">{{ t.team.abbr }}</span>
             <span class="ps-name">{{ t.team.name }}</span>
+            <span class="ps-adv" *ngIf="t.advances" title="Played in a later round">ADV</span>
           </td>
           <td class="ps-num">{{ t.wins }}</td>
           <td class="ps-num">{{ t.losses }}</td>

@@ -4,10 +4,11 @@ import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { MlbApiService } from '../../shared/mlb-api.service';
 import { NpbDataService } from '../../shared/npb-data.service';
 import { NpbRawGame } from '../../shared/npb-data';
-import { LeagueProfile } from './league-profile';
+import { LeagueProfile, latestSeason } from './league-profile';
 import { LgStandingsView, buildLgStandings } from './league-standings-model';
 import { PsView, buildLeaguePostseason } from './league-postseason-model';
 import { buildNpbRecords, latestResultDate } from './npb-standings';
+import { npbPostseason } from './npb-postseason';
 
 /** Which slice of a split season is shown. */
 export type Period = 'full' | 'first' | 'second';
@@ -22,6 +23,11 @@ export interface LeagueBundle {
   postseason: PsView | null;
   /** Date (YYYY-MM-DD) of the newest result the tables include — set for sources that aren't live (NPB). */
   through?: string;
+  /**
+   * Where a postseason that did not come from a live feed comes from: results entered by hand (with the date they
+   * were last entered) or a projection from the standings. Unset when the postseason is built from the feed's games.
+   */
+  postseasonSource?: { kind: 'bundled' | 'projected'; updated?: string };
 }
 
 export interface RawLeagueData {
@@ -61,11 +67,19 @@ export function buildBundle(season: number, leagueIds: number[], raw: RawLeagueD
   };
 }
 
-/** NPB: the season's finished games → tables (no divisions, halves or postseason in that data). */
-export function buildNpbBundle(season: number, games: readonly NpbRawGame[]): LeagueBundle {
+/**
+ * NPB: the season's finished games → tables (no divisions or halves in that data). The data set has no postseason,
+ * so that comes from the bundled Climax Series / Japan Series results, or — for the season in progress — a projection.
+ */
+export function buildNpbBundle(season: number, games: readonly NpbRawGame[], current = false): LeagueBundle {
   const bundle = buildBundle(season, [], { full: { records: buildNpbRecords(games) }, postseason: [] });
   const through = latestResultDate(games);
-  return through ? { ...bundle, through } : bundle;
+  const ps = npbPostseason(season, bundle.views.full, current);
+  return {
+    ...bundle,
+    ...(through ? { through } : {}),
+    ...(ps ? { postseason: ps.view, postseasonSource: ps.source } : {})
+  };
 }
 
 /** Data for the non-MLB leagues on the Standings page. */
@@ -89,7 +103,8 @@ export class LeagueStandingsService {
 
   load(p: LeagueProfile, season: number): Observable<LeagueBundle> {
     if (p.def.provider === 'npb-data') {
-      return this.npb.getSeason(season).pipe(map(s => buildNpbBundle(season, s.games)));
+      const current = season >= latestSeason(p, new Date());
+      return this.npb.getSeason(season).pipe(map(s => buildNpbBundle(season, s.games, current)));
     }
     return this.leagueIds(p, season).pipe(
       switchMap(ids => {
@@ -110,6 +125,7 @@ export class LeagueStandingsService {
 
   /** Re-fetches just the postseason (used to keep an unfinished one fresh). */
   postseason(p: LeagueProfile, season: number, ids: number[]): Observable<PsView | null> {
+    if (p.def.provider === 'npb-data') return of(null);     // nothing to refresh: NPB's postseason isn't a live feed
     return this.api.getLeaguePostseasonGames(p.sportId, ids, season).pipe(
       map(res => buildLeaguePostseason(gamesOf(res))),
       catchError(() => of(null))

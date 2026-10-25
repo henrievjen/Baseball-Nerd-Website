@@ -319,4 +319,44 @@ describe('buildLeaguePostseason — qualifiers, champions and format edge cases'
     expect(v.robins.every(r => r.rows.length === 3)).toBeTrue();
     expect(v.teams.length).toBe(9);
   });
+
+  it('names pools by the feed\'s own labels ("Pool C"), not by made-up letters', () => {
+    const pool = (label: string, ids: number[], date: string) => {
+      const out: any[] = [];
+      for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++)
+        out.push({ ...game('World Baseball Classic Pool Play', 'F', 10, ids[i], ids[j], [4, 1], { date }), description: label });
+      return out;
+    };
+    // the bigger pool is "Pool D" and is listed first in the feed — letters by size would call it "Pool A"
+    const v = buildLeaguePostseason([...pool('Pool D', [1, 2, 3, 4, 5], '2026-03-05'), ...pool('Pool C', [6, 7, 8, 9], '2026-03-05')]);
+    expect(v.robins.map(r => r.pool)).toEqual(['Pool C', 'Pool D']);
+    expect(v.robins.map(r => r.rows.length)).toEqual([4, 5]);
+  });
+
+  it('falls back to letters when only some pools are labelled', () => {
+    const robin = (ids: number[], label?: string) => {
+      const out: any[] = [];
+      for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++)
+        out.push({ ...game('Pool Play', 'F', 6, ids[i], ids[j], [4, 1], { date: '2026-03-05' }), ...(label ? { description: label } : {}) });
+      return out;
+    };
+    const v = buildLeaguePostseason([...robin([1, 2, 3, 4], 'Pool C'), ...robin([5, 6, 7])]);
+    expect(v.robins.map(r => r.pool)).toEqual(['Pool A', 'Pool B']);
+  });
+
+  it('marks the pool clubs that went on to play a knockout round', () => {
+    const robin: any[] = [];
+    for (const [a, b] of [[1, 2], [1, 3], [2, 3]]) robin.push(game('Round Robin', 'P', 6, a, b, [3, 2], { date: '2026-03-05' }));
+    const v = buildLeaguePostseason([
+      ...robin,
+      game('Semifinals', 'L', 1, 1, 9, [2, 1], { date: '2026-03-10' }),
+      game('Semifinals', 'L', 1, 2, 8, [2, 1], { date: '2026-03-10' })
+    ]);
+    expect(v.robins[0].rows.map(r => `${r.team.id}:${!!r.advances}`).sort()).toEqual(['1:true', '2:true', '3:false']);
+  });
+
+  it('a round robin followed by nothing marks nobody', () => {
+    const v = buildLeaguePostseason([game('Round Robin', 'P', 6, 1, 2, [3, 2]), game('Round Robin', 'P', 6, 1, 3, [3, 2]), game('Round Robin', 'P', 6, 2, 3, [3, 2])]);
+    expect(v.robins[0].rows.some(r => r.advances)).toBeFalse();
+  });
 });

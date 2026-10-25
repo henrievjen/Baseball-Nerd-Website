@@ -137,14 +137,24 @@ describe('LeagueStandingsService.load for NPB', () => {
   it('builds tables from the NPB data set without touching the MLB Stats API', done => {
     const api: any = new Proxy({}, { get: () => () => { throw new Error('MLB API must not be called for NPB'); } });
     const games = [game('1', 1, 2, 5, 3), game('2', 1, 2, 2, 2, 'Final', '2026-05-02')];
-    new LeagueStandingsService(api, npbStub(games)).load(leagueProfile('npb')!, 2026).subscribe(b => {
-      expect(b.season).toBe(2026);
+    new LeagueStandingsService(api, npbStub(games)).load(leagueProfile('npb')!, 2024).subscribe(b => {
+      expect(b.season).toBe(2024);
       expect(b.periods).toEqual(['full']);
       expect(b.views.full!.showTies).toBeTrue();
       expect(b.views.full!.blocks[0].table.map(r => [r.teamName, r.wins, r.losses, r.ties])).toEqual([['Team 1', 1, 0, 1], ['Team 2', 0, 1, 1]]);
       expect(b.postseason!.games).toBe(0);
       expect(b.through).toBe('2026-05-02');
       done();
+    });
+  });
+
+  it('2026: the postseason is the bundled Climax Series / Japan Series, with its last-updated date — and never polls the MLB API', done => {
+    const api: any = new Proxy({}, { get: () => () => { throw new Error('MLB API must not be called for NPB'); } });
+    const svc = new LeagueStandingsService(api, npbStub([game('1', 1, 2, 5, 3)]));
+    svc.load(leagueProfile('npb')!, 2026).subscribe(b => {
+      expect(b.postseasonSource).toEqual({ kind: 'bundled', updated: '2026-10-22' });
+      expect(b.postseason!.brackets.map(x => x.title)).toEqual(['Central League Climax Series', 'Pacific League Climax Series', 'Japan Series']);
+      svc.postseason(leagueProfile('npb')!, 2026, []).subscribe(v => { expect(v).toBeNull(); done(); });
     });
   });
 

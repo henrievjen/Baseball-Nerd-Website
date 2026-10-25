@@ -1,4 +1,4 @@
-﻿<div class="standings-page page-enter" [class.standings-page--wide]="isMlb ? activeTab === 'BRACKET' : lgTab === 'POST'">
+﻿<div class="standings-page page-enter" [class.standings-page--wide]="isMlb && activeTab === 'BRACKET'" [class.standings-page--wide-lg]="!isMlb && lgTab === 'POST'">
   <header class="page-header">
     <h1 class="page-title">STANDINGS</h1>
     <div class="standings-controls">
@@ -294,14 +294,17 @@
       <div *ngIf="!lgTabs.length" class="wc-none wc-none--page">
         <span class="wc-none__icon" aria-hidden="true">∅</span>
         <strong>No {{ league.short }} standings for {{ seasonText(season) }}</strong>
-        <span>This league has no standings for that season. Pick another season above.</span>
+        <span *ngIf="league.id !== 'intl'">This league has no standings for that season. Pick another season above.</span>
+        <span *ngIf="league.id === 'intl'">No international tournament in this feed for that season. The World Baseball Classic is there for 2026 and 2023 — pick one of those above.</span>
       </div>
 
       <ng-container *ngIf="lgTabs.length">
         <div class="wc-format">
           <p class="wc-format__headline">{{ league.name }} · {{ seasonText(season) }}</p>
           <p class="wc-format__note">{{ league.region }}.
-            <ng-container *ngIf="lgTab === 'POST'">Built from the league's postseason games; a series is decided once a team reaches a majority of its games.</ng-container>
+            <ng-container *ngIf="lgTab === 'POST' && !lg.postseasonSource">Built from the league's postseason games; a series is decided once a team reaches a majority of its games.</ng-container>
+            <ng-container *ngIf="lgTab === 'POST' && lg.postseasonSource?.kind === 'bundled'">Climax Series and Japan Series results are entered by hand — the data behind these standings has no playoff games, so this is not live<ng-container *ngIf="lg.postseasonSource?.updated"> (last updated {{ throughLabel(lg.postseasonSource!.updated!) }})</ng-container>. A series is decided when a club's wins, plus any head start, reach a majority.</ng-container>
+            <ng-container *ngIf="lgTab === 'POST' && lg.postseasonSource?.kind === 'projected'">Projected from the standings so far — the top three in each league. Real Climax Series matchups and results are not available for this season yet. The Final Stage head start is one win; it is two when the champion finishes 10 or more games clear of its opponent.</ng-container>
             <ng-container *ngIf="lgTab !== 'POST'">
               <ng-container *ngIf="lgView as v">
                 <ng-container *ngIf="v.blocks.length">
@@ -379,7 +382,7 @@
           <span class="team-name-text">{{ t.teamName }}</span>
           <span *ngIf="champs.has(t.teamId)" class="wc-badge" title="Won its postseason bracket">CHAMP</span>
           <span *ngIf="!champs.has(t.teamId) && qualified.has(t.teamId)" class="wc-badge wc-badge--ru" title="Played in the postseason">PO</span>
-          <span *ngIf="cut && inCut(t.rank)" class="wc-badge" [title]="cut.title">{{ cut.badge }}</span>
+          <span *ngIf="cut && inCut(t.rank, t.teamId)" class="wc-badge" [title]="cut.title">{{ cut.badge }}</span>
         </td>
         <td class="num-cell">{{ t.wins }}</td>
         <td class="num-cell">{{ t.losses }}</td>
